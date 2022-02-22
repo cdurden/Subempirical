@@ -1,0 +1,52 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	//
+AnonymousFunction953e43290100	virginia.js	/^document.addEventListener("DOMContentLoaded", function () {$/;"	f
+AnonymousFunction953e43290200	virginia.js	/^    import(moduleUrl).then(function (module) {$/;"	f
+AnonymousFunctionece968d40100	atoms.js	/^    const structure = lines.map(function (line) {$/;"	f	function:parseXYZ
+AnonymousFunctionece968d40200	atoms.js	/^        function (box, atom) {$/;"	f	function:getBoundingRectXY
+AnonymousFunctionece968d40300	atoms.js	/^ns.forEach(function (n) {$/;"	f
+AnonymousFunctionece968d40400	atoms.js	/^    ls.forEach(function (l) {$/;"	f
+AnonymousFunctionece968d40500	atoms.js	/^        ms.forEach(function (m) {$/;"	f
+AnonymousFunctionece968d40600	atoms.js	/^electronStates.sort(function (a, b) {$/;"	f
+AnonymousFunctionece968d40700	atoms.js	/^electronStates.forEach(function (state, index) {$/;"	f
+AnonymousFunctionece968d40800	atoms.js	/^    elmts.forEach(function (elmt, i) {$/;"	f
+AnonymousFunctionece968d40900	atoms.js	/^    return electrons.filter(function (state) {$/;"	f
+AnonymousFunctionece968d40a00	atoms.js	/^        ...electrons.map(function (state) {$/;"	f	function:valenceShell
+AnonymousFunctionece968d40b00	atoms.js	/^        ...electrons.map(function (state) {$/;"	f	function:isFullShell
+AnonymousFunctionece968d40c00	atoms.js	/^    const label = group.text(function (add) {$/;"	f	function:drawElementBox
+AnonymousFunctionece968d40d00	atoms.js	/^        add.tspan(function (addMore) {$/;"	f
+AnonymousFunctionece968d40e00	atoms.js	/^    shell.forEach(function (state, i) {$/;"	f
+AnonymousFunctionece968d40f00	atoms.js	/^        BrutusinForms.addDecorator(function (element, schema) {$/;"	f
+AnonymousFunctionece968d41000	atoms.js	/^                submitButton.addEventListener("click", function () {$/;"	f
+AnonymousFunctionece968d41100	atoms.js	/^                        .then(function (response) {$/;"	f
+AnonymousFunctionece968d41200	atoms.js	/^    xyzData.structure.forEach(function (atom) {$/;"	f
+AnonymousFunctionece968d41300	atoms.js	/^            ondrop: function (event) {$/;"	f
+AnonymousFunctionece968d41400	atoms.js	/^                    ...electrons.map(function (state) {$/;"	f	function:AnonymousFunctionece968d41300
+AnonymousFunctionece968d41500	atoms.js	/^        .on("dropactivate", function (event) {$/;"	f
+dragEndListener	atoms.js	/^function dragEndListener(event) {$/;"	f
+dragMoveListener	atoms.js	/^function dragMoveListener(event) {$/;"	f
+dragStartListener	atoms.js	/^function dragStartListener(event) {$/;"	f
+drawElementBox	atoms.js	/^function drawElementBox(group, atomicSymbol, w, h) {$/;"	f
+drawLewisDotStructure	atoms.js	/^function drawLewisDotStructure(group, atomicSymbol, r, theta0 = 0) {$/;"	f
+drawShell	atoms.js	/^function drawShell(group, shell, r, theta0 = 0) {$/;"	f
+electronStates	atoms.js	/^const electronStates = [];$/;"	C
+elements	atoms.js	/^const elements = new Map([$/;"	C
+exportModel	atoms.js	/^function exportModel(model) {$/;"	f
+getBoundingRectXY	atoms.js	/^function getBoundingRectXY(xyData, scale = 1) {$/;"	f
+isFullShell	atoms.js	/^function isFullShell(electrons) {$/;"	f
+main	atoms.js	/^function main() {$/;"	f
+ns	atoms.js	/^const ns = [0, 1, 2, 3, 4, 5];$/;"	C
+oddities	README.md	/^# oddities/;"	c
+parseXYZ	atoms.js	/^function parseXYZ(data) {$/;"	f
+reviver	atoms.js	/^function reviver(key, value) {$/;"	f
+shell	atoms.js	/^function shell(electrons, n) {$/;"	f
+take	atoms.js	/^function take(n, elmts) {$/;"	f
+valenceShell	atoms.js	/^function valenceShell(electrons) {$/;"	f
+virginia-content	index.html	/^        <div id="virginia-content"><\/div>$/;"	I

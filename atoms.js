@@ -1,117 +1,160 @@
+function parseXYZ(data) {
+    const lines = data.split("\n").reverse();
+    const n = parseInt(lines.pop());
+    const comment = lines.pop();
+    const structure = lines.map(function (line) {
+        const [symbol, x, y, z] = line.split(/\s/);
+        return {
+            symbol,
+            x,
+            y,
+            z,
+        };
+    });
+    return {
+        n,
+        comment,
+        structure,
+    };
+}
+const skeletalStructure = parseXYZ(
+    `2
+
+H 1 1 0
+F 3 1 0`
+);
+function getBoundingRectXY(xyData, scale = 1) {
+    const box = xyData.structure.reduce(
+        function (box, atom) {
+            box.left = Math.min(box.left, atom.x);
+            box.right = Math.max(box.right, atom.x);
+            box.top = Math.min(box.top, atom.y);
+            box.bottom = Math.max(box.bottom, atom.y);
+            return box;
+        },
+        { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity }
+    );
+    const width = scale * (box.right - box.left);
+    const height = scale * (box.bottom - box.top);
+    const x = scale * box.left;
+    const y = scale * box.top;
+    return { x, y, width, height };
+}
+
 const elements = new Map([
-    [1, "H"],
-    [2, "He"],
-    [3, "Li"],
-    [4, "Be"],
-    [5, "B"],
-    [6, "C"],
-    [7, "N"],
-    [8, "O"],
-    [9, "F"],
-    [10, "Ne"],
-    [11, "Na"],
-    [12, "Mg"],
-    [13, "Al"],
-    [14, "Si"],
-    [15, "P"],
-    [16, "S"],
-    [17, "Cl"],
-    [18, "Ar"],
-    [19, "K"],
-    [20, "Ca"],
-    [21, "Sc"],
-    [22, "Ti"],
-    [23, "V"],
-    [24, "Cr"],
-    [25, "Mn"],
-    [26, "Fe"],
-    [27, "Co"],
-    [28, "Ni"],
-    [29, "Cu"],
-    [30, "Zn"],
-    [31, "Ga"],
-    [32, "Ge"],
-    [33, "As"],
-    [34, "Se"],
-    [35, "Br"],
-    [36, "Kr"],
-    [37, "Rb"],
-    [38, "Sr"],
-    [39, "Y"],
-    [40, "Zr"],
-    [41, "Nb"],
-    [42, "Mo"],
-    [43, "Tc"],
-    [44, "Ru"],
-    [45, "Rh"],
-    [46, "Pd"],
-    [47, "Ag"],
-    [48, "Cd"],
-    [49, "In"],
-    [50, "Sn"],
-    [51, "Sb"],
-    [52, "Te"],
-    [53, "I"],
-    [54, "Xe"],
-    [55, "Cs"],
-    [56, "Ba"],
-    [57, "La"],
-    [58, "Ce"],
-    [59, "Pr"],
-    [60, "Nd"],
-    [61, "Pm"],
-    [62, "Sm"],
-    [63, "Eu"],
-    [64, "Gd"],
-    [65, "Tb"],
-    [66, "Dy"],
-    [67, "Ho"],
-    [68, "Er"],
-    [69, "Tm"],
-    [70, "Yb"],
-    [71, "Lu"],
-    [72, "Hf"],
-    [73, "Ta"],
-    [74, "W"],
-    [75, "Re"],
-    [76, "Os"],
-    [77, "Ir"],
-    [78, "Pt"],
-    [79, "Au"],
-    [80, "Hg"],
-    [81, "Tl"],
-    [82, "Pb"],
-    [83, "Bi"],
-    [84, "Po"],
-    [85, "At"],
-    [86, "Rn"],
-    [87, "Fr"],
-    [88, "Ra"],
-    [89, "Ac"],
-    [90, "Th"],
-    [91, "Pa"],
-    [92, "U"],
-    [93, "Np"],
-    [94, "Pu"],
-    [95, "Am"],
-    [96, "Cm"],
-    [97, "Bk"],
-    [98, "Cf"],
-    [99, "Es"],
-    [100, "Fm"],
-    [101, "Md"],
-    [102, "No"],
-    [103, "Lr"],
-    [104, "Rf"],
-    [105, "Db"],
-    [106, "Sg"],
-    [107, "Bh"],
-    [108, "Hs"],
-    [109, "Mt"],
-    [110, "Ds"],
-    [111, "Rg"],
-    [112, "Uub"],
-    [114, "Uuq"],
+    ["H", 1],
+    ["He", 2],
+    ["Li", 3],
+    ["Be", 4],
+    ["B", 5],
+    ["C", 6],
+    ["N", 7],
+    ["O", 8],
+    ["F", 9],
+    ["Ne", 10],
+    ["Na", 11],
+    ["Mg", 12],
+    ["Al", 13],
+    ["Si", 14],
+    ["P", 15],
+    ["S", 16],
+    ["Cl", 17],
+    ["Ar", 18],
+    ["K", 19],
+    ["Ca", 20],
+    ["Sc", 21],
+    ["Ti", 22],
+    ["V", 23],
+    ["Cr", 24],
+    ["Mn", 25],
+    ["Fe", 26],
+    ["Co", 27],
+    ["Ni", 28],
+    ["Cu", 29],
+    ["Zn", 30],
+    ["Ga", 31],
+    ["Ge", 32],
+    ["As", 33],
+    ["Se", 34],
+    ["Br", 35],
+    ["Kr", 36],
+    ["Rb", 37],
+    ["Sr", 38],
+    ["Y", 39],
+    ["Zr", 40],
+    ["Nb", 41],
+    ["Mo", 42],
+    ["Tc", 43],
+    ["Ru", 44],
+    ["Rh", 45],
+    ["Pd", 46],
+    ["Ag", 47],
+    ["Cd", 48],
+    ["In", 49],
+    ["Sn", 50],
+    ["Sb", 51],
+    ["Te", 52],
+    ["I", 53],
+    ["Xe", 54],
+    ["Cs", 55],
+    ["Ba", 56],
+    ["La", 57],
+    ["Ce", 58],
+    ["Pr", 59],
+    ["Nd", 60],
+    ["Pm", 61],
+    ["Sm", 62],
+    ["Eu", 63],
+    ["Gd", 64],
+    ["Tb", 65],
+    ["Dy", 66],
+    ["Ho", 67],
+    ["Er", 68],
+    ["Tm", 69],
+    ["Yb", 70],
+    ["Lu", 71],
+    ["Hf", 72],
+    ["Ta", 73],
+    ["W", 74],
+    ["Re", 75],
+    ["Os", 76],
+    ["Ir", 77],
+    ["Pt", 78],
+    ["Au", 79],
+    ["Hg", 80],
+    ["Tl", 81],
+    ["Pb", 82],
+    ["Bi", 83],
+    ["Po", 84],
+    ["At", 85],
+    ["Rn", 86],
+    ["Fr", 87],
+    ["Ra", 88],
+    ["Ac", 89],
+    ["Th", 90],
+    ["Pa", 91],
+    ["U", 92],
+    ["Np", 93],
+    ["Pu", 94],
+    ["Am", 95],
+    ["Cm", 96],
+    ["Bk", 97],
+    ["Cf", 98],
+    ["Es", 99],
+    ["Fm", 100],
+    ["Md", 101],
+    ["No", 102],
+    ["Lr", 103],
+    ["Rf", 104],
+    ["Db", 105],
+    ["Sg", 106],
+    ["Bh", 107],
+    ["Hs", 108],
+    ["Mt", 109],
+    ["Ds", 110],
+    ["Rg", 111],
+    ["Uub", 112],
+    ["Uuq", 114],
 ]);
 
 const ns = [0, 1, 2, 3, 4, 5];
@@ -192,8 +235,9 @@ function exportModel(model) {
 
 // FIXME: Retrieves data from model
 // (Retrieves atomicSymbol)
-function drawElementBox(group, atomicNumber, w, h) {
-    const atomicSymbol = elements.get(atomicNumber);
+function drawElementBox(group, atomicSymbol, w, h) {
+    //const atomicSymbol = elements.get(atomicNumber);
+    const atomicNumber = elements.get(atomicSymbol);
     console.log(atomicSymbol);
     const label = group.text(function (add) {
         add.tspan(atomicNumber)
@@ -244,14 +288,15 @@ function drawShell(group, shell, r, theta0 = 0) {
 }
 
 // FIXME: Retrieves data from model
-function drawLewisDotStructure(group, atomicNumber, r, theta0 = 0) {
+function drawLewisDotStructure(group, atomicSymbol, r, theta0 = 0) {
+    const atomicNumber = elements.get(atomicSymbol);
     const shellGroup = drawShell(
         group,
         valenceShell(take(atomicNumber, electronStates)),
         r,
         theta0
     );
-    return drawElementBox(shellGroup, atomicNumber, r / 2, r / 2);
+    return drawElementBox(shellGroup, atomicSymbol, r / 2, r / 2);
 }
 
 // Interact functions
@@ -350,12 +395,25 @@ function reviver(key, value) {
 function main() {
     const container = document.getElementById("virginia-content");
     const feedback = document.createElement("div");
-    var draw = SVG().addTo(container).size(600, 300);
     container.appendChild(feedback);
+    const scale = 100; // length corresponding to 1 ångström in screen coordinates
+    const boundingRect = getBoundingRectXY(xyzData);
+    const width = boundingRect.width * scale;
+    const height = boundingRect.height * scale;
+    const draw = SVG()
+        .addTo(container)
+        .size(width, height)
+        .viewbox(boundingRect);
+    xyzData.structure.forEach(function (atom) {
+        atomGroup = drawLewisDotStructure(draw.group(), atom.symbol, 1);
+        atomGroup.center(atom.x, atom.y); //FIXME: Are these coordinates in user space? If so, we might need to set the svg viewBox
+    });
+    /*
     const hydrogen = drawLewisDotStructure(draw.group(), 1, 100);
     hydrogen.center(150, 150);
     const flourine = drawLewisDotStructure(draw.group(), 9, 100, -Math.PI / 2);
     flourine.center(450, 150);
+    */
     interact(".draggable").draggable({
         // enable inertial throwing
         inertia: true,
