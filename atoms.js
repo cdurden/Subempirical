@@ -1,5 +1,38 @@
-function parseXYZ(data) {
-    const lines = data.split("\n").reverse();
+const xyzData = `2
+
+H 1 1 0
+O 3 2 0
+H 5 1 0`;
+
+// Utility functions
+function all(bools) {
+    return bools.reduce((acc, bool) => acc && bool, true);
+}
+// Parsing functions
+// Taken from https://stackoverflow.com/questions/29085197/how-do-you-json-stringify-an-es6-map
+function mapReplacer(key, value) {
+    if (value instanceof Map) {
+        return {
+            data: Array.from(value.entries()), // or with spread: value: [...value]
+            dataType: "Map",
+        };
+    } else {
+        return value;
+    }
+}
+
+function mapReviver(key, value) {
+    if (typeof value === "object" && value !== null) {
+        if (value.dataType === "Map") {
+            return new Map(value.data);
+        }
+    }
+    return value;
+}
+
+// See format spec at http://openbabel.sourceforge.net/wiki/XYZ
+function parseXYZ(xyzData) {
+    const lines = xyzData.split("\n").reverse();
     const n = parseInt(lines.pop());
     const comment = lines.pop();
     const structure = lines.map(function (line) {
@@ -17,30 +50,8 @@ function parseXYZ(data) {
         structure,
     };
 }
-const skeletalStructure = parseXYZ(
-    `2
 
-H 1 1 0
-F 3 1 0`
-);
-function getBoundingRectXY(xyData, scale = 1) {
-    const box = xyData.structure.reduce(
-        function (box, atom) {
-            box.left = Math.min(box.left, atom.x);
-            box.right = Math.max(box.right, atom.x);
-            box.top = Math.min(box.top, atom.y);
-            box.bottom = Math.max(box.bottom, atom.y);
-            return box;
-        },
-        { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity }
-    );
-    const width = scale * (box.right - box.left);
-    const height = scale * (box.bottom - box.top);
-    const x = scale * box.left;
-    const y = scale * box.top;
-    return { x, y, width, height };
-}
-
+// Constants
 const elements = new Map([
     ["H", 1],
     ["He", 2],
@@ -156,7 +167,6 @@ const elements = new Map([
     ["Uub", 112],
     ["Uuq", 114],
 ]);
-
 const ns = [0, 1, 2, 3, 4, 5];
 const electronStates = [];
 ns.forEach(function (n) {
@@ -177,6 +187,8 @@ electronStates.forEach(function (state, index) {
     state.index = index;
     Object.freeze(state);
 });
+
+// Model-building utility functions
 function take(n, elmts) {
     const results = [];
     elmts.forEach(function (elmt, i) {
@@ -203,100 +215,205 @@ function valenceShell(electrons) {
     );
     return shell(electrons, n);
 }
-function isFullShell(electrons) {
+
+// Test functions
+function isShellFull(electrons) {
     const n = Math.max(
         0,
         ...electrons.map(function (state) {
             return state.n;
         })
     );
-    return electrons.length == shell(electronStates, n).length; // FIXME: This is not a rigorous test of equality
+    return shell(electrons, n).length == shell(electronStates, n).length; // FIXME: This is not a rigorous test of equality
 }
 
-function exportModel(model) {
-    const blob = new Blob([JSON.stringify(model, mapReplacer)], {
-        type: "application/json",
+function MolecularModel(xyzStructure, atoms = new Map()) {
+    const self = Object.create(null);
+    const atomicModels = xyzStructure.structure.map(function (atom) {
+        return getAtomicModel(atom.symbol);
     });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.setAttribute("href", url);
-    anchor.setAttribute("download", `model.json`);
-    const clickHandler = () => {
-        setTimeout(() => {
-            URL.revokeObjectURL(url);
-            anchor.removeEventListener("click", clickHandler);
-        }, 150);
-    };
-    anchor.addEventListener("click", clickHandler, false);
-    anchor.click();
-}
+    const model = { xyzStructure, atomicModels };
+    Object.setPrototypeOf(self, MolecularModel.prototype);
 
-// Drawing functions
+    function getAtomicModel(atomicSymbol) {
+        if (atoms.has(atomicSymbol)) {
+            return atoms.get(atomicSymbol);
+        } else {
+            const atomicNumber = elements.get(atomicSymbol);
+            return take(atomicNumber, electronStates);
+        }
+    }
 
-// FIXME: Retrieves data from model
-// (Retrieves atomicSymbol)
-function drawElementBox(group, atomicSymbol, w, h) {
-    //const atomicSymbol = elements.get(atomicNumber);
-    const atomicNumber = elements.get(atomicSymbol);
-    console.log(atomicSymbol);
-    const label = group.text(function (add) {
-        add.tspan(atomicNumber)
-            .font({
-                anchor: "middle",
-                size: 12,
-                family: "Helvetica",
+    function transferElectron(fromAtomIndex, toAtomIndex) {
+        model.atomicModels[fromAtomIndex].pop();
+        const nextElectronIndex = Math.max(
+            0,
+            ...model.atomicModels[toAtomIndex].map(function (state) {
+                return state.index + 1;
             })
-            .dy(-10);
-        add.tspan(function (addMore) {
-            addMore.newLine();
-            addMore
-                .tspan(atomicSymbol)
+        );
+        const nextEnergyState = electronStates[nextElectronIndex];
+        model.atomicModels[toAtomIndex].push(nextEnergyState);
+    }
+    function areShellsFull() {
+        return all(model.atomicModels.map(isShellFull));
+    }
+
+    function exportModel() {
+        const blob = new Blob([JSON.stringify(model, mapReplacer)], {
+            type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.setAttribute("href", url);
+        anchor.setAttribute("download", `model.json`);
+        const clickHandler = () => {
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+                anchor.removeEventListener("click", clickHandler);
+            }, 150);
+        };
+        anchor.addEventListener("click", clickHandler, false);
+        anchor.click();
+    }
+
+    // Drawing utility functions
+    function scaleXYZ(scale) {
+        xyzStructure.structure = xyzStructure.structure.map(function (atom) {
+            atom.x *= scale;
+            atom.y *= scale;
+            atom.z *= scale;
+            return atom;
+        });
+        return xyzStructure;
+    }
+
+    function getBoundingRect(
+        margin = { top: 1, right: 1, bottom: 1, left: 1 }
+    ) {
+        if (!(margin instanceof Object)) {
+            margin = {
+                top: margin,
+                right: margin,
+                bottom: margin,
+                left: margin,
+            };
+        }
+        const box = xyzStructure.structure.reduce(
+            function (box, atom) {
+                box.left = Math.min(box.left, atom.x);
+                box.right = Math.max(box.right, atom.x);
+                box.top = Math.min(box.top, atom.y);
+                box.bottom = Math.max(box.bottom, atom.y);
+                return box;
+            },
+            {
+                left: Infinity,
+                right: -Infinity,
+                top: Infinity,
+                bottom: -Infinity,
+            }
+        );
+        const width = margin.left + margin.right + box.right - box.left;
+        const height = margin.top + margin.bottom + box.bottom - box.top;
+        const x = box.left - margin.left;
+        const y = box.top - margin.top;
+        return { x, y, width, height };
+    }
+
+    // Drawing functions
+    function drawElementBox(group, atomicSymbol, w, h) {
+        const atomicNumber = elements.get(atomicSymbol);
+        console.log(atomicSymbol);
+        const label = group.text(function (add) {
+            add.tspan(atomicNumber)
                 .font({
-                    "alignment-baseline": "baseline",
                     anchor: "middle",
-                    size: 24,
+                    size: 12,
                     family: "Helvetica",
                 })
-                .dy(24);
+                .dy(-10);
+            add.tspan(function (addMore) {
+                addMore.newLine();
+                addMore
+                    .tspan(atomicSymbol)
+                    .font({
+                        "alignment-baseline": "baseline",
+                        anchor: "middle",
+                        size: 24,
+                        family: "Helvetica",
+                    })
+                    .dy(24);
+            });
         });
-    });
-    label.leading(1.3);
-    group.rect(w, h).attr({ fill: "none", stroke: "black" }).center(0, 0);
-    return group;
-}
+        label.leading(1.3);
+        group.rect(w, h).attr({ fill: "none", stroke: "black" }).center(0, 0);
+        return group;
+    }
 
-function drawShell(group, shell, r, theta0 = 0) {
-    const orbit = group
-        .circle(2 * r)
-        .attr({ stroke: "black", fill: "none", cx: 0, cy: 0 });
-    orbit.addClass("dropzone");
-    group.data("electrons", shell);
-    shell.forEach(function (state, i) {
-        const theta =
-            theta0 +
-            (i % 4) * (Math.PI / 2) +
-            (i % 8 > 3 ? 1 : -1) * (i % 16 > 7 ? 3 : 1) * (Math.PI / 16);
-        const ecx = r * (i > 15 ? 1.2 : 1) * Math.cos(theta);
-        const ecy = -r * (i > 15 ? 1.2 : 1) * Math.sin(theta);
-        const electron = group
-            .circle(15)
-            .attr({ fill: "black", cx: ecx, cy: ecy });
-        electron.addClass("draggable");
-        //electron.addTo(orbit);
-    });
-    return group;
-}
+    function drawShell(group, shell, r, theta0 = 0) {
+        const orbit = group
+            .circle(2 * r)
+            .attr({ stroke: "black", fill: "none", cx: 0, cy: 0 });
+        orbit.addClass("dropzone");
+        group.data("electrons", shell);
+        shell.forEach(function (state, i) {
+            const theta =
+                theta0 +
+                (i % 4) * (Math.PI / 2) +
+                (i % 8 > 3 ? 1 : -1) * (i % 16 > 7 ? 3 : 1) * (Math.PI / 16);
+            const ecx = r * (i > 15 ? 1.2 : 1) * Math.cos(theta);
+            const ecy = -r * (i > 15 ? 1.2 : 1) * Math.sin(theta);
+            const electron = group
+                .circle(15)
+                .attr({ fill: "black", cx: ecx, cy: ecy });
+            electron.addClass("draggable");
+        });
+        return group;
+    }
 
-// FIXME: Retrieves data from model
-function drawLewisDotStructure(group, atomicSymbol, r, theta0 = 0) {
-    const atomicNumber = elements.get(atomicSymbol);
-    const shellGroup = drawShell(
-        group,
-        valenceShell(take(atomicNumber, electronStates)),
-        r,
-        theta0
-    );
-    return drawElementBox(shellGroup, atomicSymbol, r / 2, r / 2);
+    function drawLewisDotStructure(group, atomicSymbol, r, theta0 = 0) {
+        const atomicNumber = elements.get(atomicSymbol);
+        const shellGroup = drawShell(
+            group,
+            valenceShell(getAtomicModel(atomicSymbol)),
+            r,
+            theta0
+        );
+        drawElementBox(shellGroup, atomicSymbol, r / 2, r / 2);
+        return group;
+    }
+
+    function drawModel(draw, scale) {
+        xyzStructure.structure.forEach(function (atom, atomIndex) {
+            const atomGroup = drawLewisDotStructure(
+                draw.group(),
+                atom.symbol,
+                scale
+            );
+            atomGroup.data("atom-index", atomIndex);
+            atomGroup.center(atom.x, atom.y); //FIXME: Are these coordinates in user space? If so, we might need to set the svg viewBox
+        });
+    }
+
+    return Object.assign(self, {
+        drawModel,
+        scaleXYZ,
+        getBoundingRect,
+        exportModel,
+        transferElectron,
+        areShellsFull,
+    });
+}
+function MolecularModelFactory() {
+    const self = Object.create(null);
+    Object.setPrototypeOf(self, MolecularModelFactory.prototype);
+    function create(xyzStructure) {
+        return MolecularModel(xyzStructure);
+    }
+    return Object.assign(self, {
+        create,
+    });
 }
 
 // Interact functions
@@ -320,10 +437,13 @@ function dragMoveListener(event) {
     target.style.webkitTransform = target.style.transform =
         "translate(" + x + "px, " + y + "px)";
 
+    if (event.dragEnter) {
+        target.setAttribute("data-dropzone", event.relatedTarget); // FIXME: Is the relatedTarget equal to the dropzone for such an event?
+    }
     if (event.dragLeave) {
         target.removeAttribute("data-dropzone");
     }
-    // update the posiion attributes
+    // update the position attributes
     target.setAttribute("data-x", x);
     target.setAttribute("data-y", y);
 }
@@ -331,7 +451,6 @@ function dragEndListener(event) {
     var target = event.target;
     var x, y;
     // keep the dragged position in the data-x/data-y attributes
-    // translate the element
     if (!target.hasAttribute("data-dropzone")) {
         x = parseFloat(target.getAttribute("origin-x")) || 0;
         y = parseFloat(target.getAttribute("origin-y")) || 0;
@@ -393,21 +512,27 @@ function reviver(key, value) {
 }
 
 function main() {
+    const scale = 100; // length corresponding to 1 ångström in screen coordinates
+    const xyzStructure = parseXYZ(xyzData);
+    const model = new MolecularModel(xyzStructure);
+    model.scaleXYZ(scale);
     const container = document.getElementById("virginia-content");
     const feedback = document.createElement("div");
     container.appendChild(feedback);
-    const scale = 100; // length corresponding to 1 ångström in screen coordinates
-    const boundingRect = getBoundingRectXY(xyzData);
-    const width = boundingRect.width * scale;
-    const height = boundingRect.height * scale;
+    const exportButton = document.createElement("div");
+    const exportButtonLink = document.createElement("a");
+    exportButtonLink.addEventListener("click", model.exportModel);
+    exportButtonLink.textContent = "Export";
+    exportButton.appendChild(exportButtonLink);
+    container.appendChild(exportButton);
+    const boundingRect = model.getBoundingRect(1.5 * scale);
+    const width = boundingRect.width;
+    const height = boundingRect.height;
     const draw = SVG()
         .addTo(container)
         .size(width, height)
         .viewbox(boundingRect);
-    xyzData.structure.forEach(function (atom) {
-        atomGroup = drawLewisDotStructure(draw.group(), atom.symbol, 1);
-        atomGroup.center(atom.x, atom.y); //FIXME: Are these coordinates in user space? If so, we might need to set the svg viewBox
-    });
+    model.drawModel(draw, scale);
     /*
     const hydrogen = drawLewisDotStructure(draw.group(), 1, 100);
     hydrogen.center(150, 150);
@@ -437,7 +562,18 @@ function main() {
                 // Remove electron from donating shell
                 if (event.target.parentNode.contains(event.relatedTarget))
                     return;
+                // Set the data-dropzone attribute so that the drag listener will not move the electron back where it started
+                // FIXME: It's possible that the dragend listener might fire before this, in which case the position could be set incorrectly
+                // FIXME: Why is this even necessary?
                 event.relatedTarget.setAttribute("data-dropzone", event.target);
+                const fromAtomIndex = event.relatedTarget.parentElement.getAttribute(
+                    "data-atom-index"
+                );
+                const toAtomIndex = event.target.parentElement.getAttribute(
+                    "data-atom-index"
+                );
+                model.transferElectron(fromAtomIndex, toAtomIndex);
+                /*
                 const fromElectrons = JSON.parse(
                     event.relatedTarget.parentElement.getAttribute(
                         "data-electrons"
@@ -464,11 +600,13 @@ function main() {
                     "data-electrons",
                     JSON.stringify(electrons)
                 );
+                */
+                // Move electron's circle element
                 event.target.parentElement.appendChild(event.relatedTarget);
-                feedback.textContent =
-                    isFullShell(electrons) && isFullShell(fromElectrons)
-                        ? "All shells are full"
-                        : "A shell is not full";
+                // Update feedback
+                feedback.textContent = model.areShellsFull()
+                    ? "All shells are full"
+                    : "A shell is not full";
             },
         })
         .on("dropactivate", function (event) {
