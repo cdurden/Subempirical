@@ -241,26 +241,34 @@ function MolecularModel(xyzStructure, atoms = new Map()) {
             return atoms.get(atomicSymbol);
         } else {
             const atomicNumber = elements.get(atomicSymbol);
-            return take(atomicNumber, electronStates);
+            return {
+                atomicSymbol,
+                atomicNumber,
+                electrons: take(atomicNumber, electronStates),
+            };
         }
     }
 
     function transferElectron(fromAtomIndex, toAtomIndex) {
-        model.atomicModels[fromAtomIndex].pop();
+        model.atomicModels[fromAtomIndex].electrons.pop();
         const nextElectronIndex = Math.max(
             0,
-            ...model.atomicModels[toAtomIndex].map(function (state) {
+            ...model.atomicModels[toAtomIndex].electrons.map(function (state) {
                 return state.index + 1;
             })
         );
         const nextEnergyState = electronStates[nextElectronIndex];
-        model.atomicModels[toAtomIndex].push(nextEnergyState);
+        model.atomicModels[toAtomIndex].electrons.push(nextEnergyState);
         updateHandlers.forEach(function (updateHandler) {
             updateHandler(model);
         });
     }
     function areShellsFull() {
-        return all(model.atomicModels.map(isShellFull));
+        return all(
+            model.atomicModels.map(function (atomicModel) {
+                return isShellFull(atomicModel.electrons);
+            })
+        );
     }
 
     function exportModel() {
@@ -380,7 +388,7 @@ function MolecularModel(xyzStructure, atoms = new Map()) {
         const atomicNumber = elements.get(atomicSymbol);
         const shellGroup = drawShell(
             group,
-            valenceShell(getAtomicModel(atomicSymbol)),
+            valenceShell(getAtomicModel(atomicSymbol).electrons),
             r,
             theta0
         );
