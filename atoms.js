@@ -376,6 +376,10 @@ function MolecularModel(xyzStructure, atoms = new Map()) {
         orbit.addClass("dropzone");
         group.data("electrons", shell);
         shell.forEach(function (state, i) {
+            if (state.l > 1) {
+                // Do not draw d or f electrons
+                return;
+            }
             const theta =
                 theta0 +
                 (i % 4) * (Math.PI / 2) +
