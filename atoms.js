@@ -48,7 +48,7 @@ function parseXYZ(xyzData) {
             };
         })
         .filter(function (atom) {
-            return !isNan(Number(atom.x) + Number(atom.y) + Number(atom.z));
+            return !isNaN(Number(atom.x) + Number(atom.y) + Number(atom.z));
         });
     return {
         n,
