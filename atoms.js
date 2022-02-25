@@ -37,15 +37,19 @@ function parseXYZ(xyzData) {
     const lines = xyzData.split("\n").reverse();
     const n = parseInt(lines.pop());
     const comment = lines.pop();
-    const structure = lines.map(function (line) {
-        const [symbol, x, y, z] = line.split(/\s/);
-        return {
-            symbol,
-            x,
-            y,
-            z,
-        };
-    }).filter(function(atom) { return(!isNan(Number(atom.x)+Number(atom.y)+Number(atom.z)); });
+    const structure = lines
+        .map(function (line) {
+            const [symbol, x, y, z] = line.split(/\s/);
+            return {
+                symbol,
+                x,
+                y,
+                z,
+            };
+        })
+        .filter(function (atom) {
+            return !isNan(Number(atom.x) + Number(atom.y) + Number(atom.z));
+        });
     return {
         n,
         comment,
