@@ -229,6 +229,7 @@ function isShellFull(electrons) {
 
 function MolecularModel(xyzStructure, atoms = new Map()) {
     const self = Object.create(null);
+    const updateHandlers = [];
     const atomicModels = xyzStructure.structure.map(function (atom) {
         return getAtomicModel(atom.symbol);
     });
@@ -254,6 +255,9 @@ function MolecularModel(xyzStructure, atoms = new Map()) {
         );
         const nextEnergyState = electronStates[nextElectronIndex];
         model.atomicModels[toAtomIndex].push(nextEnergyState);
+        model.updateHandler.forEach(function (updateHandler) {
+            updateHandler(model);
+        });
     }
     function areShellsFull() {
         return all(model.atomicModels.map(isShellFull));
@@ -395,7 +399,9 @@ function MolecularModel(xyzStructure, atoms = new Map()) {
             atomGroup.center(atom.x, atom.y); //FIXME: Are these coordinates in user space? If so, we might need to set the svg viewBox
         });
     }
-
+    function addUpdateHandler(updateHandler) {
+        updateHandlers.push(updateHandler);
+    }
     return Object.assign(self, {
         drawModel,
         scaleXYZ,
@@ -403,6 +409,7 @@ function MolecularModel(xyzStructure, atoms = new Map()) {
         exportModel,
         transferElectron,
         areShellsFull,
+        addUpdateHandler,
     });
 }
 function MolecularModelFactory() {
@@ -511,10 +518,11 @@ function reviver(key, value) {
     }
 }
 
-function main() {
+function main(onUpdate) {
     const scale = 100; // length corresponding to 1 ångström in screen coordinates
     const xyzStructure = parseXYZ(xyzData);
     const model = new MolecularModel(xyzStructure);
+    model.addUpdateHandler(onUpdate);
     model.scaleXYZ(scale);
     const container = document.getElementById("virginia-content");
     const feedback = document.createElement("div");
