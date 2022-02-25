@@ -255,7 +255,7 @@ function MolecularModel(xyzStructure, atoms = new Map()) {
         );
         const nextEnergyState = electronStates[nextElectronIndex];
         model.atomicModels[toAtomIndex].push(nextEnergyState);
-        model.updateHandler.forEach(function (updateHandler) {
+        updateHandlers.forEach(function (updateHandler) {
             updateHandler(model);
         });
     }
