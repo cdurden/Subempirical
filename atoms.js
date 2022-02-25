@@ -522,7 +522,9 @@ function main(onUpdate) {
     const scale = 100; // length corresponding to 1 ångström in screen coordinates
     const xyzStructure = parseXYZ(xyzData);
     const model = new MolecularModel(xyzStructure);
-    model.addUpdateHandler(onUpdate);
+    if (onUpdate instanceof Function) {
+        model.addUpdateHandler(onUpdate);
+    }
     model.scaleXYZ(scale);
     const container = document.getElementById("virginia-content");
     const feedback = document.createElement("div");
