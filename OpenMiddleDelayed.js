@@ -1,4 +1,4 @@
-import { all, getFile } from "../common.js";
+import { all, getFile, mapReplacer } from "../common.js";
 //const omtex = ("\\displaylines{\\frac{x^{\\omspace{0}}}{x^{\\omspace{1}}} < x^{\\left(\\frac{\\omspace{2}}{\\omspace{3}}\\right)} < \\frac{x^{\\omspace{4}}}{x^{\\omspace{5}}} \\\\ \\omtile{0} \\omtile{1} \\omtile{2} \\omtile{3} \\omtile{4} \\omtile{5} \\omtile{6} \\omtile{7} \\omtile{8} \\omtile{9}}");
 
 // MathJax-related utility functions
@@ -10,6 +10,9 @@ function insertMath(tex, container) {
     return mathJaxElement;
 }
 
+// MathJax typesetting needs to be done after the elements
+// containing math have been inserted into the DOM.
+// See also https://www.peterkrautzberger.org/0165/
 function typeset(code) {
     const mathJaxElements = code();
     return MathJax.typesetPromise(mathJaxElements)
@@ -30,17 +33,78 @@ function generateSpace(svgElmt, content = null) {
 }
 // Constants
 
-function TileModel(spaces, tiles) {
+function Model(paramsMap) {
     const self = Object.create(null);
+    Object.setPrototypeOf(self, Model.prototype);
     const updateHandlers = [];
-    const model = { spaces, tiles };
-    const tile = tiles[0];
-    const transform = tile.getScreenCTM().inverse();
-    transform.e = transform.f = 0;
-    Object.setPrototypeOf(self, TileModel.prototype);
+    const model = {};
+    const rootElement = document.createElement("div");
+    var transform;
+    function buildRepresentation(onUpdate) {
+        getFile(paramsMap.get("file")).then(function (response) {
+            typeset(function () {
+                return [insertMath(response.data, rootElement)];
+            }).then(function (mathJaxElements) {
+                mathJaxElements.forEach(function (mathJaxElement) {
+                    const feedback = document.createElement("div");
+                    rootElement.appendChild(feedback);
+                    const spaceIds = Array.from(
+                        mathJaxElement.querySelectorAll(
+                            "[id^='openMiddleSpace']"
+                        )
+                    )
+                        .reduce(function (ids, elmt) {
+                            if (!ids.includes(elmt.id)) {
+                                return ids.concat([elmt.id]);
+                            } else {
+                                return ids;
+                            }
+                        }, [])
+                        .sort();
+                    const spaces = spaceIds.map(function (spaceId, index) {
+                        const space = generateSpace(
+                            document.getElementById(spaceId)
+                        );
+                        space.svgElmt.setAttribute("data-space-index", index);
+                        return space;
+                    });
+                    const svgElmt = spaces[0].svgElmt.closest("SVG");
+                    const tiles = Array.from(
+                        svgElmt.querySelectorAll(".openMiddleTile")
+                    ).map(function (svgElmt) {
+                        return {
+                            svgElmt,
+                            value: svgElmt.getAttribute("data-value"),
+                            transform: svgElmt.getScreenCTM().inverse(),
+                        };
+                    });
+                    // Set the tile background to filled so that it can be dragged from any point in its interior
+                    tiles.forEach(function (tile, index) {
+                        tile.svgElmt.setAttribute("data-tile-index", index);
+                        const rect = tile.svgElmt.querySelector("rect");
+                        if (rect === null) return;
+                        rect.style.fill = "white";
+                        tile.svgElmt.insertBefore(
+                            rect,
+                            tile.svgElmt.firstChild
+                        ); // Place the background rect at the beginning of the tile's group element so that the foreground text is visible.
+                    });
+                    model.spaces = spaces;
+                    model.tiles = tiles;
+                    if (onUpdate instanceof Function) {
+                        model.addUpdateHandler(onUpdate);
+                    }
+                    const tile = tiles[0];
+                    transform = tile.svgElmt.getScreenCTM().inverse();
+                    transform.e = transform.f = 0;
+                    setupDragging();
+                });
+            });
+        });
+    }
 
     function fillSpace(tileIndex, spaceIndex) {
-        model.spaces[spaceIndex].content = tiles[tileIndex];
+        model.spaces[spaceIndex].content = model.tiles[tileIndex];
         updateHandlers.forEach(function (updateHandler) {
             updateHandler(model);
         });
@@ -98,17 +162,22 @@ function TileModel(spaces, tiles) {
                 // keep the dragged position in the data-x/data-y attributes
                 x = (parseFloat(target.getAttribute("data-x")) || 0) + event.dx,
                 y = (parseFloat(target.getAttribute("data-y")) || 0) + event.dy;
-
+            const tileIndex = target.getAttribute("data-tile-index");
             const dA = new DOMPoint(x, y);
+            //const dB = dA.matrixTransform(model.tiles[tileIndex].transform);
+            //const ox = parseFloat(target.transform.baseVal[0].matrix.e);
             const dB = dA.matrixTransform(transform);
             // translate the element
             target.style.webkitTransform = target.style.transform =
                 "translate(" + dB.x + "px, " + dB.y + "px)";
 
             if (event.dragEnter) {
-                target.setAttribute("data-dropzone", event.relatedTarget); // FIXME: Is the relatedTarget equal to the dropzone for such an event?
+                target.setAttribute("data-dropzone", event.dragEnter.id); // FIXME: Is the relatedTarget equal to the dropzone for such an event?
             }
-            if (event.dragLeave) {
+            if (
+                event.dragLeave &&
+                event.dragLeave.id === target.getAttribute("data-dropzone")
+            ) {
                 target.removeAttribute("data-dropzone");
             }
             // update the position attributes
@@ -152,7 +221,7 @@ function TileModel(spaces, tiles) {
             // call this function on every dragend event
             onend: dragEndListener,
         });
-        spaces.forEach(function (space, index) {
+        model.spaces.forEach(function (space, index) {
             interact(`#openMiddleSpace${index}`) // FIXME: Can we use the element directly here?
                 .dropzone({
                     overlap: 0.01,
@@ -195,6 +264,8 @@ function TileModel(spaces, tiles) {
         areSpacesFilled,
         addUpdateHandler,
         setupDragging,
+        buildRepresentation,
+        rootElement,
     });
 }
 
@@ -204,48 +275,12 @@ function main(paramsMap, onUpdate) {
         responses: [[1, 1]],
     };
     const container = document.getElementById("virginia-content");
-    getFile(paramsMap.get("file")).then(function (response) {
-        typeset(function () {
-            return [insertMath(response.data, container)];
-        }).then(function (mathJaxElements) {
-            mathJaxElements.forEach(function (mathJaxElement) {
-                const feedback = document.createElement("div");
-                container.appendChild(feedback);
-                const spaceIds = Array.from(
-                    mathJaxElement.querySelectorAll("[id^='openMiddleSpace']")
-                )
-                    .reduce(function (ids, elmt) {
-                        if (!ids.includes(elmt.id)) {
-                            return ids.concat([elmt.id]);
-                        } else {
-                            return ids;
-                        }
-                    }, [])
-                    .sort();
-                const spaces = spaceIds.map(function (spaceId, index) {
-                    const space = generateSpace(
-                        document.getElementById(spaceId)
-                    );
-                    space.svgElmt.setAttribute("data-space-index", index);
-                    return space;
-                });
-                const svgElmt = spaces[0].svgElmt.closest("SVG");
-                const tiles = svgElmt.querySelectorAll(".openMiddleTile");
-                // Set the tile background to filled so that it can be dragged from any point in its interior
-                tiles.forEach(function (tile, index) {
-                    tile.setAttribute("data-tile-index", index);
-                    const rect = tile.querySelector("rect");
-                    if (rect === null) return;
-                    rect.style.fill = "white";
-                    tile.insertBefore(rect, tile.firstChild); // Place the background rect at the beginning of the tile's group element so that the foreground text is visible.
-                });
-                const model = new TileModel(spaces, tiles);
-                if (onUpdate instanceof Function) {
-                    model.addUpdateHandler(onUpdate);
-                }
-                model.setupDragging();
-            });
-        });
-    });
+    const model = new Model(paramsMap);
+    container.appendChild(model.rootElement);
+    model.buildRepresentation(onUpdate);
+    const exportModelLink = document.createElement("a");
+    exportModelLink.textContent = "Export";
+    exportModelLink.addEventListener("click", model.exportModel);
+    container.appendChild(exportModelLink);
 }
-export { main };
+export { main, Model };
