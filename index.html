@@ -6,18 +6,73 @@
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://unpkg.com/@svgdotjs/svg.js"></script>
         <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script src="https://cdn.jsdelivr.net/npm/js-sha256@0.9.0/src/sha256.min.js"></script>
         <script type="text/javascript" src="virginia.js"></script>
-        <script type="text/javascript">
-            const xyzData = `2
+        <link href="main.css" rel="stylesheet" type="text/css" />
 
-H 1 1 0
-O 3 2 0
-H 5 1 0`;
+        <script>
+            const readyEvent = new Event("DOMContentLoadedAndMathJaxReady");
+            MathJax = {
+                loader: {
+                    load: [
+                        "output/svg",
+                        "[tex]/bbox",
+                        "[tex]/color",
+                        "[tex]/textmacros",
+                        "[custom]/htmlset.min.js",
+                    ],
+                    paths: { custom: "./oddities/mathjax/htmlset-extension" },
+                },
+                tex: {
+                    packages: {
+                        "[+]": ["color", "bbox", "textmacros", "htmlset"],
+                    },
+                    inlineMath: [
+                        ["$", "$"],
+                        ["\\(", "\\)"],
+                    ],
+                    macros: {
+                        omspace: [
+                            "{\\setAttribute{data-space-index}{#2}{\\class{openMiddleSpace}{#1}}}",
+                            2,
+                            "\\fbox{\\color{white} 0}",
+                        ],
+                        omtile: [
+                            "{\\setAttribute{data-value}{#1}{\\class{openMiddleTile}{\\fbox{#1}}}}",
+                            1,
+                        ],
+                    },
+                },
+                startup: {
+                    pageReady() {
+                        return MathJax.startup
+                            .defaultPageReady()
+                            .then(function () {
+                                if (document.readyState === "loading") {
+                                    // Loading hasn't finished yet
+                                    document.addEventListener(
+                                        "DOMContentLoaded",
+                                        document.dispatchEvent(readyEvent)
+                                    );
+                                } else {
+                                    // `DOMContentLoaded` has already fired
+                                    document.dispatchEvent(readyEvent);
+                                }
+                            });
+                    },
+                },
+            };
         </script>
-        <link href="main.css" rel="stylesheet" type="text/css">
+        <script
+            type="text/javascript"
+            id="MathJax-script"
+            async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+        >
     </head>
     <body>
         <div id="virginia-content"></div>
     </body>
-</html>
 </html>
