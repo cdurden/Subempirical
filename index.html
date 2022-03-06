@@ -9,8 +9,7 @@
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
         <script src="https://cdn.jsdelivr.net/npm/js-sha256@0.9.0/src/sha256.min.js"></script>
-        <script type="text/javascript" src="virginia.js"></script>
-        <link href="main.css" rel="stylesheet" type="text/css" />
+        <script type="text/javascript" src="loader.js"></script>
 
         <script>
             const readyEvent = new Event("DOMContentLoadedAndMathJaxReady");
@@ -23,7 +22,7 @@
                         "[tex]/textmacros",
                         "[custom]/htmlset.min.js",
                     ],
-                    paths: { custom: "./oddities/mathjax/htmlset-extension" },
+                    paths: { custom: "./lib/htmlset-extension" },
                 },
                 tex: {
                     packages: {
@@ -70,7 +69,7 @@
             id="MathJax-script"
             async
             src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
-        >
+        ></script>
     </head>
     <body>
         <div id="virginia-content"></div>
