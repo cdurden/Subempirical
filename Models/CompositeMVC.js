@@ -1,4 +1,4 @@
-import { all, getFile, mapReplacer } from "../common.js";
+import { all, getFile, mapReplacer } from "../lib/common.js";
 //https://cdn.jsdelivr.net/npm/js-sha256@0.9.0/src/sha256.min.js
 const paramMapB = new Map([
     [

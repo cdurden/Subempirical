@@ -1,4 +1,4 @@
-import { any, all, getFile, mapReplacer } from "../common.js";
+import { any, all, getFile, mapReplacer } from "../lib/common.js";
 //const omtex = ("\\displaylines{\\frac{x^{\\omspace{0}}}{x^{\\omspace{1}}} < x^{\\left(\\frac{\\omspace{2}}{\\omspace{3}}\\right)} < \\frac{x^{\\omspace{4}}}{x^{\\omspace{5}}} \\\\ \\omtile{0} \\omtile{1} \\omtile{2} \\omtile{3} \\omtile{4} \\omtile{5} \\omtile{6} \\omtile{7} \\omtile{8} \\omtile{9}}");
 
 function getSvgElmtCoordinates(svgElmt) {
