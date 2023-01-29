@@ -1,0 +1,456 @@
+import { any, all, getFile, mapReplacer } from "../lib/common.js";
+const doClone = false;
+
+function getSvgElmtCoordinates(svgElmt) {
+    const baseVal = svgElmt.transform.baseVal;
+    if (
+        baseVal.length === 0 ||
+        baseVal.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE
+    ) {
+        return [0, 0];
+    } else {
+        const transform = baseVal.getItem(0);
+        return [transform.matrix.e, transform.matrix.f];
+    }
+}
+
+// MathJax-related utility functions
+function insertMath(tex, container) {
+    const mathJaxElement = document.createElement("div");
+    mathJaxElement.style["font-size"] = "48pt";
+    mathJaxElement.innerHTML = `\\(${tex}\\)`;
+    container.appendChild(mathJaxElement);
+    return mathJaxElement;
+}
+
+// MathJax typesetting needs to be done after the elements
+// containing math have been inserted into the DOM.
+// See also https://www.peterkrautzberger.org/0165/
+function typeset(code) {
+    const mathJaxElements = code();
+    return MathJax.typesetPromise(mathJaxElements)
+        .then(function () {
+            return mathJaxElements;
+        })
+        .catch(function (err) {
+            console.log("Typeset failed: " + err.message);
+        });
+}
+
+// Model-building utility functions
+// Constants
+function Controller(model, view) {
+    const self = Object.create(null);
+    Object.setPrototypeOf(self, Controller.prototype);
+    function bind() {
+        // Register the event handlers which respond to user input
+        var clone = null;
+        var interaction = null;
+        function makeTileDraggable(tile) {
+            var dropzone;
+            function dragMoveListener(event) {
+                tile.move(tile.x + event.dx, tile.y + event.dy);
+                // Another approach would be to register this listener in the view itself.
+            }
+            function dragEndListener(event) {
+                if (!event.hasOwnProperty("dropzone")) {
+                    model.resetTile(tile.index);
+                } else {
+                    const toSpaceId = event.dropzone.target.getAttribute(
+                        "data-space-id"
+                    );
+                    if (!doClone) {
+                        const fromSpaceId = model.findSpaceOf(tile.index).id;
+                        model.getSpace(fromSpaceId).removeContent(tile.index);
+                    }
+                    model.getSpace(toSpaceId).addContent(tile.index);
+                }
+                if (tile.isClone) {
+                    // FIXME: Once updating tiles works, we either:
+                    // need to move this so that clones are always removed,
+                    // or configure the update handler to add extra clones as needed.
+                    tile.remove();
+                }
+            }
+            const draggable = interact(tile.svgElmt).draggable({
+                // enable inertial throwing
+                manualStart: doClone && !tile.isClone, // FIXME: Enable control of cloning via params
+                inertia: true,
+                // keep the element within the area of it's parent
+                restrict: {
+                    restriction: "parent",
+                    endOnly: true,
+                    elementRect: { top: 0, left: 0, bottom: 1, right: 1 },
+                },
+                // enable autoScroll
+                autoScroll: true,
+                // call this function on every dragmove event
+                onmove: dragMoveListener,
+                // call this function on every dragend event
+                onend: dragEndListener,
+            });
+            if (doClone && !tile.isClone) {
+                // FIXME: Enable control of cloning via params
+                draggable.on("move", function (event) {
+                    const interaction = event.interaction;
+                    clone = tile.clone();
+                    makeTileDraggable(clone);
+                    /*
+                    interaction.start(
+                        { name: "drag" },
+                        event.interactable,
+                        clone.svgElmt
+                    );
+                    */
+                });
+            }
+        }
+        view.getTiles().forEach(makeTileDraggable);
+        view.getSpaces().forEach(function (space) {
+            space.views.forEach(function (spaceView) {
+                interact(spaceView.svgElmt)
+                    .dropzone({
+                        overlap: 0.01,
+                    })
+                    .on("dropactivate", function (event) {
+                        event.target.classList.add("drop-activated");
+                    });
+            });
+        });
+    }
+    return Object.assign(self, {
+        bind,
+    });
+}
+function View(model) {
+    const self = Object.create(null);
+    Object.setPrototypeOf(self, View.prototype);
+    const rootElement = document.createElement("div");
+    const tiles = [];
+    const spaces = new Map();
+    function getTile(tileIndex) {
+        return tiles[tileIndex];
+    }
+    function getTiles() {
+        return tiles;
+    }
+    function getSpaces() {
+        return spaces;
+    }
+    function addTile(tile) {
+        tiles.push(tile);
+    }
+    function addSpaceView(spaceView) {
+        if (spaces.has(spaceView.spaceId)) {
+            spaces.get(spaceView.spaceId).views.push(spaceView);
+        } else {
+            spaces.set(spaceView.spaceId, { views: [spaceView] });
+        }
+    }
+    function update(modelUpdate) {
+        Array.from(modelUpdate.spaces.entries()).forEach(function ([
+            spaceId,
+            spaceModel,
+        ]) {
+            // Rectify the space's view with its model
+            spaces.get(spaceId).views.forEach(function (spaceView) {
+                // Clear the space's view
+                spaceView.contents.forEach(function (tile) {
+                    if (tile.isClone) {
+                        tile.remove();
+                    } else {
+                        tile.reset();
+                    }
+                });
+                // Add the tiles back based on the model
+                spaceModel.contents.forEach(function (tileIndex) {
+                    const tile = getTile(tileIndex);
+                    if (doClone) {
+                        const clone = tile.clone(spaceView.svgElmt);
+                        spaceView.contents.push(clone);
+                    } else {
+                        spaceView.contents.push(tile);
+                    }
+                });
+            });
+        });
+    }
+    function getTile(index) {
+        return tiles[index];
+    }
+    function getSpace(spaceId) {
+        return spaces.get(spaceId);
+    }
+    function createSpaceViewFromSvgElmt(svgElmt) {
+        const spaceId = svgElmt.getAttribute("data-space-id");
+        const spaceView = {
+            spaceId,
+            svgElmt: svgElmt,
+            addTile,
+            removeTile,
+            contents: [],
+        };
+        function addTile(tile) {
+            if (spaceContentsMap.has(space)) {
+                spaceContentsMap.get(space).push(tile);
+            }
+        }
+        function removeTile(tile) {
+            if (spaceContentsMap.has(space)) {
+                const spaceTiles = spaceContentsMap.get(space);
+                spaceTiles.splice(spaceTiles.indexOf(tile), 1);
+            }
+        }
+        return spaceView;
+    }
+    function createTileFromSvgElmt(svgElmt, index) {
+        const transform = svgElmt.getScreenCTM().inverse();
+        svgElmt.setAttribute("data-tile-index", index);
+        transform.e = transform.f = 0;
+        const tile = {
+            x: 0,
+            y: 0,
+            svgElmt,
+            origin: svgElmt.transform.baseVal.initialize(
+                svgElmt.closest("svg").createSVGTransform()
+            ),
+            transform,
+            move,
+            clone,
+            reset,
+            remove,
+            index: index,
+            isClone: false,
+        };
+        function remove() {
+            if (tiles.includes(tile)) {
+                tiles.splice(tiles.indexOf(tile), 1);
+                tile.svgElmt.remove();
+            }
+        }
+        function clone(parentElement = tile.svgElmt.parentElement) {
+            const clone = createTileFromSvgElmt(
+                parentElement.appendChild(tile.svgElmt.cloneNode(true)),
+                tile.index
+            );
+            addTile(clone);
+            clone.isClone = true;
+            return clone;
+        }
+        function move(x, y) {
+            tile.x = x;
+            tile.y = y;
+            const dA = new DOMPoint(x, y);
+            const dB = dA.matrixTransform(transform);
+            // translate the element
+            tile.svgElmt.transform.baseVal.getItem(0).setTranslate(dB.x, dB.y);
+        }
+        function reset() {
+            tile.x = tile.y = 0;
+            tile.svgElmt.transform.baseVal.initialize(
+                tile.svgElmt.closest("svg").createSVGTransform()
+            );
+        }
+        (function fillBackground() {
+            const rect = svgElmt.querySelector("rect");
+            if (rect === null) return;
+            rect.style.fill = "white";
+            svgElmt.insertBefore(rect, tile.svgElmt.firstChild); // Place the background rect at the beginning of the tile's group element so that the foreground text is visible.
+        })();
+        return tile;
+    }
+    function render() {
+        return new Promise(function (resolve) {
+            typeset(function () {
+                return [insertMath(model.getModelData().omtex, rootElement)];
+            }).then(function () {
+                const feedback = document.createElement("div");
+                rootElement.appendChild(feedback);
+                Array.from(rootElement.querySelectorAll("svg .openMiddleSpace"))
+                    .sort(function (a, b) {
+                        return (
+                            Number(a.getAttribute("data-space-id")) -
+                            Number(b.getAttribute("data-space-id"))
+                        );
+                    })
+                    .map(createSpaceViewFromSvgElmt)
+                    .forEach(addSpaceView);
+                Array.from(rootElement.querySelectorAll("svg .openMiddleTile"))
+                    .map(createTileFromSvgElmt)
+                    .forEach(addTile);
+                model.finalize(self);
+                resolve(self);
+            });
+        });
+    }
+    return Object.assign(self, {
+        rootElement,
+        render,
+        getTile,
+        getTiles,
+        update,
+        getSpaces,
+    });
+}
+
+function Model(paramsMap) {
+    const self = Object.create(null);
+    Object.setPrototypeOf(self, Model.prototype);
+    const updateHandlers = [];
+    const model = {};
+    function createSpace(spaceId, contents = []) {
+        const space = {
+            id: spaceId,
+            contents,
+            isFull,
+            addContent,
+            removeContent,
+        };
+        const modelUpdate = {
+            spaces: new Map([[space.id, space]]),
+        };
+        function isFull() {
+            return space.contents.length > 0;
+        }
+        function addContent(content) {
+            space.contents.push(content);
+            updateHandlers.forEach(function (updateHandler) {
+                updateHandler(modelUpdate);
+            });
+        }
+        function removeContent(content) {
+            space.contents.splice(space.contents.indexOf(content), 1);
+            updateHandlers.forEach(function (updateHandler) {
+                updateHandler(modelUpdate);
+            });
+        }
+        return space;
+    }
+    function finalize(view) {
+        const spaces = new Map(
+            Array.from(view.getSpaces().entries()).map(function ([
+                spaceId,
+                space,
+            ]) {
+                return [spaceId, createSpace(spaceId)];
+            })
+        );
+        const tiles = Array.from(view.getTiles().values()).map(function (tile) {
+            return {
+                value: tile.svgElmt.getAttribute("data-value"),
+            };
+        });
+        model.spaces = spaces;
+        model.tiles = tiles;
+    }
+    function getTiles() {
+        return model.tiles;
+    }
+    function getTile(index) {
+        return model.tiles?.[index];
+    }
+    function getSpaces() {
+        return model.spaces;
+    }
+    function getSpace(spaceId) {
+        return model.spaces.get(spaceId);
+    }
+    function findSpaceOf(content) {
+        return Array.from(model.spaces.values()).filter(function (space) {
+            return space.contents.includes(content);
+        })[0];
+    }
+    function resetTile(tileIndex) {
+        model.spaces.forEach(function (space, index) {
+            if (space.content === tileIndex) {
+                space.content = [];
+            }
+        });
+        const modelUpdate = {
+            spaces: new Map(
+                Array.from(model.spaces.entries()).filter(function ([
+                    spaceId,
+                    space,
+                ]) {
+                    return space.content === tileIndex;
+                })
+            ),
+        };
+        updateHandlers.forEach(function (updateHandler) {
+            updateHandler(modelUpdate);
+        });
+    }
+    function areSpacesFull() {
+        return all(
+            model.spaces.map(function (space) {
+                return space.isFull();
+            })
+        );
+    }
+    function getModelData() {
+        return model;
+    }
+    function exportModel() {
+        const blob = new Blob([JSON.stringify(getModelData(), mapReplacer)], {
+            type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.setAttribute("href", url);
+        anchor.setAttribute("download", `model.json`);
+        const clickHandler = function () {
+            setTimeout(function () {
+                URL.revokeObjectURL(url);
+                anchor.removeEventListener("click", clickHandler);
+            }, 150);
+        };
+        anchor.addEventListener("click", clickHandler, false);
+        anchor.click();
+    }
+    function addUpdateHandler(updateHandler) {
+        updateHandlers.push(updateHandler);
+    }
+    return new Promise(function (resolve) {
+        getFile(paramsMap.get("file")).then(function (response) {
+            model.omtex = response.data;
+            resolve(
+                Object.assign(self, {
+                    getModelData,
+                    exportModel,
+                    resetTile,
+                    areSpacesFull,
+                    addUpdateHandler,
+                    finalize,
+                    getTile,
+                    getTiles,
+                    getSpace,
+                    getSpaces,
+                })
+            );
+        });
+    });
+}
+function init(paramsMap, onUpdate) {
+    return new Model(paramsMap).then(function (model) {
+        const view = new View(model);
+        const controller = new Controller(model, view);
+        return { model, view, controller };
+    });
+}
+
+function main(paramsMap, onUpdate) {
+    const container = document.getElementById("virginia-content");
+    init(paramsMap, onUpdate).then(function (mvc) {
+        container.appendChild(mvc.view.rootElement);
+        mvc.view.render().then(function (view) {
+            mvc.controller.bind();
+            mvc.model.addUpdateHandler(view.update);
+            //mvc.model.addUpdateHandler(mvc.controller.bind);
+            const exportModelLink = document.createElement("a");
+            exportModelLink.textContent = "Export";
+            exportModelLink.addEventListener("click", mvc.model.exportModel);
+            container.appendChild(exportModelLink);
+        });
+    });
+}
+export { init, main, Model };

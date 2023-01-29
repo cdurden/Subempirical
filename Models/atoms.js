@@ -1,10 +1,8 @@
-/*
 const xyzData = `2
 
 H 1 1 0
 O 3 2 0
 H 5 1 0`;
-*/
 
 // Utility functions
 function all(bools) {
@@ -538,7 +536,7 @@ function reviver(key, value) {
 
 function main(onUpdate) {
     const scale = 100; // length corresponding to 1 ångström in screen coordinates
-    const xyzStructure = parseXYZ(window.xyzData);
+    const xyzStructure = parseXYZ(xyzData);
     const model = new MolecularModel(xyzStructure);
     if (onUpdate instanceof Function) {
         model.addUpdateHandler(onUpdate);

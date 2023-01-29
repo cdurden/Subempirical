@@ -5,12 +5,12 @@ const paramMapB = new Map([
         "componentParamMaps",
         [
             new Map([
-                ["module", "./OpenMiddleMVC.js"],
-                ["file", "./oddities/OpenMiddleExample.omtex"],
+                ["module", "/Models/OpenMiddleMVC.js"],
+                ["file", "/Data/OpenMiddle/KristinasProblem.tex"],
             ]),
             new Map([
-                ["module", "./OpenMiddleMVC.js"],
-                ["file", "./oddities/OpenMiddleExample.omtex"],
+                ["module", "/Models/OpenMiddleMVC.js"],
+                ["file", "/Data/OpenMiddle/KristinasProblem.tex"],
             ]),
         ],
     ],

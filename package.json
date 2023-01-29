@@ -1,0 +1,16 @@
+{
+    "name": "Subempirical",
+    "version": "0.0.1",
+    "description": "Subempirical model viewer",
+    "repository": {
+        "url": "https://github.com/cdurden/Subempirical",
+        "type": "git"
+    },
+    "author": "Chris Durden <cld@aleksi.org>",
+    "license": "MIT",
+    "dependencies": {
+        "epubjs": "^0.3.93",
+        "epubjs-es6": "^0.3.3",
+        "express": "^4.17.1"
+    }
+}

@@ -1,14 +1,37 @@
 <html>
     <head>
+        <meta charset="utf-8">
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="/lib/wasm/dist/index.min.js"></script><!--https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js-->
+        <script src="/lib/d3.v5.min.js"></script>
+        <script src="/lib/d3-graphviz.js"></script><!--https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js-->
+        <script src="/lib/axios.min.js"></script><!--https://unpkg.com/axios/dist/axios.min.js-->
+        <script src="/lib/svg.js"></script><!--https://unpkg.com/@svgdotjs/svg.js-->
+        <script src="/lib/interact.min.js"></script><!--https://unpkg.com/interactjs/dist/interact.min.js-->
+        <script src="/lib/marked/marked.min.js"></script>
+        <script src="/lib/polyfill.min.js?features=es6"></script>
+        <!--
         <script src="https://d3js.org/d3.v5.min.js"></script>
-        <script src="https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js"></script>
-        <script src="https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js"></script>
-        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-        <script src="https://unpkg.com/@svgdotjs/svg.js"></script>
-        <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
         <script src="https://cdn.jsdelivr.net/npm/js-sha256@0.9.0/src/sha256.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+        <script src="https://unpkg.com/showdown/dist/showdown.min.js"></script>
+        <script
+            type="text/javascript"
+            id="MathJax-script"
+            async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+        ></script>
+        -->
+        <script
+            type="text/javascript"
+            id="MathJax-script"
+            async
+            src="/lib/mathjax/es5/tex-svg.js"
+        ></script>
+        <script type="text/javascript" src="/lib/epubjs/dist/epub.js"></script>
         <script type="text/javascript" src="loader.js"></script>
 
         <script>
@@ -21,12 +44,16 @@
                         "[tex]/color",
                         "[tex]/textmacros",
                         "[custom]/htmlset.min.js",
+                        "[img]/img.min.js",
                     ],
-                    paths: { custom: "./lib/htmlset-extension" },
+                    paths: {
+                        custom: "./lib/htmlset-extension",
+                        img: "https://cdn.jsdelivr.net/npm/mathjax-img@3",
+                    },
                 },
                 tex: {
                     packages: {
-                        "[+]": ["color", "bbox", "textmacros", "htmlset"],
+                        "[+]": ["color", "bbox", "textmacros", "htmlset", "img"],
                     },
                     inlineMath: [
                         ["$", "$"],
@@ -34,12 +61,12 @@
                     ],
                     macros: {
                         omspace: [
-                            "{\\setAttribute{data-space-index}{#2}{\\class{openMiddleSpace}{#1}}}",
+                            "{\\setAttribute{data-space-id}{#2}{\\class{openMiddleSpace}{#1}}}",
                             2,
                             "\\fbox{\\color{white} 0}",
                         ],
                         omtile: [
-                            "{\\setAttribute{data-value}{#1}{\\class{openMiddleTile}{\\fbox{#1}}}}",
+                            "{\\setAttribute{data-value}{#1}{\\class{openMiddleTile}{\\bbox[10px,white,border: 5px solid black]{#1}}}}",
                             1,
                         ],
                     },
@@ -64,14 +91,9 @@
                 },
             };
         </script>
-        <script
-            type="text/javascript"
-            id="MathJax-script"
-            async
-            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
-        ></script>
     </head>
     <body>
         <div id="virginia-content"></div>
     </body>
+</html>
 </html>
