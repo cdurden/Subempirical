@@ -604,12 +604,20 @@ function main(paramsMap, onUpdate) {
     const container = document.getElementById("virginia-content");
     init(paramsMap).then(function (mvu) {
         container.appendChild(mvu.view.rootElement);
-        mvu.view.render(mvu.model).then(function (view) {
-            const exportModelLink = document.createElement("a");
-            exportModelLink.textContent = "Export";
-            exportModelLink.addEventListener("click", mvu.model.exportModel);
-            container.appendChild(exportModelLink);
-        });
+        document.addEventListener(
+            "DOMContentLoadedAndMathJaxReady",
+            function () {
+                mvu.view.render(mvu.model).then(function (view) {
+                    const exportModelLink = document.createElement("a");
+                    exportModelLink.textContent = "Export";
+                    exportModelLink.addEventListener(
+                        "click",
+                        mvu.model.exportModel
+                    );
+                    container.appendChild(exportModelLink);
+                });
+            }
+        );
     });
 }
 export { init, main, Model };

@@ -1,4 +1,3 @@
-//document.addEventListener("DOMContentLoadedAndMathJaxReady", function () {
 document.addEventListener("DOMContentLoaded", function () {
     const url = new URL(window.location.href);
     const searchParams = new URLSearchParams(window.location.search);

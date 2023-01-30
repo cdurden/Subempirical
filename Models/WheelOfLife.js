@@ -2,7 +2,14 @@ import { any, all, getFile, mapReplacer } from "../lib/common.js";
 function drawCircle(group, r, fill = "none") {
     const drawing = group
         .circle(2 * r)
-        .attr({ stroke: "black", "fill-opacity": 0, fill, cx: 0, cy: 0 });
+        .attr({
+            stroke: "black",
+            "fill-opacity": 0,
+            fill,
+            cx: 0,
+            cy: 0,
+            cursor: "pointer",
+        });
     return drawing;
 }
 function drawDivider(group, r, theta = 0) {
@@ -162,7 +169,7 @@ function Model(paramsMap) {
             "Health",
             "Home",
         ],
-        ratings: [0, 4, 5, 0, 0, 0, 0, 0],
+        ratings: [0, 0, 0, 0, 0, 0, 0, 0],
     };
     function exportModel() {
         const blob = new Blob([JSON.stringify(data, mapReplacer)], {
