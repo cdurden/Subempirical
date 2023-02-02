@@ -364,16 +364,24 @@ function Model(paramsMap) {
     });
 }
 function init(paramsMap, onUpdateCallbacks) {
-    return loadScript("/node_modules/@svgdotjs/svg.js/dist/svg.js").then(
-        function () {
-            return new Model(paramsMap).then(function (model) {
-                const update = makeUpdateFunction(model, onUpdateCallbacks);
-                const rootElement = document.createElement("div");
-                const view = new View(update, rootElement);
-                return { model, view, update };
-            });
-        }
-    );
+    const scriptSourceMap = new Map([
+        ["localhost", ["/node_modules/@svgdotjs/svg.js/dist/svg.js"]],
+        ["other", ["https://unpkg.com/@svgdotjs/svg.js"]],
+    ]);
+    const hostname = window.location.hostname;
+    const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
+    return Promise.all(
+        scriptSourceMap.get(scriptSource).map(function (script) {
+            return loadScript(script);
+        })
+    ).then(function () {
+        return new Model(paramsMap).then(function (model) {
+            const update = makeUpdateFunction(model, onUpdateCallbacks);
+            const rootElement = document.createElement("div");
+            const view = new View(update, rootElement);
+            return { model, view, update };
+        });
+    });
 }
 
 function main(paramsMap, onUpdateCallbacks) {
