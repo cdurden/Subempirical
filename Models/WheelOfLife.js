@@ -1,15 +1,13 @@
-import { any, all, getFile, mapReplacer } from "../lib/common.js";
+import { any, all, getFile, mapReplacer, loadScript } from "../lib/common.js";
 function drawCircle(group, r, fill = "none") {
-    const drawing = group
-        .circle(2 * r)
-        .attr({
-            stroke: "black",
-            "fill-opacity": 0,
-            fill,
-            cx: 0,
-            cy: 0,
-            cursor: "pointer",
-        });
+    const drawing = group.circle(2 * r).attr({
+        stroke: "black",
+        "fill-opacity": 0,
+        fill,
+        cx: 0,
+        cy: 0,
+        cursor: "pointer",
+    });
     return drawing;
 }
 function drawDivider(group, r, theta = 0) {
@@ -45,15 +43,81 @@ function drawLabel(group, r, theta = 0, label) {
     return drawing;
 }
 
-function View(update) {
+function Modal(update, container) {
+    const self = Object.create(null);
+    var modalBackdropElmt = document.createElement("div");
+    Object.setPrototypeOf(self, View.prototype);
+    function render(model) {
+        function show() {
+            modalBackdropElmt.style.display = "block";
+        }
+        function hide() {
+            modalBackdropElmt.style.display = "none";
+            document.removeEventListener("keydown", keyboardHandler);
+        }
+        const keyboardHandler = function (event) {
+            if (event.key === "Escape") {
+                hide();
+            } else if (event.key === "Enter") {
+                model.onSubmit(model);
+                hide();
+            }
+        };
+        return new Promise(function (resolve) {
+            modalBackdropElmt.replaceWith();
+            modalBackdropElmt = document.createElement("div");
+            container.appendChild(modalBackdropElmt);
+            modalBackdropElmt.classList.add("modal-backdrop");
+            const modalElmt = document.createElement("div");
+            modalElmt.replaceWith();
+            modalElmt.classList.add("modal");
+            modalBackdropElmt.appendChild(modalElmt);
+            const modalHeaderElmt = document.createElement("div");
+            modalHeaderElmt.classList.add("modal-header");
+            modalHeaderElmt.textContent = model.header;
+            modalElmt.appendChild(modalHeaderElmt);
+            const modalBodyElmt = document.createElement("div");
+            modalBodyElmt.classList.add("modal-body");
+            modalBodyElmt.innerHTML = model.body;
+            modalElmt.appendChild(modalBodyElmt);
+            const focusable = modalBodyElmt.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            if (focusable.length > 0) {
+                focusable[0].focus();
+                focusable[0].select();
+            }
+            const modalOkButtonElmt = document.createElement("button");
+            modalOkButtonElmt.textContent = "OK";
+            modalBodyElmt.appendChild(modalOkButtonElmt);
+            const modalCancelButtonElmt = document.createElement("button");
+            modalCancelButtonElmt.textContent = "Cancel";
+            modalBodyElmt.appendChild(modalCancelButtonElmt);
+            modalOkButtonElmt.addEventListener("click", function () {
+                model.onSubmit(model);
+            });
+            modalCancelButtonElmt.addEventListener("click", function () {
+                hide();
+            });
+            document.addEventListener("keydown", keyboardHandler);
+        });
+    }
+    return Object.assign(self, {
+        render,
+    });
+}
+
+function View(update, container) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, View.prototype);
-    const rootElement = document.createElement("div");
     function render(model) {
         return new Promise(function (resolve) {
-            rootElement.replaceChildren();
+            container.replaceChildren();
+            const modal = new Modal(function (model) {
+                update(model, self);
+            }, container);
             const viewContainerElmt = document.createElement("div");
-            rootElement.appendChild(viewContainerElmt);
+            container.appendChild(viewContainerElmt);
             const maxRating = model.data.maxRating;
             const nSectors = model.data.nSectors;
             const radius = 250;
@@ -66,7 +130,7 @@ function View(update) {
                 width,
             };
             const draw = SVG()
-                .addTo(rootElement)
+                .addTo(container)
                 .size(width, height)
                 .viewbox(boundingRect);
             const svg = draw.node;
@@ -78,12 +142,32 @@ function View(update) {
             });
             // Draw sector labels
             Array.from({ length: nSectors }).forEach(function (_, sector) {
-                drawLabel(
+                const labelSvgElmt = drawLabel(
                     draw,
                     (radius * (nSectors + 1)) / nSectors,
                     (2 * Math.PI * (sector + 0.5)) / nSectors,
                     model.data.sectorLabels[sector]
                 );
+                labelSvgElmt.node.addEventListener("click", function (event) {
+                    modal.render({
+                        header: "Set label",
+                        sector,
+                        body: `<input type='text' id='sectorLabelInput', value=${model.data.sectorLabels[sector]}>`,
+                        onSubmit: function () {
+                            const label = document.getElementById(
+                                "sectorLabelInput"
+                            ).value;
+                            update(
+                                {
+                                    action: "setSectorLabel",
+                                    sector,
+                                    label,
+                                },
+                                self
+                            );
+                        },
+                    });
+                });
             });
             // Draw sectors
             Array.from({ length: nSectors }).forEach(function (_, sector) {
@@ -133,22 +217,94 @@ function View(update) {
                     }
                 });
             });
+            // Controls
+            const nSectorsIndicatorElmt = document.createElement("button");
+            nSectorsIndicatorElmt.textContent = `${nSectors} sectors`;
+            viewContainerElmt.appendChild(nSectorsIndicatorElmt);
+            nSectorsIndicatorElmt.addEventListener("click", function (event) {
+                modal.render({
+                    header: "Set number of sectors",
+                    nSectors,
+                    body: `<input type='text' id='nSectorsInput', value=${model.data.nSectors}>`,
+                    onSubmit: function () {
+                        const nSectors = Number(
+                            document.getElementById("nSectorsInput").value
+                        );
+                        update(
+                            {
+                                action: "setNumberOfSectors",
+                                nSectors,
+                            },
+                            self
+                        );
+                    },
+                });
+            });
+            const maxRatingIndicatorElmt = document.createElement("button");
+            maxRatingIndicatorElmt.textContent = `Max rating: ${maxRating}`;
+            viewContainerElmt.appendChild(maxRatingIndicatorElmt);
+            maxRatingIndicatorElmt.addEventListener("click", function (event) {
+                modal.render({
+                    header: "Set number of sectors",
+                    maxRating,
+                    body: `<input type='text' id='maxRatingInput', value=${model.data.maxRating}>`,
+                    onSubmit: function () {
+                        const maxRating = Number(
+                            document.getElementById("maxRatingInput").value
+                        );
+                        update(
+                            {
+                                action: "setMaxRating",
+                                maxRating,
+                            },
+                            self
+                        );
+                    },
+                });
+            });
             resolve(self);
         });
     }
     return Object.assign(self, {
-        rootElement,
+        container,
         render,
     });
 }
-function makeUpdateFunction(model) {
+function makeUpdateFunction(model, callbacks) {
     return function update(message, view) {
-        if (message.action === "setRating") {
+        if (message.action === "setNumberOfSectors") {
+            const sectorLabels = [
+                ...model.data.sectorLabels.slice(
+                    0,
+                    Math.min(model.data.nSectors, message.nSectors)
+                ),
+                ...Array.from({
+                    length: message.nSectors - model.data.nSectors,
+                }).fill("Unnamed"),
+            ];
+            model.data.nSectors = message.nSectors;
+            model.data.sectorLabels = sectorLabels;
+        } else if (message.action === "setMaxRating") {
+            const maxRating = message.maxRating;
+            model.data.ratings = model.data.ratings.map(function (rating) {
+                if (rating > maxRating) {
+                    return maxRating;
+                } else {
+                    return rating;
+                }
+            });
+            model.data.maxRating = maxRating;
+        } else if (message.action === "setRating") {
             model.data.ratings[message.sector] = message.rating;
+        } else if (message.action === "setSectorLabel") {
+            model.data.sectorLabels[message.sector] = message.label;
         }
         if (view !== undefined) {
             view.render(model);
         }
+        callbacks.forEach(function (callback) {
+            callback(model);
+        });
         return true;
     };
 }
@@ -189,38 +345,41 @@ function Model(paramsMap) {
         anchor.click();
     }
     return new Promise(function (resolve) {
+        /*
         resolve(
             Object.assign(self, {
                 data,
                 exportModel,
             })
         );
-        /*
+        */
         getFile(paramsMap.get("file")).then(function (response) {
-            data.omtex = response.data;
             resolve(
                 Object.assign(self, {
-                    data,
+                    data: response.data,
                     exportModel,
-                    update,
                 })
             );
         });
-        */
     });
 }
-function init(paramsMap) {
-    return new Model(paramsMap).then(function (model) {
-        const update = makeUpdateFunction(model);
-        const view = new View(update);
-        return { model, view, update };
-    });
+function init(paramsMap, onUpdateCallbacks) {
+    return loadScript("/node_modules/@svgdotjs/svg.js/dist/svg.js").then(
+        function () {
+            return new Model(paramsMap).then(function (model) {
+                const update = makeUpdateFunction(model, onUpdateCallbacks);
+                const rootElement = document.createElement("div");
+                const view = new View(update, rootElement);
+                return { model, view, update };
+            });
+        }
+    );
 }
 
-function main(paramsMap, onUpdate) {
+function main(paramsMap, onUpdateCallbacks) {
     const container = document.getElementById("virginia-content");
-    init(paramsMap).then(function (mvu) {
-        container.appendChild(mvu.view.rootElement);
+    init(paramsMap, onUpdateCallbacks).then(function (mvu) {
+        container.appendChild(mvu.view.container);
         mvu.view.render(mvu.model).then(function (view) {
             const exportModelLink = document.createElement("a");
             exportModelLink.textContent = "Export";

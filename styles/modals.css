@@ -1,0 +1,94 @@
+div.modal {
+    background: #ffffff;
+    box-shadow: 2px 2px 20px 1px;
+    display: flex;
+    flex-direction: column;
+    max-height: 90%;
+    max-width: 90%;
+    overflow-x: auto;
+    pointer-events: all;
+}
+div.modal p,
+span {
+    line-height: 1.15;
+}
+div.modal p {
+    margin: 0 0 1rem 0;
+}
+div.modal-backdrop {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3500000;
+    pointer-events: all;
+}
+div.modal-header,
+div.modal-footer {
+    padding: 15px;
+    display: flex;
+}
+div.modal-header {
+    position: relative;
+    border-bottom: 1px solid #eeeeee;
+    color: #4aae9b;
+    justify-content: space-between;
+}
+div.modal-footer {
+    border-top: 1px solid #eeeeee;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+div.modal-notification {
+    background: #404040;
+    color: #eee;
+    padding: 1em;
+}
+
+div.modal-body {
+    position: relative;
+    padding: 1em;
+    overflow-y: scroll;
+}
+div.modal-body select,
+div.modal-body input[type="text"],
+div.modal-body input[type="password"] {
+    display: block;
+    width: 100%;
+}
+div.modal-body div.form-container {
+    padding: 0.5em;
+}
+div.modal-body form {
+    width: 100%;
+    max-width: 32rem; /* Or whatever width you prefer */
+    margin: auto;
+    margin-bottom: 1rem;
+}
+
+div.modal-body select,
+div.modal-body input {
+    margin-top: 0.1rem;
+    margin-bottom: 0.25rem;
+    padding: 0.2rem;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+/* Taken from https://www.digitalocean.com/community/tutorials/vuejs-vue-modal-component */
+div.control-button-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1em;
+}
+div.close-button-container {
+    direction: rtl;
+    float: right;
+    cursor: pointer;
+}

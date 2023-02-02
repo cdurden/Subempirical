@@ -1,5 +1,20 @@
-import { all, getFile } from "../common.js";
-//const omtex = ("\\displaylines{\\frac{x^{\\omspace{0}}}{x^{\\omspace{1}}} < x^{\\left(\\frac{\\omspace{2}}{\\omspace{3}}\\right)} < \\frac{x^{\\omspace{4}}}{x^{\\omspace{5}}} \\\\ \\omtile{0} \\omtile{1} \\omtile{2} \\omtile{3} \\omtile{4} \\omtile{5} \\omtile{6} \\omtile{7} \\omtile{8} \\omtile{9}}");
+import { any, all, getFile, mapReplacer, loadScript } from "../lib/common.js";
+const doClone = false;
+const displace = true;
+const minStack = 0;
+
+function getSvgElmtCoordinates(svgElmt) {
+    const baseVal = svgElmt.transform.baseVal;
+    if (
+        baseVal.length === 0 ||
+        baseVal.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE
+    ) {
+        return [0, 0];
+    } else {
+        const transform = baseVal.getItem(0);
+        return [transform.matrix.e, transform.matrix.f];
+    }
+}
 
 // MathJax-related utility functions
 function insertMath(tex, container) {
@@ -10,6 +25,9 @@ function insertMath(tex, container) {
     return mathJaxElement;
 }
 
+// MathJax typesetting needs to be done after the elements
+// containing math have been inserted into the DOM.
+// See also https://www.peterkrautzberger.org/0165/
 function typeset(code) {
     const mathJaxElements = code();
     return MathJax.typesetPromise(mathJaxElements)
@@ -21,48 +39,492 @@ function typeset(code) {
         });
 }
 
-// Model-building utility functions
-function generateSpace(svgElmt, content = null) {
-    return {
-        content,
+function SpaceView(svgElmt) {
+    const spaceId = svgElmt.getAttribute("data-space-id");
+    const contents = [];
+    const spaceView = {
+        spaceId,
+        svgElmt: svgElmt,
+        contents,
+        insertTileView,
+        removeTileView,
+    };
+    function insertTileView(tileView) {
+        tileView.assignedSpaceId = spaceId;
+        contents.push(tileView);
+        spaceView.svgElmt.appendChild(tileView.svgElmt);
+    }
+    function removeTileView(tileView) {
+        contents.splice(contents.indexOf(tileView), 1);
+    }
+    return spaceView;
+}
+function makeTileViewDraggable(view, tileView, update) {
+    var dropzone;
+    function dragMoveListener(event) {
+        tileView.move(tileView.x + event.dx, tileView.y + event.dy);
+        // Another approach would be to register this listener in the view itself.
+    }
+    function dragEndListener(event) {
+        if (!event.hasOwnProperty("dropzone")) {
+            if (tileView.assignedSpaceId !== undefined) {
+                update(
+                    {
+                        action: "remove",
+                        spaceId: tileView.assignedSpaceId,
+                        tileId: tileView.tileId,
+                    },
+                    view
+                );
+            }
+        } else {
+            // Remove a tile view from previously-assigned space id
+            if (tileView.assignedSpaceId !== undefined) {
+                update(
+                    {
+                        action: "remove",
+                        spaceId: tileView.assignedSpaceId,
+                        tileId: tileView.tileId,
+                    },
+                    view
+                );
+            }
+            const toSpaceId = event.dropzone.target.getAttribute(
+                "data-space-id"
+            );
+            const success = update(
+                {
+                    action: "add",
+                    spaceId: toSpaceId,
+                    tileId: tileView.tileId,
+                },
+                view
+            );
+        }
+    }
+    const draggable = interact(tileView.svgElmt).draggable({
+        // enable inertial throwing
+        manualStart: doClone && !tileView.isClone, // FIXME: Enable control of cloning via params
+        inertia: true,
+        // keep the element within the area of it's parent
+        restrict: {
+            restriction: "parent",
+            endOnly: true,
+            elementRect: { top: 0, left: 0, bottom: 1, right: 1 },
+        },
+        // enable autoScroll
+        autoScroll: true,
+        // call this function on every dragmove event
+        onmove: dragMoveListener,
+        // call this function on every dragend event
+        onend: dragEndListener,
+    });
+    if (doClone && !tileView.isClone) {
+        // FIXME: Enable control of cloning via params
+        draggable.on("move", function (event) {
+            const interaction = event.interaction;
+            tileViewClone = tileView.clone();
+            makeTileViewDraggable(view, tileViewClone, update);
+            /*
+                    interaction.start(
+                        { name: "drag" },
+                        event.interactable,
+                        clone.svgElmt
+                    );
+                    */
+        });
+    }
+}
+function TileView(svgElmt, update, source = null) {
+    const self = Object.create(null);
+    Object.assign(self, {
+        assignedSpaceId: undefined,
+        isClone: false,
+        ...source,
+    });
+    Object.setPrototypeOf(self, TileView.prototype);
+    const tileId = svgElmt.getAttribute("data-tile-id");
+    const transform = svgElmt.getScreenCTM().inverse();
+    //svgElmt.setAttribute("data-tile-index", index);
+    transform.e = transform.f = 0;
+    Object.assign(self, {
+        x: 0,
+        y: 0,
+        tileId,
         svgElmt,
+        originalParent: svgElmt.parentElement,
+        origin: svgElmt.transform.baseVal.initialize(
+            svgElmt.closest("svg").createSVGTransform()
+        ),
+        transform,
+        move,
+        clone,
+        reset,
+        remove,
+    });
+    function remove() {
+        self.svgElmt.remove();
+    }
+    function clone(parentElement = self.svgElmt.parentElement) {
+        const clone = TileView(
+            parentElement.appendChild(self.svgElmt.cloneNode(true)),
+            update,
+            self
+        );
+        clone.isClone = true;
+        return clone;
+    }
+    function move(x, y) {
+        self.x = x;
+        self.y = y;
+        const dA = new DOMPoint(x, y);
+        const dB = dA.matrixTransform(transform);
+        // translate the element
+        self.svgElmt.transform.baseVal.getItem(0).setTranslate(dB.x, dB.y);
+    }
+    function reset() {
+        if (self.isClone) {
+            self.svgElmt.remove();
+        } else {
+            self.originalParent.appendChild(self.svgElmt);
+            self.x = self.y = 0;
+            self.svgElmt.transform.baseVal.initialize(
+                self.svgElmt.closest("svg").createSVGTransform()
+            );
+        }
+    }
+    (function fillBackground() {
+        const rect = svgElmt.querySelector("rect");
+        if (rect === null) return;
+        rect.style.fill = "white";
+        svgElmt.insertBefore(rect, self.svgElmt.firstChild); // Place the background rect at the beginning of the tile's group element so that the foreground text is visible.
+    })();
+    return self;
+}
+
+function View(update) {
+    const self = Object.create(null);
+    Object.setPrototypeOf(self, View.prototype);
+    const rootElement = document.createElement("div");
+    const tileViewMap = new Map();
+    const spaceViewMap = new Map();
+    function addSpaceView(spaceView) {
+        if (spaceViewMap.has(spaceView.spaceId)) {
+            spaceViewMap.get(spaceView.spaceId).push(spaceView);
+        } else {
+            spaceViewMap.set(spaceView.spaceId, [spaceView]);
+        }
+    }
+    function addTileView(tileView) {
+        tileViewMap.set(tileView.tileId, tileView);
+        /*
+        if (tileViewMap.has(tileView.tileId)) {
+            tileViewMap.get(tileView.tileId).push(tileView);
+        } else {
+            tileViewMap.set(tileView.tileId, [tileView]);
+        }
+        */
+    }
+    /*
+    function getTileView(tileIndex) {
+        return tileViews[tileIndex];
+    }
+    function getTileViews() {
+        return tileViews;
+    }
+    */
+    function getSpaceViews(spaceId) {
+        return spaceViewMap.get(spaceId) || [];
+    }
+    /*
+    function update(modelUpdate) {
+        Array.from(modelUpdate.spaceViews.entries()).forEach(function ([
+            spaceId,
+            spaceModel,
+        ]) {
+            // Rectify the space's view with its model
+            spaceViews.get(spaceId).views.forEach(function (spaceView) {
+                // Clear the space's view
+                spaceView.contents.forEach(function (tileView) {
+                    if (tileView.isClone) {
+                        tileView.remove();
+                    }
+                });
+                // Add the tiles back based on the model
+                spaceModel.contents.forEach(function (tileModel) {
+                    const tileView = getTile(tileModel.index);
+                    if (doClone) {
+                        const clone = tileView.clone(spaceView.svgElmt);
+                        spaceView.contents.push(clone);
+                    } else {
+                        //spaceView.svgElmt.appendChild(tile.svgElmt);
+                        spaceView.contents.push(tileView);
+                    }
+                });
+            });
+        });
+    }
+    function getTile(index) {
+        return tiles[index];
+    }
+    function getSpace(spaceId) {
+        return spaceViews.get(spaceId);
+    }
+    */
+    const feedback = document.createElement("div");
+    function render(model) {
+        return new Promise(function (resolve) {
+            typeset(function () {
+                return [insertMath(model.data.omtex, rootElement)];
+            }).then(function () {
+                rootElement.appendChild(feedback);
+                Array.from(rootElement.querySelectorAll("svg .openMiddleSpace"))
+                    .sort(function (a, b) {
+                        return (
+                            Number(a.getAttribute("data-space-id")) -
+                            Number(b.getAttribute("data-space-id"))
+                        );
+                    })
+                    .map(function (spaceViewSvgElmt) {
+                        const spaceView = new SpaceView(spaceViewSvgElmt);
+                        addSpaceView(spaceView);
+                        update(
+                            {
+                                action: "createSpace",
+                                spaceId: spaceView.spaceId,
+                            },
+                            self
+                        );
+                    });
+                Array.from(
+                    rootElement.querySelectorAll("svg .openMiddleTile")
+                ).map(function (tileViewSvgElmt, index) {
+                    const tileValue = tileViewSvgElmt.getAttribute(
+                        "data-value"
+                    );
+                    tileViewSvgElmt.setAttribute("data-tile-id", index);
+                    const tileView = new TileView(tileViewSvgElmt, update);
+                    addTileView(tileView);
+                    update(
+                        {
+                            action: "createTile",
+                            tileId: tileView.tileId,
+                            tileValue: tileValue,
+                        },
+                        self
+                    );
+                    makeTileViewDraggable(self, tileView, update);
+                });
+                Array.from(spaceViewMap.values()).map(function (spaceViews) {
+                    spaceViews.map(function (spaceView) {
+                        interact(spaceView.svgElmt)
+                            .dropzone({
+                                overlap: 0.01,
+                            })
+                            .on("dropactivate", function (event) {
+                                event.target.classList.add("drop-activated");
+                            });
+                    });
+                });
+                //model.finalize(self);
+                resolve(self);
+            });
+        });
+    }
+    // We have an array of arrays. Each element in the outer array corresponds to a space, and consists of a list of tiles.
+    // Each
+    function placeTiles(model) {
+        // Generate a mapping from tile ids to tile views that are free to be placed in space views.
+        const freeTileViewMap = new Map();
+        feedback.textContent = JSON.stringify(model.data, mapReplacer);
+        tileViewMap.forEach(function (tileView, tileId) {
+            freeTileViewMap.set(tileId, [tileView]);
+        });
+        Array.from(model.data.tileMap.values()).map(function (tile) {
+            var tileCount = 0;
+            Array.from(model.data.spaceMap.values()).forEach(function (space) {
+                tileCount += Array.from(space.contents.values()).filter(
+                    function (tileContent) {
+                        return tileContent.id === tile.id;
+                    }
+                ).length;
+                // Remove TileViews which are in the contents of a SpaceView,
+                // but which should not be there, and place them in the freeTileViewMap
+                const spaceViews = spaceViewMap.get(space.id);
+                spaceViews.forEach(function (spaceView, index) {
+                    const matchingTileViews = Array.from(
+                        spaceView.contents.values()
+                    ).filter(function (tileView) {
+                        return tileView.tileId === tile.id;
+                    });
+                    while (matchingTileViews.length > tileCount) {
+                        const extraTile = matchingTileViews.pop();
+                        freeTileViewMap.get(tile.id).push(extraTile);
+                        spaceView.removeTileView(extraTile);
+                    }
+                });
+            });
+        });
+        // Populate spaces with tiles from freeTileViewMap
+        Array.from(model.data.spaceMap.values()).forEach(function (space) {
+            space.contents.forEach(function (tile) {
+                const freeTileViews = freeTileViewMap.get(tile.id) ?? [];
+                const spaceViews = spaceViewMap.get(space.id) ?? [];
+                spaceViews.forEach(function (spaceView, index) {
+                    if (freeTileViews.length > minStack) {
+                        const tileView = freeTileViews.pop();
+                        spaceView.insertTileView(tileView);
+                    } else {
+                        const tileView = tileViewMap.get(tile.id).clone();
+                        makeTileViewDraggable(self, tileView, update);
+                        spaceView.insertTileView(tileView);
+                    }
+                });
+            });
+        });
+        // Reset any unused tiles in freeTileViewMap
+        freeTileViewMap.forEach(function (tileViews) {
+            tileViews.forEach(function (tileView, index) {
+                if (!tileView.isClone) {
+                    tileView.reset();
+                } else {
+                    tileView.remove();
+                }
+            });
+        });
+    }
+    return Object.assign(self, {
+        rootElement,
+        render,
+        placeTiles,
+        getSpaceViews,
+        //getTile,
+        //getTiles,
+        //update,
+        //getSpaces,
+    });
+}
+function makeUpdateFunction(model) {
+    return function update(message, view) {
+        if (message.action === "add") {
+            model
+                .getSpace(message.spaceId)
+                .addTile(model.getTile(message.tileId));
+        } else if (message.action === "remove") {
+            model
+                .getSpace(message.spaceId)
+                .removeTile(model.getTile(message.tileId));
+        } else if (message.action === "createTile") {
+            model.createTile(message.tileId, message.tileValue);
+        } else if (message.action === "createSpace") {
+            model.createSpace(message.spaceId);
+        }
+        view.placeTiles(model);
+        return true;
     };
 }
-// Constants
 
-function TileModel(spaces, tiles) {
+function Model(paramsMap) {
     const self = Object.create(null);
+    Object.setPrototypeOf(self, Model.prototype);
     const updateHandlers = [];
-    const model = { spaces, tiles };
-    const tile = tiles[0];
-    const transform = tile.getScreenCTM().inverse();
-    transform.e = transform.f = 0;
-    Object.setPrototypeOf(self, TileModel.prototype);
-
-    function fillSpace(tileIndex, spaceIndex) {
-        model.spaces[spaceIndex].content = tiles[tileIndex];
-        updateHandlers.forEach(function (updateHandler) {
-            updateHandler(model);
-        });
+    const data = { tileMap: new Map(), spaceMap: new Map() };
+    function addTileToSpace(spaceId, tile) {
+        data.spaceMap.get(spaceId).contents.push(tile);
     }
-    function emptySpace(spaceIndex) {
-        model.spaces[spaceIndex].content = null;
-        updateHandlers.forEach(function (updateHandler) {
-            updateHandler(model);
-        });
+    function removeTileFromSpace(spaceId, tile) {
+        const space = data.spaceMap.get(spaceId);
+        if (space.contents.includes(tile)) {
+            space.contents.splice(space.contents.indexOf(tile), 1);
+        }
     }
-    function areSpacesFilled() {
+    function createTile(id, value) {
+        const tile = {
+            value,
+            reset,
+            id,
+        };
+        function reset() {
+            Array.from(data.spaceMap.values()).forEach(function (space, index) {
+                if (space.contents.includes(tile)) {
+                    space.contents.splice(space.contents.indexOf(tile), 1);
+                }
+            });
+            const modelUpdate = {
+                spaces: new Map(
+                    Array.from(model.spaceMap.entries()).filter(function ([
+                        spaceId,
+                        space,
+                    ]) {
+                        return space.contents.includes(tile);
+                    })
+                ),
+            };
+            updateHandlers.forEach(function (updateHandler) {
+                updateHandler(modelUpdate);
+            });
+        }
+        data.tileMap.set(tile.id, tile);
+        return tile;
+    }
+    function createSpace(spaceId, contents = []) {
+        const space = {
+            id: spaceId,
+            contents,
+            isFull,
+            addTile,
+            removeTile,
+        };
+        const modelUpdate = {
+            spaces: new Map([[space.id, space]]),
+        };
+        function isFull() {
+            return space.contents.length > 0;
+        }
+        function addTile(tile) {
+            if (isFull() && displace) {
+                contents.splice(0, 1);
+            }
+            if (!isFull()) {
+                contents.push(tile);
+            }
+            /*
+            updateHandlers.forEach(function (updateHandler) {
+                updateHandler(modelUpdate);
+            });
+            */
+        }
+        function removeTile(tile) {
+            space.contents.splice(space.contents.indexOf(tile), 1);
+            /*
+            updateHandlers.forEach(function (updateHandler) {
+                updateHandler(modelUpdate);
+            });
+            */
+        }
+        data.spaceMap.set(space.id, space);
+        return space;
+    }
+    function getSpace(spaceId) {
+        return data.spaceMap.get(spaceId);
+    }
+    function getTile(tileId) {
+        return data.tileMap.get(tileId);
+    }
+    function findSpaceContaining(content) {
+        return Array.from(model.spaces.values()).filter(function (space) {
+            return space.contents.includes(content);
+        })[0];
+    }
+    function areSpacesFull() {
         return all(
             model.spaces.map(function (space) {
-                return space.content !== null;
+                return space.isFull();
             })
         );
     }
-    function getModelData() {
-        return model;
-    }
     function exportModel() {
-        const blob = new Blob([JSON.stringify(getModelData(), mapReplacer)], {
+        const blob = new Blob([JSON.stringify(data, mapReplacer)], {
             type: "application/json",
         });
         const url = URL.createObjectURL(blob);
@@ -81,171 +543,62 @@ function TileModel(spaces, tiles) {
     function addUpdateHandler(updateHandler) {
         updateHandlers.push(updateHandler);
     }
-    function setupDragging() {
-        const feedback = document.createElement("div");
-        function dragStartListener(event) {
-            var target = event.target,
-                // keep the dragged position in the data-x/data-y attributes
-                x = parseFloat(target.getAttribute("origin-x")) || 0,
-                y = parseFloat(target.getAttribute("origin-y")) || 0;
-
-            // update the posiion attributes
-            target.setAttribute("origin-x", x);
-            target.setAttribute("origin-y", y);
-        }
-        function dragMoveListener(event) {
-            var target = event.target,
-                // keep the dragged position in the data-x/data-y attributes
-                x = (parseFloat(target.getAttribute("data-x")) || 0) + event.dx,
-                y = (parseFloat(target.getAttribute("data-y")) || 0) + event.dy;
-
-            const dA = new DOMPoint(x, y);
-            const dB = dA.matrixTransform(transform);
-            // translate the element
-            target.style.webkitTransform = target.style.transform =
-                "translate(" + dB.x + "px, " + dB.y + "px)";
-
-            if (event.dragEnter) {
-                target.setAttribute("data-dropzone", event.relatedTarget); // FIXME: Is the relatedTarget equal to the dropzone for such an event?
-            }
-            if (event.dragLeave) {
-                target.removeAttribute("data-dropzone");
-            }
-            // update the position attributes
-            target.setAttribute("data-x", x);
-            target.setAttribute("data-y", y);
-        }
-        function dragEndListener(event) {
-            var target = event.target;
-            var x, y;
-            // keep the dragged position in the data-x/data-y attributes
-            if (!target.hasAttribute("data-dropzone")) {
-                x = parseFloat(target.getAttribute("origin-x")) || 0;
-                y = parseFloat(target.getAttribute("origin-y")) || 0;
-                const dA = new DOMPoint(x, y);
-                const dB = dA.matrixTransform(transform);
-                // translate the element
-                target.style.webkitTransform = target.style.transform =
-                    "translate(" + dB.x + "px, " + dB.y + "px)";
-                target.setAttribute("data-x", x);
-                target.setAttribute("data-y", y);
-                const spaceIndex = target.getAttribute("data-space-index");
-                if (spaceIndex !== null) {
-                    emptySpace(spaceIndex);
-                }
-            }
-        }
-        interact(".openMiddleTile").draggable({
-            // enable inertial throwing
-            inertia: true,
-            // keep the element within the area of it's parent
-            restrict: {
-                restriction: "parent",
-                endOnly: true,
-                elementRect: { top: 0, left: 0, bottom: 1, right: 1 },
-            },
-            // enable autoScroll
-            autoScroll: true,
-            onstart: dragStartListener,
-            // call this function on every dragmove event
-            onmove: dragMoveListener,
-            // call this function on every dragend event
-            onend: dragEndListener,
-        });
-        spaces.forEach(function (space, index) {
-            interact(`#openMiddleSpace${index}`) // FIXME: Can we use the element directly here?
-                .dropzone({
-                    overlap: 0.01,
-                    ondrop: function (event) {
-                        // Remove electron from donating shell
-                        if (
-                            event.target.parentNode.contains(
-                                event.relatedTarget
-                            )
-                        )
-                            return;
-                        //event.relatedTarget.setAttribute("data-dropzone", event.target);
-                        const fromTileIndex = event.relatedTarget.getAttribute(
-                            "data-tile-index"
-                        );
-                        const toSpaceIndex = event.target.getAttribute(
-                            "data-space-index"
-                        );
-                        fillSpace(fromTileIndex, toSpaceIndex);
-                        event.relatedTarget.setAttribute(
-                            "data-space-index",
-                            toSpaceIndex
-                        );
-                        // Update feedback
-                        feedback.textContent = areSpacesFilled()
-                            ? "All spaces are filled"
-                            : "A space is not filled";
-                    },
+    return new Promise(function (resolve) {
+        getFile(paramsMap.get("file")).then(function (response) {
+            data.omtex = response.data;
+            resolve(
+                Object.assign(self, {
+                    data,
+                    exportModel,
+                    areSpacesFull,
+                    //addUpdateHandler,
+                    createSpace,
+                    createTile,
+                    getSpace,
+                    getTile,
+                    findSpaceContaining,
                 })
-                .on("dropactivate", function (event) {
-                    event.target.classList.add("drop-activated");
-                });
+            );
         });
-    }
-    return Object.assign(self, {
-        getModelData,
-        exportModel,
-        fillSpace,
-        emptySpace,
-        areSpacesFilled,
-        addUpdateHandler,
-        setupDragging,
+    });
+}
+function init(paramsMap) {
+    const scripts = [
+        "/lib/mathjax/es5/tex-svg.js",
+        "/lib/mathjax-openmiddle.js",
+        "/node_modules/interactjs/dist/interact.min.js",
+    ];
+    return Promise.all(
+        scripts.map(function (script) {
+            return loadScript(script);
+        })
+    ).then(function () {
+        return new Model(paramsMap).then(function (model) {
+            const update = makeUpdateFunction(model);
+            const view = new View(update);
+            return { model, view, update };
+        });
     });
 }
 
 function main(paramsMap, onUpdate) {
-    const userStats = {
-        email: "test@oddities.org",
-        responses: [[1, 1]],
-    };
     const container = document.getElementById("virginia-content");
-    getFile(paramsMap.get("file")).then(function (response) {
-        typeset(function () {
-            return [insertMath(response.data, container)];
-        }).then(function (mathJaxElements) {
-            mathJaxElements.forEach(function (mathJaxElement) {
-                const feedback = document.createElement("div");
-                container.appendChild(feedback);
-                const spaceIds = Array.from(
-                    mathJaxElement.querySelectorAll("[id^='openMiddleSpace']")
-                )
-                    .reduce(function (ids, elmt) {
-                        if (!ids.includes(elmt.id)) {
-                            return ids.concat([elmt.id]);
-                        } else {
-                            return ids;
-                        }
-                    }, [])
-                    .sort();
-                const spaces = spaceIds.map(function (spaceId, index) {
-                    const space = generateSpace(
-                        document.getElementById(spaceId)
+    init(paramsMap).then(function (mvu) {
+        container.appendChild(mvu.view.rootElement);
+        document.addEventListener(
+            "DOMContentLoadedAndMathJaxReady",
+            function () {
+                mvu.view.render(mvu.model).then(function (view) {
+                    const exportModelLink = document.createElement("a");
+                    exportModelLink.textContent = "Export";
+                    exportModelLink.addEventListener(
+                        "click",
+                        mvu.model.exportModel
                     );
-                    space.svgElmt.setAttribute("data-space-index", index);
-                    return space;
+                    container.appendChild(exportModelLink);
                 });
-                const svgElmt = spaces[0].svgElmt.closest("SVG");
-                const tiles = svgElmt.querySelectorAll(".openMiddleTile");
-                // Set the tile background to filled so that it can be dragged from any point in its interior
-                tiles.forEach(function (tile, index) {
-                    tile.setAttribute("data-tile-index", index);
-                    const rect = tile.querySelector("rect");
-                    if (rect === null) return;
-                    rect.style.fill = "white";
-                    tile.insertBefore(rect, tile.firstChild); // Place the background rect at the beginning of the tile's group element so that the foreground text is visible.
-                });
-                const model = new TileModel(spaces, tiles);
-                if (onUpdate instanceof Function) {
-                    model.addUpdateHandler(onUpdate);
-                }
-                model.setupDragging();
-            });
-        });
+            }
+        );
     });
 }
-export { main };
+export { init, main, Model };
