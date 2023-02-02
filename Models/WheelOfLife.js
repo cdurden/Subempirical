@@ -107,17 +107,18 @@ function Modal(update, container) {
     });
 }
 
-function View(update, container) {
+function View(update) {
     const self = Object.create(null);
+    const rootElmt = document.createElement("div");
     Object.setPrototypeOf(self, View.prototype);
     function render(model) {
         return new Promise(function (resolve) {
-            container.replaceChildren();
+            rootElmt.replaceChildren();
             const modal = new Modal(function (model) {
                 update(model, self);
-            }, container);
+            }, rootElmt);
             const viewContainerElmt = document.createElement("div");
-            container.appendChild(viewContainerElmt);
+            rootElmt.appendChild(viewContainerElmt);
             const maxRating = model.data.maxRating;
             const nSectors = model.data.nSectors;
             const radius = 250;
@@ -130,7 +131,7 @@ function View(update, container) {
                 width,
             };
             const draw = SVG()
-                .addTo(container)
+                .addTo(rootElmt)
                 .size(width, height)
                 .viewbox(boundingRect);
             const svg = draw.node;
@@ -202,12 +203,10 @@ function View(update, container) {
                             cursorpt.y < 0
                                 ? Math.atan(
                                       cursorpt.x / cursorpt.y
-                                      //(radius - event.x) / (radius - event.y)
                                   ) +
                                   Math.PI / 2
                                 : Math.atan(
                                       cursorpt.x / cursorpt.y
-                                      //(radius - event.x) / (radius - event.y)
                                   ) +
                                   (3 * Math.PI) / 2;
                         const sector = Math.floor(
@@ -266,7 +265,7 @@ function View(update, container) {
         });
     }
     return Object.assign(self, {
-        container,
+        rootElmt,
         render,
     });
 }
@@ -305,7 +304,7 @@ function makeUpdateFunction(model, callbacks) {
         callbacks.forEach(function (callback) {
             callback(model);
         });
-        return true;
+        return Promise.resolve(true);
     };
 }
 
@@ -345,14 +344,6 @@ function Model(paramsMap) {
         anchor.click();
     }
     return new Promise(function (resolve) {
-        /*
-        resolve(
-            Object.assign(self, {
-                data,
-                exportModel,
-            })
-        );
-        */
         getFile(paramsMap.get("file")).then(function (response) {
             resolve(
                 Object.assign(self, {
@@ -377,8 +368,7 @@ function init(paramsMap, onUpdateCallbacks) {
     ).then(function () {
         return new Model(paramsMap).then(function (model) {
             const update = makeUpdateFunction(model, onUpdateCallbacks);
-            const rootElement = document.createElement("div");
-            const view = new View(update, rootElement);
+            const view = new View(update);
             return { model, view, update };
         });
     });
@@ -386,12 +376,12 @@ function init(paramsMap, onUpdateCallbacks) {
 
 function main(paramsMap, onUpdateCallbacks) {
     const container = document.getElementById("virginia-content");
-    init(paramsMap, onUpdateCallbacks).then(function (mvu) {
-        container.appendChild(mvu.view.container);
-        mvu.view.render(mvu.model).then(function (view) {
+    init(paramsMap, onUpdateCallbacks).then(function ({ model, view, update }) {
+        container.appendChild(view.rootElmt);
+        update({ message: "init" }, view).then(function () {
             const exportModelLink = document.createElement("a");
             exportModelLink.textContent = "Export";
-            exportModelLink.addEventListener("click", mvu.model.exportModel);
+            exportModelLink.addEventListener("click", model.exportModel);
             container.appendChild(exportModelLink);
         });
     });
