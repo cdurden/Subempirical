@@ -1,0 +1,16 @@
+{
+    "nSectors": 9,
+    "maxRating": 10,
+    "sectorLabels": [
+        "Intentional planning",
+        "Presence and awareness",
+        "Demonstrated caring",
+        "Reflection",
+        "Applying insights",
+        "Communicating expectations",
+        "Community-building",
+        "Uplifting energy",
+        "Quality instruction"
+    ],
+    "ratings": [0, 0, 0, 0, 0, 0, 0, 0, 0]
+}
