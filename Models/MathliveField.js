@@ -98,8 +98,8 @@ function init(paramsMap) {
         [
             "other",
             [
-                "https://unpkg.com/@cortex-js/compute-engine?module",
-                "https://unpkg.com/mathlive?module",
+                //"https://unpkg.com/@cortex-js/compute-engine",
+                "https://unpkg.com/mathlive",
             ],
         ],
     ]);
