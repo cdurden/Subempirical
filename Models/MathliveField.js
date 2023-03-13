@@ -94,7 +94,7 @@ function Model(paramsMap) {
 }
 function init(paramsMap) {
     const scriptSourceMap = new Map([
-        ["localhost", ["/node_modules/mathlive/dist/mathlive/mathlive.js"]],
+        ["localhost", ["/node_modules/mathlive/dist/mathlive.js"]],
         [
             "other",
             [
@@ -114,7 +114,7 @@ function init(paramsMap) {
         MathLive.renderMathInDocument();
         const mathPromptModuleUrl = new URL(
             "./Models/MathPrompt.js",
-            paramsMap.get("repoBaseUrl")
+            paramsMap.get("repoBaseUrl") ?? window.location.href
         );
         return import(mathPromptModuleUrl).then(function (mathPrompt) {
             return mathPrompt.init(paramsMap).then(function (promptMVU) {

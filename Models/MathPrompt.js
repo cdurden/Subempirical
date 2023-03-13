@@ -82,8 +82,8 @@ function Model(paramsMap) {
     return new Promise(function (resolve) {
         // FIXME: don't need resolve here
         const promptModuleUrl = new URL(
-            "/lib/mathjax/es5/tex-svg.js",
-            paramsMap.get("repoBaseUrl") ?? "/lib/math-prompts.js"
+            paramsMap.get("promptModuleUrl") ?? "/lib/math-prompts.js",
+            paramsMap.get("repoBaseUrl") ?? window.location.href
         );
         import(promptModuleUrl).then(function (promptModule) {
             promptModule["getPrompt"](paramsMap).then(function (prompt) {
