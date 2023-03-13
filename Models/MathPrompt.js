@@ -98,7 +98,8 @@ function Model(paramsMap) {
     });
 }
 function init(paramsMap) {
-    const scripts = [
+    const scriptSourceMap = new Map([
+        ["localhost",[
         "/lib/mathjax/es5/tex-svg.js",
         "/lib/mathjax-openmiddle.js",
         //"/node_modules/mathlive/dist/mathlive.js",
@@ -106,15 +107,22 @@ function init(paramsMap) {
         //"https://unpkg.com/@cortex-js/compute-engine?module",
         //"https://unpkg.com/mathlive?module",
         //"//unpkg.com/mathlive",
-    ];
-    return Promise.all([
-        //import("/node_modules/mathlive/dist/mathlive.js"),
-        ...scripts.map(function (script) {
+    ],
+        [
+            "other",
+            [
+                `${paramsMap.get("repoBaseUrl")}/lib/mathjax/es5/tex-svg.js`,
+                `${paramsMap.get("repoBaseUrl")}/lib/mathjax-openmiddle.js`,
+            ],
+        ],
+    ]);
+    const hostname = window.location.hostname;
+    const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
+    return Promise.all(
+        scriptSourceMap.get(scriptSource).map(function (script) {
             return loadScript(script);
-        }),
-    ]).then(function (modules) {
-        //const mathlive = modules[0];
-        //MathLive.renderMathInDocument();
+        })
+    ).then(function (modules) {
         return new Model(paramsMap).then(function (model) {
             const update = makeUpdateFunction(model);
             const view = new View(update);
