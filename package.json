@@ -17,6 +17,8 @@
         "epubjs-es6": "^0.3.3",
         "express": "^4.17.1",
         "interactjs": "^1.10.17",
-        "marked": "^4.2.12"
+        "marked": "^4.2.12",
+        "mathlive": "^0.89.2",
+        "showdown": "^2.1.0"
     }
 }

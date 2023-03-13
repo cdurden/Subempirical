@@ -8,8 +8,19 @@ function View(update) {
         return new Promise(function (resolve) {
             rootElement.replaceChildren();
             const viewContainerElmt = document.createElement("div");
+            const converter = new showdown.Converter({ tables: true });
+            //html = converter.makeHtml(model.data.prompt);
+            //viewContainerElmt.textContent = model.data.prompt;
+            viewContainerElmt.innerHTML = converter.makeHtml(model.data.prompt);
+            new Map([
+                ["font-size", "32px"],
+                ["margin", "1em"],
+                ["padding", "8px"],
+            ]).forEach(function (value, key) {
+                viewContainerElmt.style.setProperty(key, value);
+            });
+
             rootElement.appendChild(viewContainerElmt);
-            viewContainerElmt.textContent = model.data.prompt;
             const responseInputElmt = document.createElement("math-field");
             new Map([
                 ["font-size", "32px"],
@@ -37,12 +48,15 @@ function View(update) {
         render,
     });
 }
-function makeUpdateFunction(model) {
+function makeUpdateFunction(model, callback) {
     return function update(message, view) {
         if (message.action === "updateModel") {
             model.data.response = message.response;
         }
-        view.render(model);
+        if (message.action === "setPrompt") {
+            model.data.prompt = message.prompt;
+        }
+        //view.render(model);
         return true;
     };
 }
@@ -50,7 +64,7 @@ function makeUpdateFunction(model) {
 function Model(paramsMap) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, Model.prototype);
-    const data = { prompt: "What is your name?", response: null };
+    const data = { prompt: "", response: null };
     function exportModel() {
         const blob = new Blob([JSON.stringify(data, mapReplacer)], {
             type: "application/json",
@@ -73,41 +87,44 @@ function Model(paramsMap) {
             Object.assign(self, {
                 data,
                 exportModel,
+                //update,
             })
         );
-        /*
-        getFile(paramsMap.get("file")).then(function (response) {
-            data.omtex = response.data;
-            resolve(
-                Object.assign(self, {
-                    data,
-                    exportModel,
-                    update,
-                })
-            );
-        });
-        */
     });
 }
 function init(paramsMap) {
     const scripts = [
-        //"/node_modules/mathlive/dist/mathlive.js",
+        //"/lib/mathjax/es5/tex-svg.js",
+        //"/lib/mathjax-openmiddle.js",
+        "/node_modules/mathlive/dist/mathlive.js",
+        //"/node_modules/showdown/dist/showdown.min.js",
         //"https://unpkg.com/@cortex-js/compute-engine?module",
         //"https://unpkg.com/mathlive?module",
         //"//unpkg.com/mathlive",
     ];
     return Promise.all([
-        import("/node_modules/mathlive/dist/mathlive.js"),
+        //import("/node_modules/mathlive/dist/mathlive.js"),
         ...scripts.map(function (script) {
-            return loadScript(script, true);
+            return loadScript(script);
         }),
     ]).then(function (modules) {
         //const mathlive = modules[0];
         MathLive.renderMathInDocument();
-        return new Model(paramsMap).then(function (model) {
-            const update = makeUpdateFunction(model);
-            const view = new View(update);
-            return { model, view, update };
+        return import("/Models/MathPrompt.js").then(function (mathPrompt) {
+            return mathPrompt.init(paramsMap).then(function (promptMVU) {
+                return new Model(paramsMap).then(function (model) {
+                    const update = makeUpdateFunction(model);
+                    const view = new View(update);
+                    update(
+                        {
+                            action: "setPrompt",
+                            prompt: promptMVU.model.data.prompt,
+                        },
+                        view
+                    );
+                    return { model, view, update };
+                });
+            });
         });
     });
 }
@@ -121,6 +138,8 @@ function main(paramsMap, onUpdate) {
             exportModelLink.textContent = "Export";
             exportModelLink.addEventListener("click", mvu.model.exportModel);
             container.appendChild(exportModelLink);
+            MathJax.startup.defaultPageReady();
+            //MathJax.typeset();
         });
     });
 }

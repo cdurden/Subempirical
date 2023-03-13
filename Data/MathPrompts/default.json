@@ -1,0 +1,8 @@
+{
+    "enterExponentExample1": "Enter $x^3$",
+    "enterNegativeExponentExample1": "Enter $x^-2$",
+    "enterDenominatorExponentExample1": "Enter $\\frac{1}{x^4}$",
+    "simplifyExample1": "Simplify $x^3x^4$",
+    "simplifyExample2": "Simplify $x^2x^{-5}$",
+    "simplifyExample3": "Simplify $y\\cdot3x^2\\cdot2y^{-5}$"
+}
