@@ -112,7 +112,11 @@ function init(paramsMap) {
     ).then(function (modules) {
         //const mathlive = modules[0];
         MathLive.renderMathInDocument();
-        return import("/Models/MathPrompt.js").then(function (mathPrompt) {
+        const mathPromptModuleUrl = new URL(
+            "/Models/MathPrompt.js",
+            paramsMap.get("repoBaseUrl")
+        );
+        return import(mathPromptModuleUrl).then(function (mathPrompt) {
             return mathPrompt.init(paramsMap).then(function (promptMVU) {
                 return new Model(paramsMap).then(function (model) {
                     const update = makeUpdateFunction(model);
