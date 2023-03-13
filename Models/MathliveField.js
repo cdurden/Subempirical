@@ -93,21 +93,23 @@ function Model(paramsMap) {
     });
 }
 function init(paramsMap) {
-    const scripts = [
-        //"/lib/mathjax/es5/tex-svg.js",
-        //"/lib/mathjax-openmiddle.js",
-        "/lib/mathlive/mathlive.js",
-        //"/node_modules/showdown/dist/showdown.min.js",
-        //"https://unpkg.com/@cortex-js/compute-engine?module",
-        //"https://unpkg.com/mathlive?module",
-        //"//unpkg.com/mathlive",
-    ];
-    return Promise.all([
-        //import("/node_modules/mathlive/dist/mathlive.js"),
-        ...scripts.map(function (script) {
+    const scriptSourceMap = new Map([
+        ["localhost", ["/node_modules/mathlive/dist/mathlive/mathlive.js"]],
+        [
+            "other",
+            [
+                "https://unpkg.com/@cortex-js/compute-engine?module",
+                "https://unpkg.com/mathlive?module",
+            ],
+        ],
+    ]);
+    const hostname = window.location.hostname;
+    const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
+    return Promise.all(
+        scriptSourceMap.get(scriptSource).map(function (script) {
             return loadScript(script);
-        }),
-    ]).then(function (modules) {
+        })
+    ).then(function (modules) {
         //const mathlive = modules[0];
         MathLive.renderMathInDocument();
         return import("/Models/MathPrompt.js").then(function (mathPrompt) {
