@@ -151,4 +151,3 @@ function main(paramsMap, onUpdate) {
     });
 }
 export { init, main, Model };
-export { init, main, Model };
