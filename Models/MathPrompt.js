@@ -81,20 +81,22 @@ function Model(paramsMap) {
     }
     return new Promise(function (resolve) {
         // FIXME: don't need resolve here
-        import(paramsMap.get("promptModule") ?? "/lib/math-prompts.js").then(
-            function (promptModule) {
-                promptModule["getPrompt"](paramsMap).then(function (prompt) {
-                    data.prompt = prompt;
-                    resolve(
-                        Object.assign(self, {
-                            data,
-                            exportModel,
-                            //update,
-                        })
-                    );
-                });
-            }
+        const promptModuleUrl = new URL(
+            "/lib/mathjax/es5/tex-svg.js",
+            paramsMap.get("repoBaseUrl") ?? "/lib/math-prompts.js"
         );
+        import(promptModuleUrl).then(function (promptModule) {
+            promptModule["getPrompt"](paramsMap).then(function (prompt) {
+                data.prompt = prompt;
+                resolve(
+                    Object.assign(self, {
+                        data,
+                        exportModel,
+                        //update,
+                    })
+                );
+            });
+        });
     });
 }
 function init(paramsMap) {
@@ -148,4 +150,5 @@ function main(paramsMap, onUpdate) {
         });
     });
 }
+export { init, main, Model };
 export { init, main, Model };
