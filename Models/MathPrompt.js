@@ -82,7 +82,7 @@ function Model(paramsMap) {
     return new Promise(function (resolve) {
         // FIXME: don't need resolve here
         const promptModuleUrl = new URL(
-            paramsMap.get("promptModuleUrl") ?? "/lib/math-prompts.js",
+            paramsMap.get("promptModuleUrl") ?? "./lib/math-prompts.js",
             paramsMap.get("repoBaseUrl") ?? window.location.href
         );
         import(promptModuleUrl).then(function (promptModule) {
