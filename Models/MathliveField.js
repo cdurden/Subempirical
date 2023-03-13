@@ -96,7 +96,7 @@ function init(paramsMap) {
     const scripts = [
         //"/lib/mathjax/es5/tex-svg.js",
         //"/lib/mathjax-openmiddle.js",
-        "/node_modules/mathlive/dist/mathlive.js",
+        "/lib/mathlive/mathlive.js",
         //"/node_modules/showdown/dist/showdown.min.js",
         //"https://unpkg.com/@cortex-js/compute-engine?module",
         //"https://unpkg.com/mathlive?module",
