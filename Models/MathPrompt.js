@@ -99,15 +99,18 @@ function Model(paramsMap) {
 }
 function init(paramsMap) {
     const scriptSourceMap = new Map([
-        ["localhost",[
-        "/lib/mathjax/es5/tex-svg.js",
-        "/lib/mathjax-openmiddle.js",
-        //"/node_modules/mathlive/dist/mathlive.js",
-        "/node_modules/showdown/dist/showdown.min.js",
-        //"https://unpkg.com/@cortex-js/compute-engine?module",
-        //"https://unpkg.com/mathlive?module",
-        //"//unpkg.com/mathlive",
-    ],
+        [
+            "localhost",
+            [
+                "/lib/mathjax/es5/tex-svg.js",
+                "/lib/mathjax-openmiddle.js",
+                //"/node_modules/mathlive/dist/mathlive.js",
+                "/node_modules/showdown/dist/showdown.min.js",
+                //"https://unpkg.com/@cortex-js/compute-engine?module",
+                //"https://unpkg.com/mathlive?module",
+                //"//unpkg.com/mathlive",
+            ],
+        ],
         [
             "other",
             [
