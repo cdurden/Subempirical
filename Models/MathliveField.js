@@ -63,7 +63,7 @@ function View(update, childViewsMap) {
         render,
     });
 }
-function makeUpdateFunction(model, callback) {
+function makeUpdateFunction(model, callbacks) {
     return function update(message, view) {
         if (message.action === "updateModel") {
             model.data.response = message.response;
@@ -74,6 +74,9 @@ function makeUpdateFunction(model, callback) {
         }
         */
         //view.render(model);
+        callbacks.forEach(function (callback) {
+            callback(model);
+        });
         return true;
     };
 }
@@ -113,7 +116,7 @@ function Model(paramsMap, childModelsMap) {
         );
     });
 }
-function init(paramsMap) {
+function init(paramsMap, onUpdateCallbacks = []) {
     const scriptSourceMap = new Map([
         ["localhost", ["/node_modules/mathlive/dist/mathlive.js"]],
         [
@@ -143,7 +146,7 @@ function init(paramsMap) {
                     paramsMap,
                     new Map([["prompt", promptMVU.model]])
                 ).then(function (model) {
-                    const update = makeUpdateFunction(model);
+                    const update = makeUpdateFunction(model, onUpdateCallbacks);
                     const view = new View(
                         update,
                         new Map([["prompt", promptMVU.view]])

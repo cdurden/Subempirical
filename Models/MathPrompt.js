@@ -48,12 +48,15 @@ function View(update) {
         render,
     });
 }
-function makeUpdateFunction(model) {
+function makeUpdateFunction(model, callbacks) {
     return function update(message, view) {
         if (message.action === "updateModel") {
             model.data.response = message.response;
         }
         //view.render(model);
+        callbacks.forEach(function (callback) {
+            callback(model);
+        });
         return true;
     };
 }
@@ -99,7 +102,7 @@ function Model(paramsMap) {
         });
     });
 }
-function init(paramsMap) {
+function init(paramsMap, onUpdateCallbacks = []) {
     const scriptSourceMap = new Map([
         [
             "localhost",
@@ -130,7 +133,7 @@ function init(paramsMap) {
         })
     ).then(function (modules) {
         return new Model(paramsMap).then(function (model) {
-            const update = makeUpdateFunction(model);
+            const update = makeUpdateFunction(model, onUpdateCallbacks);
             const view = new View(update);
             return { model, view, update };
         });

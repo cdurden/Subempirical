@@ -201,13 +201,9 @@ function View(update) {
                         );
                         const theta =
                             cursorpt.y < 0
-                                ? Math.atan(
-                                      cursorpt.x / cursorpt.y
-                                  ) +
+                                ? Math.atan(cursorpt.x / cursorpt.y) +
                                   Math.PI / 2
-                                : Math.atan(
-                                      cursorpt.x / cursorpt.y
-                                  ) +
+                                : Math.atan(cursorpt.x / cursorpt.y) +
                                   (3 * Math.PI) / 2;
                         const sector = Math.floor(
                             (theta / (2 * Math.PI)) * nSectors
@@ -354,7 +350,7 @@ function Model(paramsMap) {
         });
     });
 }
-function init(paramsMap, onUpdateCallbacks) {
+function init(paramsMap, onUpdateCallbacks = []) {
     const scriptSourceMap = new Map([
         ["localhost", ["/node_modules/@svgdotjs/svg.js/dist/svg.js"]],
         ["other", ["https://unpkg.com/@svgdotjs/svg.js"]],
