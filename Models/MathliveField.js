@@ -1,6 +1,6 @@
 import { any, all, getFile, mapReplacer, loadScript } from "../lib/common.js";
 
-function View(update) {
+function View(update, childViewsMap) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, View.prototype);
     const rootElement = document.createElement("div");
@@ -8,6 +8,7 @@ function View(update) {
         return new Promise(function (resolve) {
             rootElement.replaceChildren();
             const viewContainerElmt = document.createElement("div");
+            /*
             const converter = new showdown.Converter({ tables: true });
             //html = converter.makeHtml(model.data.prompt);
             //viewContainerElmt.textContent = model.data.prompt;
@@ -19,28 +20,42 @@ function View(update) {
             ]).forEach(function (value, key) {
                 viewContainerElmt.style.setProperty(key, value);
             });
-
-            rootElement.appendChild(viewContainerElmt);
-            const responseInputElmt = document.createElement("math-field");
-            new Map([
-                ["font-size", "32px"],
-                ["margin", "3em"],
-                ["padding", "8px"],
-                ["border-radius", "8px"],
-                ["border", "1px solid rgba(0, 0, 0, .3)"],
-                ["box-shadow", "0 0 8px rgba(0, 0, 0, .2)"],
-            ]).forEach(function (value, key) {
-                responseInputElmt.style.setProperty(key, value);
-            });
-            responseInputElmt.value = model.data.response;
-            viewContainerElmt.appendChild(responseInputElmt);
-            responseInputElmt.addEventListener("change", function (event) {
-                update(
-                    { action: "updateModel", response: event.target.value },
-                    self
-                );
-            });
-            resolve(self);
+            */
+            childViewsMap
+                .get("prompt")
+                .render(model.childModelsMap.get("prompt"))
+                .then(function (promptView) {
+                    viewContainerElmt.appendChild(promptView.rootElement);
+                    rootElement.appendChild(viewContainerElmt);
+                    const responseInputElmt = document.createElement(
+                        "math-field"
+                    );
+                    new Map([
+                        ["font-size", "32px"],
+                        ["margin", "3em"],
+                        ["padding", "8px"],
+                        ["border-radius", "8px"],
+                        ["border", "1px solid rgba(0, 0, 0, .3)"],
+                        ["box-shadow", "0 0 8px rgba(0, 0, 0, .2)"],
+                    ]).forEach(function (value, key) {
+                        responseInputElmt.style.setProperty(key, value);
+                    });
+                    responseInputElmt.value = model.data.response;
+                    viewContainerElmt.appendChild(responseInputElmt);
+                    responseInputElmt.addEventListener(
+                        "change",
+                        function (event) {
+                            update(
+                                {
+                                    action: "updateModel",
+                                    response: event.target.value,
+                                },
+                                self
+                            );
+                        }
+                    );
+                    resolve(self);
+                });
         });
     }
     return Object.assign(self, {
@@ -53,18 +68,23 @@ function makeUpdateFunction(model, callback) {
         if (message.action === "updateModel") {
             model.data.response = message.response;
         }
+        /*
         if (message.action === "setPrompt") {
             model.data.prompt = message.prompt;
         }
+        */
         //view.render(model);
         return true;
     };
 }
 
-function Model(paramsMap) {
+function Model(paramsMap, childModelsMap) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, Model.prototype);
-    const data = { prompt: "", response: null };
+    const data = {
+        prompt: childModelsMap.get("prompt").data.prompt,
+        response: null,
+    };
     function exportModel() {
         const blob = new Blob([JSON.stringify(data, mapReplacer)], {
             type: "application/json",
@@ -87,6 +107,7 @@ function Model(paramsMap) {
             Object.assign(self, {
                 data,
                 exportModel,
+                childModelsMap,
                 //update,
             })
         );
@@ -118,9 +139,16 @@ function init(paramsMap) {
         );
         return import(mathPromptModuleUrl).then(function (mathPrompt) {
             return mathPrompt.init(paramsMap).then(function (promptMVU) {
-                return new Model(paramsMap).then(function (model) {
+                return new Model(
+                    paramsMap,
+                    new Map([["prompt", promptMVU.model]])
+                ).then(function (model) {
                     const update = makeUpdateFunction(model);
-                    const view = new View(update);
+                    const view = new View(
+                        update,
+                        new Map([["prompt", promptMVU.view]])
+                    );
+                    /*
                     update(
                         {
                             action: "setPrompt",
@@ -128,6 +156,7 @@ function init(paramsMap) {
                         },
                         view
                     );
+                    */
                     return { model, view, update };
                 });
             });

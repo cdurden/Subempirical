@@ -118,6 +118,7 @@ function init(paramsMap) {
             [
                 `${paramsMap.get("repoBaseUrl")}/lib/mathjax/es5/tex-svg.js`,
                 `${paramsMap.get("repoBaseUrl")}/lib/mathjax-openmiddle.js`,
+                "https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js",
             ],
         ],
     ]);
