@@ -167,9 +167,9 @@ function init(paramsMap, onUpdateCallbacks = []) {
     });
 }
 
-function main(paramsMap, onUpdate) {
+function main(paramsMap, onUpdateCallbacks) {
     const container = document.getElementById("virginia-content");
-    init(paramsMap).then(function (mvu) {
+    init(paramsMap, onUpdateCallbacks).then(function (mvu) {
         container.appendChild(mvu.view.rootElement);
         mvu.view.render(mvu.model).then(function (view) {
             const exportModelLink = document.createElement("a");
