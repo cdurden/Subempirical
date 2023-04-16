@@ -1,4 +1,4 @@
-/* 0.89.2 *//**
+/* 0.91.2 *//**
  *
  * Use MathLive to render and edit mathematical formulas.
  *
@@ -11,21 +11,28 @@
  * console.log(convertLatexToSpeakableText('e^{i\\pi}+1=0'));
  * </script>
  *
- * @packageDocumentation MathLive SDK Reference 0.89.2
- * @version 0.89.2
+ * @packageDocumentation MathLive SDK Reference 0.91.2
+ * @version 0.91.2
  *
  */
-import { VirtualKeyboardInterface } from './mathfield';
-import { RemoteVirtualKeyboardOptions, AutoRenderOptions } from './options';
+import type { VirtualKeyboardOptions } from './virtual-keyboard';
+import type { VirtualKeyboardInterface } from './virtual-keyboard';
+import type { AutoRenderOptions } from './options';
 export * from './commands';
-export * from './core';
+export * from './core-types';
 export * from './options';
 export * from './mathfield';
 export * from './mathfield-element';
 export * from './mathlive-ssr';
-export declare function makeSharedVirtualKeyboard(options?: Partial<RemoteVirtualKeyboardOptions>): VirtualKeyboardInterface & EventTarget;
+export * from './virtual-keyboard';
+export declare function makeSharedVirtualKeyboard(options?: Partial<VirtualKeyboardOptions>): VirtualKeyboardInterface & EventTarget;
 export declare function renderMathInDocument(options?: AutoRenderOptions): void;
 export declare function renderMathInElement(element: string | HTMLElement, options?: AutoRenderOptions): void;
 export declare const version: {
     mathlive: string;
 };
+declare global {
+    interface Window {
+        mathVirtualKeyboard: VirtualKeyboardInterface & EventTarget;
+    }
+}

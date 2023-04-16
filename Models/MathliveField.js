@@ -22,7 +22,7 @@ function View(model, update) {
     responseInputContainerElmt.style.setProperty("display", "flex");
 
     //responseContainerElmt.style.setProperty("width", "80%");
-    MathLive.makeSharedVirtualKeyboard();
+    //MathLive.makeSharedVirtualKeyboard();
     const responseInputElmt = document.createElement("math-field");
     responseInputElmt.setAttribute("math-virtual-keyboard-policy", "sandboxed");
     responseInputElmt.setAttribute("use-shared-virtual-keyboard", true);
@@ -151,9 +151,10 @@ function init(
         [
             "other",
             [
-                //"./lib/mathlive.js",
+                "./lib/mathlive/dist/mathlive.js",
                 //"https://unpkg.com/@cortex-js/compute-engine",
-                "https://unpkg.com/mathlive",
+                //"https://unpkg.com/mathlive",
+                //"https://cdn.jsdelivr.net/npm/mathlive@2994c497407d510edd1696ffd435299b12ff0980/dist/mathlive.min.js",
             ],
         ],
     ]);

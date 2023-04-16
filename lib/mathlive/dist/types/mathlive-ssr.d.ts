@@ -1,13 +1,6 @@
-/* 0.89.2 *//**
- * Server-side rendering exports.
- *
- * These functions do not require a DOM environment and can
- * be used from a server-side environment.
- *
- */
-import { LatexSyntaxError, ParseMode } from './core';
+/* 0.91.2 *//// <reference types="./cortex-compute-engine" />
 import { Expression } from './mathfield-element';
-import { TextToSpeechOptions } from './options';
+import type { LatexSyntaxError, ParseMode } from './core-types';
 import '../core/modes';
 /**
  * Convert a LaTeX string to a string of HTML markup.
@@ -72,8 +65,6 @@ export declare function convertLatexToMathMl(latex: string, options?: {
  * @param latex A string of valid LaTeX. It does not have to start
  * with a mode token such as a `$$` or `\(`.
  *
- * @param options {@inheritDoc TextToSpeechOptions}
- *
  * @return The spoken representation of the input LaTeX.
  * @example
  * console.log(convertLatexToSpeakableText('\\frac{1}{2}'));
@@ -81,7 +72,7 @@ export declare function convertLatexToMathMl(latex: string, options?: {
  * @category Converting
  * @keywords convert, latex, speech, speakable, text, speakable text
  */
-export declare function convertLatexToSpeakableText(latex: string, options?: Partial<TextToSpeechOptions>): string;
+export declare function convertLatexToSpeakableText(latex: string): string;
 export declare function serializeMathJsonToLatex(json: Expression): string;
 export declare function convertLatexToAsciiMath(latex: string, mode?: ParseMode): string;
 export declare function convertAsciiMathToLatex(ascii: string): string;

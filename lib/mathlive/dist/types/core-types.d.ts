@@ -1,4 +1,8 @@
-/* 0.89.2 *//**
+/* 0.91.2 */export type MathstyleName = 'displaystyle' | 'textstyle' | 'scriptstyle' | 'scriptscriptstyle';
+export type NormalizedMacroDictionary = Record<string, MacroDefinition>;
+export type ArgumentType = ParseMode | ('bbox' | 'colspec' | 'delim' | 'dimen' | 'number' | 'rest' | 'glue' | 'string' | 'balanced-string' | 'auto');
+export type Token = string;
+/**
  * The mode that indicates how a portion of content is interpreted
  *
  */
@@ -167,11 +171,7 @@ export type Registers = Record<string, RegisterValue>;
  *
  * For example:
 ```javascript
-mf.setOptions({
-    macros: {
-        smallfrac: '^{#1}\\!\\!/\\!_{#2}',
-    },
-});
+mf.macros = { smallfrac: "^{#1}\\!\\!/\\!_{#2}" };
 ```
 The code above will support the following notation:
 ```latex
@@ -181,3 +181,9 @@ The code above will support the following notation:
  * * [Macros Example](/mathlive/guides/macros/)
  */
 export type MacroDictionary = Record<string, string | Partial<MacroDefinition> | MacroPackageDefinition>;
+export type BoxCSSProperties = 'background-color' | 'border' | 'border-bottom' | 'border-color' | 'border-left' | 'border-radius' | 'border-right' | 'border-right-width' | 'border-top' | 'border-top-width' | 'box-sizing' | 'color' | 'display' | 'font-family' | 'left' | 'font-size' | 'height' | 'line-height' | 'margin' | 'margin-top' | 'margin-left' | 'margin-right' | 'opacity' | 'padding' | 'position' | 'top' | 'vertical-align' | 'width' | 'z-index';
+export type MatrixEnvironment = 'matrix' | 'matrix*' | 'pmatrix' | 'pmatrix*' | 'bmatrix' | 'bmatrix*' | 'Bmatrix' | 'Bmatrix*' | 'vmatrix' | 'vmatrix*' | 'Vmatrix' | 'Vmatrix*';
+export type CasesEnvironment = 'cases' | 'dcases' | 'rcases';
+export type TabularEnvironment = 'array' | 'equation' | 'equation*' | 'subequations' | 'multline' | 'align' | 'align*' | 'aligned' | 'eqnarray' | 'split' | 'gather' | 'gathered' | 'lines' | 'multline' | 'multline*' | 'cases' | 'dcases' | 'rcases' | 'smallmatrix' | 'smallmatrix*' | CasesEnvironment | MatrixEnvironment;
+export type AlignEnvironment = 'align' | 'align*' | 'aligned' | 'gather' | 'gathered' | 'split' | 'multline';
+export type Environment = 'math' | 'displaymath' | 'center' | TabularEnvironment;

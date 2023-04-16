@@ -1,6 +1,5 @@
-/* 0.89.2 */import { Selector } from './commands';
-import { CombinedVirtualKeyboardOptions, MathfieldOptions } from './options';
-import { ParseMode, Style } from './core';
+/* 0.91.2 */import type { ParseMode, Style } from './core-types';
+import { Selector } from './commands';
 /**
  *
 | Format                | Description             |
@@ -117,36 +116,8 @@ export type Selection = {
     ranges: Range[];
     direction?: 'forward' | 'backward' | 'none';
 };
-/**
- * This interface is implemented by:
- * - `VirtualKeyboard`
- * - `VirtualKeyboardDelegate` (used when the virtual keyboard is shared amongst
- * mathfield instances)
- * - `RemoteVirtualKeyboard` (the shared virtual keyboard instance)
- */
-export interface VirtualKeyboardInterface {
-    visible: boolean;
-    height: number;
-    /** Called once when the keyboard is created */
-    create(): void;
-    /** After calling dispose() the Virtual Keyboard is no longer valid and
-     * cannot be brought back. Use disable() for temporarily deactivating the
-     * keyboard. */
-    dispose(): void;
-    executeCommand(command: string | [string, ...any[]]): boolean;
-    focusMathfield(): void;
-    blurMathfield(): void;
-    enable(): void;
-    disable(): void;
-    stateChanged(): void;
-    setOptions(options: CombinedVirtualKeyboardOptions): void;
-}
 export interface Mathfield {
     mode: ParseMode;
-    getOptions(): MathfieldOptions;
-    getOptions<K extends keyof MathfieldOptions>(keys: K[]): Pick<MathfieldOptions, K>;
-    getOption<K extends keyof MathfieldOptions>(key: K): MathfieldOptions[K];
-    setOptions(options: Partial<MathfieldOptions>): void;
     /**
      * Execute a [[`Commands`|command]] defined by a selector.
      * ```javascript
@@ -259,11 +230,14 @@ export interface Mathfield {
     } | null;
     setCaretPoint(x: number, y: number): boolean;
     /**
-     * Return a nested mathfield element that match the provided `placeholderId`
-     * @param placeholderId
+     * Return the content of the `\placeholder{}` command with the `placeholderId`
      */
-    getPlaceholderField(placeholderId: string): Mathfield | undefined;
-    virtualKeyboardState: 'visible' | 'hidden';
+    getPromptValue(placeholderId: string): string;
+    getPrompts(filter?: {
+        id?: string;
+        locked?: boolean;
+        correctness?: 'correct' | 'incorrect' | 'undefined';
+    }): string[];
 }
 export interface Model {
     readonly mathfield: Mathfield;
