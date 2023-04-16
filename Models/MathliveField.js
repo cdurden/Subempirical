@@ -69,6 +69,7 @@ function View(model, update) {
     }
     function render() {
         MathLive.renderMathInDocument();
+        window.mathVirtualKeyboard._boundingRect = { height: undefined };
         return new Promise(function (resolve) {
             rootElement.replaceChildren();
             const viewContainerElmt = document.createElement("div");
@@ -147,9 +148,9 @@ function init(
         [
             "other",
             [
-                "./lib/mathlive.js",
+                //"./lib/mathlive.js",
                 //"https://unpkg.com/@cortex-js/compute-engine",
-                //"https://unpkg.com/mathlive",
+                "https://unpkg.com/mathlive",
             ],
         ],
     ]);
