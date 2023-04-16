@@ -98,8 +98,9 @@ function init(
         [
             "other",
             [
-                `./lib/mathjax/es5/tex-svg.js`,
-                `./lib/mathjax-default.js`,
+                "./lib/htmlset-extension/htmlset.min.js",
+                "./lib/mathjax/es5/tex-svg.js",
+                "./lib/mathjax-default.js",
                 "https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js",
             ],
         ],
