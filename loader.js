@@ -1,12 +1,8 @@
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
-document.addEventListener("DOMContentLoaded", function () {
-    const baseURL = window.location.origin;
-    const url = new URL(window.location.href);
-    const searchParams = new URLSearchParams(window.location.search);
+function init({ taskId, baseURL }) {
     const seed = getRandomInt(10000);
-    const taskId = searchParams.get("taskId");
     import("./lib/common.js").then(function ({ getFile, mapReviver }) {
         getFile("./Data/Tasks/Chapter9.json", {
             transformResponse: (response) => response,
@@ -64,4 +60,4 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             });
     });
-});
+}
