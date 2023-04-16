@@ -298,7 +298,13 @@ function init(
                 "/lib/algebra-latex.js",
             ],
         ],
-        ["other", []],
+        [
+            "other",
+            [
+                "/lib/algebrite.bundle-for-browser-min.js",
+                "/lib/algebra-latex.js",
+            ],
+        ],
     ]);
     const hostname = window.location.hostname;
     const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
