@@ -99,7 +99,7 @@ function init(
             "other",
             [
                 "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js",
-                "./lib/mathjax-default.js",
+                "./lib/mathjax-remote.js",
                 "https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js",
             ],
         ],
