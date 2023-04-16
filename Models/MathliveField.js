@@ -22,8 +22,10 @@ function View(model, update) {
     responseInputContainerElmt.style.setProperty("display", "flex");
 
     //responseContainerElmt.style.setProperty("width", "80%");
+    MathLive.makeSharedVirtualKeyboard();
     const responseInputElmt = document.createElement("math-field");
     responseInputElmt.setAttribute("math-virtual-keyboard-policy", "sandboxed");
+    responseInputElmt.setAttribute("use-shared-virtual-keyboard", true);
     responseInputElmt.addEventListener("change", function (event) {
         const response = model.paramsMap.has("responseFields")
             ? new Map(
@@ -70,7 +72,7 @@ function View(model, update) {
     }
     function render() {
         MathLive.renderMathInDocument();
-        window.mathVirtualKeyboard._boundingRect = { height: undefined };
+        //window.mathVirtualKeyboard._boundingRect = { height: undefined };
         return new Promise(function (resolve) {
             rootElement.replaceChildren();
             const viewContainerElmt = document.createElement("div");
