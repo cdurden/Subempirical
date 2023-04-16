@@ -98,8 +98,8 @@ function init(
         [
             "other",
             [
-                `${paramsMap.get("repoBaseUrl")}/lib/mathjax/es5/tex-svg.js`,
-                `${paramsMap.get("repoBaseUrl")}/lib/mathjax-default.js`,
+                `/lib/mathjax/es5/tex-svg.js`,
+                `/lib/mathjax-default.js`,
                 "https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js",
             ],
         ],
@@ -108,7 +108,7 @@ function init(
     const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
     return Promise.all(
         scriptSourceMap.get(scriptSource).map(function (script) {
-            return loadScript(script);
+            return loadScript(script, { baseURL: paramsMap.get("baseURL") });
         })
     ).then(function (modules) {
         return new Model(paramsMap).then(function (model) {

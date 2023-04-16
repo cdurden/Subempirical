@@ -310,7 +310,7 @@ function init(
     const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
     return Promise.all(
         scriptSourceMap.get(scriptSource).map(function (script) {
-            return loadScript(script);
+            return loadScript(script, { baseURL: paramsMap.get("baseURL") });
         })
     ).then(function (modules) {
         return new Model(paramsMap).then(function (model) {
