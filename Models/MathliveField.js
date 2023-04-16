@@ -142,7 +142,7 @@ function init(
     }
 ) {
     const scriptSourceMap = new Map([
-        ["localhost", ["/node_modules/mathlive/dist/mathlive.js"]],
+        ["localhost", ["./node_modules/mathlive/dist/mathlive.js"]],
         [
             "other",
             [

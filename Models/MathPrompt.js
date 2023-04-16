@@ -90,16 +90,16 @@ function init(
         [
             "localhost",
             [
-                "/lib/mathjax/es5/tex-svg.js",
-                "/lib/mathjax-default.js",
-                "/node_modules/showdown/dist/showdown.min.js",
+                "./lib/mathjax/es5/tex-svg.js",
+                "./lib/mathjax-default.js",
+                "./node_modules/showdown/dist/showdown.min.js",
             ],
         ],
         [
             "other",
             [
-                `/lib/mathjax/es5/tex-svg.js`,
-                `/lib/mathjax-default.js`,
+                `./lib/mathjax/es5/tex-svg.js`,
+                `./lib/mathjax-default.js`,
                 "https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js",
             ],
         ],

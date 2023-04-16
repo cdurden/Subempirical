@@ -294,15 +294,15 @@ function init(
         [
             "localhost",
             [
-                "/lib/algebrite.bundle-for-browser-min.js",
-                "/lib/algebra-latex.js",
+                "./lib/algebrite.bundle-for-browser-min.js",
+                "./lib/algebra-latex.js",
             ],
         ],
         [
             "other",
             [
-                "/lib/algebrite.bundle-for-browser-min.js",
-                "/lib/algebra-latex.js",
+                "./lib/algebrite.bundle-for-browser-min.js",
+                "./lib/algebra-latex.js",
             ],
         ],
     ]);
