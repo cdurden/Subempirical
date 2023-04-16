@@ -10,15 +10,19 @@
     "license": "MIT",
     "dependencies": {
         "@svgdotjs/svg.js": "^3.1.2",
+        "algebra-latex": "^2.0.3",
+        "algebrite": "^1.4.0",
         "axios": "^1.2.6",
+        "browserify": "^17.0.0",
         "d3": "^7.8.2",
         "d3-graphviz": "^5.0.2",
         "epubjs": "^0.3.93",
         "epubjs-es6": "^0.3.3",
         "express": "^4.17.1",
         "interactjs": "^1.10.17",
+        "kas": "^1.0.0",
         "marked": "^4.2.12",
-        "mathlive": "^0.89.2",
+        "mathlive": "^0.91.2",
         "showdown": "^2.1.0"
     }
 }

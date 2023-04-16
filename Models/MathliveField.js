@@ -1,93 +1,111 @@
-import { any, all, getFile, mapReplacer, loadScript } from "../lib/common.js";
+import {
+    any,
+    all,
+    getFile,
+    mapReplacer,
+    loadScript,
+    composeUpdateThenRender,
+} from "../lib/common.js";
 
-function View(update, childViewsMap) {
+function View(model, update) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, View.prototype);
     const rootElement = document.createElement("div");
-    function render(model) {
+    const renderPrompt = function () {
+        return Promise.reject();
+    };
+    const renderFeedback = function () {
+        return Promise.reject();
+    };
+    const responseContainerElmt = document.createElement("div");
+    const responseInputContainerElmt = document.createElement("div");
+    responseInputContainerElmt.style.setProperty("display", "flex");
+
+    //responseContainerElmt.style.setProperty("width", "80%");
+    const responseInputElmt = document.createElement("math-field");
+    responseInputElmt.addEventListener("change", function (event) {
+        const response = model.paramsMap.has("responseFields")
+            ? new Map(
+                  model.paramsMap
+                      .get("responseFields")
+                      .map(function (fieldName) {
+                          return [
+                              fieldName,
+                              responseInputElmt.getPromptValue(fieldName),
+                          ];
+                      })
+              )
+            : event.target.value;
+        update({
+            action: "updateModel",
+            response,
+        });
+    });
+    const submitButtonElmt = document.createElement("button");
+    submitButtonElmt.className = "pure-button pure-button-active";
+    submitButtonElmt.textContent = "Submit";
+    new Map([
+        ["font-size", "32px"],
+        ["width", "100%"],
+        //["margin", "3em"],
+        //["display", "inline"],
+        ["padding", "8px"],
+        ["border-radius", "8px"],
+        ["border", "1px solid rgba(0, 0, 0, .3)"],
+        ["box-shadow", "0 0 8px rgba(0, 0, 0, .2)"],
+    ]).forEach(function (value, key) {
+        responseInputElmt.style.setProperty(key, value);
+    });
+    responseContainerElmt.appendChild(responseInputContainerElmt);
+    responseInputContainerElmt.appendChild(responseInputElmt);
+    responseInputContainerElmt.appendChild(submitButtonElmt);
+    submitButtonElmt.addEventListener("click", function (event) {
+        update({
+            action: "submit",
+        });
+    });
+    function setPromptState(state) {
+        responseInputElmt.setPromptState(state);
+    }
+    function render() {
         return new Promise(function (resolve) {
             rootElement.replaceChildren();
             const viewContainerElmt = document.createElement("div");
-            /*
-            const converter = new showdown.Converter({ tables: true });
-            //html = converter.makeHtml(model.data.prompt);
-            //viewContainerElmt.textContent = model.data.prompt;
-            viewContainerElmt.innerHTML = converter.makeHtml(model.data.prompt);
-            new Map([
-                ["font-size", "32px"],
-                ["margin", "1em"],
-                ["padding", "8px"],
-            ]).forEach(function (value, key) {
-                viewContainerElmt.style.setProperty(key, value);
-            });
-            */
-            childViewsMap
-                .get("prompt")
-                .render(model.childModelsMap.get("prompt"))
-                .then(function (promptView) {
-                    viewContainerElmt.appendChild(promptView.rootElement);
-                    rootElement.appendChild(viewContainerElmt);
-                    const responseInputElmt = document.createElement(
-                        "math-field"
-                    );
-                    new Map([
-                        ["font-size", "32px"],
-                        ["margin", "3em"],
-                        ["padding", "8px"],
-                        ["border-radius", "8px"],
-                        ["border", "1px solid rgba(0, 0, 0, .3)"],
-                        ["box-shadow", "0 0 8px rgba(0, 0, 0, .2)"],
-                    ]).forEach(function (value, key) {
-                        responseInputElmt.style.setProperty(key, value);
-                    });
-                    responseInputElmt.value = model.data.response;
-                    viewContainerElmt.appendChild(responseInputElmt);
-                    responseInputElmt.addEventListener(
-                        "change",
-                        function (event) {
-                            update(
-                                {
-                                    action: "updateModel",
-                                    response: event.target.value,
-                                },
-                                self
-                            );
-                        }
-                    );
-                    resolve(self);
+            rootElement.appendChild(viewContainerElmt);
+            viewContainerElmt.appendChild(self.promptView.rootElement);
+            self.promptView.render().then(function () {
+                //responseInputElmt.setAttribute("script-depth", "[0, 1]");
+                responseInputElmt.textContent = model.data.value;
+                if (model.paramsMap.get("fill-in-the-blank") === true) {
+                    responseInputElmt.setAttribute("readonly", true);
+                }
+                //responseInputElmt.value = model.data.response;
+                viewContainerElmt.appendChild(responseContainerElmt);
+                self.renderFeedback().then(function (feedbackView) {
+                    //rootElement.appendChild(feedbackView.rootElement);
+                    responseContainerElmt.appendChild(feedbackView.rootElement);
                 });
+                resolve(self);
+            });
         });
     }
     return Object.assign(self, {
         rootElement,
+        renderFeedback,
         render,
+        setPromptState,
     });
 }
-function makeUpdateFunction(model, callbacks) {
-    return function update(message, view) {
-        if (message.action === "updateModel") {
-            model.data.response = message.response;
-        }
-        /*
-        if (message.action === "setPrompt") {
-            model.data.prompt = message.prompt;
-        }
-        */
-        //view.render(model);
-        callbacks.forEach(function (callback) {
-            callback(model);
-        });
-        return true;
-    };
-}
-
-function Model(paramsMap, childModelsMap) {
+function Model(paramsMap) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, Model.prototype);
     const data = {
-        prompt: childModelsMap.get("prompt").data.prompt,
-        response: null,
+        prompt: self.promptModel?.data?.prompt,
+        value: paramsMap.get("value"),
     };
+    function setCompleted(value) {
+        data.completed = value;
+    }
     function exportModel() {
         const blob = new Blob([JSON.stringify(data, mapReplacer)], {
             type: "application/json",
@@ -109,14 +127,20 @@ function Model(paramsMap, childModelsMap) {
         resolve(
             Object.assign(self, {
                 data,
+                promptModel: undefined,
                 exportModel,
-                childModelsMap,
-                //update,
+                paramsMap,
+                setCompleted,
             })
         );
     });
 }
-function init(paramsMap, onUpdateCallbacks = []) {
+function init(
+    paramsMap,
+    updateParent = function (message) {
+        return Promise.resolve(message);
+    }
+) {
     const scriptSourceMap = new Map([
         ["localhost", ["/node_modules/mathlive/dist/mathlive.js"]],
         [
@@ -134,51 +158,92 @@ function init(paramsMap, onUpdateCallbacks = []) {
             return loadScript(script);
         })
     ).then(function (modules) {
-        //const mathlive = modules[0];
         MathLive.renderMathInDocument();
         const mathPromptModuleUrl = new URL(
             "./Models/MathPrompt.js",
             paramsMap.get("repoBaseUrl") ?? window.location.href
         );
-        return import(mathPromptModuleUrl).then(function (mathPrompt) {
-            return mathPrompt.init(paramsMap).then(function (promptMVU) {
-                return new Model(
-                    paramsMap,
-                    new Map([["prompt", promptMVU.model]])
-                ).then(function (model) {
-                    const update = makeUpdateFunction(model, onUpdateCallbacks);
-                    const view = new View(
-                        update,
-                        new Map([["prompt", promptMVU.view]])
-                    );
-                    /*
-                    update(
-                        {
-                            action: "setPrompt",
-                            prompt: promptMVU.model.data.prompt,
-                        },
-                        view
-                    );
-                    */
-                    return { model, view, update };
-                });
+        const feedbackModuleUrl = new URL(
+            "./Models/Feedback.js",
+            paramsMap.get("repoBaseUrl") ?? window.location.href
+        );
+        return new Model(paramsMap).then(function (model) {
+            const view = new View(model, update);
+            var updateFeedback;
+            function update(message) {
+                if (message.action === "updateModel") {
+                    model.data.response = message.response;
+                } else if (message.action === "setPrompt") {
+                    model.promptModel = message.promptModel;
+                    view.promptView = message.promptView;
+                } else if (message.action === "insertFeedback") {
+                    updateFeedback = message.updateFeedback;
+                    view.renderFeedback = message.renderFeedback;
+                    view.showFeedback = message.showFeedback;
+                } else if (message.action === "submit") {
+                    if (updateFeedback === undefined) {
+                        throw "submit called but updateFeedback has not been defined";
+                    }
+                    updateFeedback(model.data.response).then(function () {
+                        view.showFeedback();
+                    });
+                } else if (message.action === "setTaskState") {
+                    if (message.state === "correct") {
+                        model.setCompleted(true);
+                        updateParent({ action: "setCompleted", value: true });
+                    } else {
+                        model.setCompleted(false);
+                        updateParent({ action: "setCompleted", value: false });
+                    }
+
+                    //view.setPromptState(message.state);
+                }
+                return updateParent(message);
+            }
+
+            return Promise.all([
+                import(feedbackModuleUrl).then(function (feedbackModule) {
+                    return feedbackModule
+                        .init(paramsMap, update)
+                        .then(function (feedbackMVU) {
+                            update({
+                                action: "insertFeedback",
+                                showFeedback: function () {
+                                    feedbackMVU.update({
+                                        action: "showFeedback",
+                                    });
+                                },
+                                renderFeedback: feedbackMVU.view.render,
+                                updateFeedback: function (response) {
+                                    return feedbackMVU.update({
+                                        action: "updateFeedback",
+                                        response,
+                                    });
+                                    //feedbackMVU.model.updateFeedback
+                                },
+                            });
+                            return feedbackMVU;
+                        });
+                }),
+                import(mathPromptModuleUrl).then(function (mathPromptModule) {
+                    return mathPromptModule
+                        .init(paramsMap, update)
+                        .then(function (promptMVU) {
+                            update({
+                                action: "setPrompt",
+                                promptModel: promptMVU.model,
+                                promptView: promptMVU.view,
+                            });
+                            return promptMVU;
+                        });
+                }),
+            ]).then(function () {
+                //update({ action: "init" });
+                return { model, view, update };
             });
+            //            });
         });
     });
 }
 
-function main(paramsMap, onUpdateCallbacks) {
-    const container = document.getElementById("virginia-content");
-    init(paramsMap, onUpdateCallbacks).then(function (mvu) {
-        container.appendChild(mvu.view.rootElement);
-        mvu.view.render(mvu.model).then(function (view) {
-            const exportModelLink = document.createElement("a");
-            exportModelLink.textContent = "Export";
-            exportModelLink.addEventListener("click", mvu.model.exportModel);
-            container.appendChild(exportModelLink);
-            MathJax.startup.defaultPageReady();
-            //MathJax.typeset();
-        });
-    });
-}
-export { init, main, Model };
+export { init };

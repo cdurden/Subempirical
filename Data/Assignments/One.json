@@ -1,0 +1,129 @@
+[
+    {
+        "data": [
+            ["repoBaseUrl", null],
+            ["moduleUrl", "/Models/WheelOfLife.js"],
+            ["file", "/Data/WheelOfLife/Teaching.json"]
+        ],
+        "dataType": "Map"
+    },
+    {
+        "data": [
+            ["repoBaseUrl", null],
+            ["moduleUrl", "/Models/MathliveField.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            ["expression", "x^3"],
+            ["type", "simplify"]
+        ],
+        "dataType": "Map"
+    },
+    {
+        "data": [
+            ["repoBaseUrl", null],
+            ["moduleUrl", "/Models/MathliveField.js"],
+            ["prompt", "MultiplyBinomials1"],
+            [
+                "feedback",
+                { "method": "checkEquality", "expression": "(x+a)*(x+b)" }
+            ],
+            [
+                "promptParams",
+                {
+                    "data": [
+                        [
+                            "a",
+                            {
+                                "generator": "randInt",
+                                "options": { "max": 10 }
+                            }
+                        ],
+                        [
+                            "b",
+                            {
+                                "generator": "randInt",
+                                "options": {
+                                    "max": 10
+                                }
+                            }
+                        ]
+                    ],
+                    "dataType": "Map"
+                }
+            ]
+        ],
+        "dataType": "Map"
+    },
+    {
+        "data": [
+            ["repoBaseUrl", null],
+            ["moduleUrl", "/Models/MathliveField.js"],
+            ["prompt", "MultiplyBinomials2"],
+            [
+                "promptParams",
+                {
+                    "data": [
+                        [
+                            "a",
+                            {
+                                "generator": "randInt",
+                                "options": { "max": 10 }
+                            }
+                        ],
+                        [
+                            "b",
+                            {
+                                "generator": "randInt",
+                                "options": {
+                                    "max": 10
+                                }
+                            }
+                        ]
+                    ],
+                    "dataType": "Map"
+                }
+            ]
+        ],
+        "dataType": "Map"
+    },
+    {
+        "data": [
+            ["repoBaseUrl", null],
+            ["moduleUrl", "/Models/MathliveField.js"],
+            ["prompt", "MultiplyBinomialTrinomial1"],
+            [
+                "promptParams",
+                {
+                    "data": [
+                        [
+                            "a",
+                            {
+                                "generator": "randInt",
+                                "options": { "max": 10 }
+                            }
+                        ],
+                        [
+                            "b",
+                            {
+                                "generator": "randInt",
+                                "options": {
+                                    "max": 10
+                                }
+                            }
+                        ],
+                        [
+                            "c",
+                            {
+                                "generator": "randInt",
+                                "options": {
+                                    "max": 10
+                                }
+                            }
+                        ]
+                    ],
+                    "dataType": "Map"
+                }
+            ]
+        ],
+        "dataType": "Map"
+    }
+]

@@ -1,0 +1,33 @@
+Problem: The update function for a child element is created before the update function for the parent element. But we would like to be able to call the update function of the parent when the child updates.
+
+Question: Can we create the update function for the parent first? Currently, the child models are passed to the constructor for the parent model. Since the MVU are created in one function call, we cannot create the model of a child before the parent model and also create the update function for the parent before the child's.
+
+Perhaps we do not need to pass the child models to the parent model constructor. We can use the update function instead to update the parent with the information from the children. Then we would init the parent MVU before the child, and pass the postUpdateCallback to the child to update the parent.
+
+init
+then render
+
+Model
+
+
+View() {
+  render(model) {
+    update({ action: ... });
+    ...
+  }
+  makeUpdateFunction(model) {
+    function update(message) {
+      ...
+      render(model);
+    }
+  }
+}
+
+
+
+
+init -> Model, update
+
+Problem: Rendering of child views is accomplished by passing the child MVUs to the parent's render function, and calling the child's render function from the parent. But some children have render functions which take additional parameters.
+
+Solution: Each child can generate a render closure function which is stored in the view, which takes no arguments, but which provides the model and update functions from the child MVU to the child's view render function

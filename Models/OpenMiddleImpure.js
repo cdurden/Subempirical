@@ -53,14 +53,7 @@ function SpaceView(svgElmt) {
         tileView.assignedSpaceId = spaceId;
         contents.push(tileView);
         spaceView.svgElmt.appendChild(tileView.svgElmt);
-        tileView.svgElmt.transform.baseVal
-            .getItem(0)
-            .setTranslate(
-                (spaceView.svgElmt.getBBox().width -
-                    tileView.svgElmt.getBBox().width) /
-                    2,
-                0
-            );
+        tileView.move(0, 0);
     }
     function removeTileView(tileView) {
         contents.splice(contents.indexOf(tileView), 1);
@@ -169,15 +162,7 @@ function TileView(svgElmt, update, source = null) {
         clone,
         reset,
         remove,
-        hide,
-        show,
     });
-    function hide() {
-        self.svgElmt.style.display = "none";
-    }
-    function show() {
-        self.svgElmt.style.display = "block";
-    }
     function remove() {
         self.svgElmt.remove();
     }
@@ -233,10 +218,60 @@ function View(update) {
     }
     function addTileView(tileView) {
         tileViewMap.set(tileView.tileId, tileView);
+        /*
+        if (tileViewMap.has(tileView.tileId)) {
+            tileViewMap.get(tileView.tileId).push(tileView);
+        } else {
+            tileViewMap.set(tileView.tileId, [tileView]);
+        }
+        */
     }
+    /*
+    function getTileView(tileIndex) {
+        return tileViews[tileIndex];
+    }
+    function getTileViews() {
+        return tileViews;
+    }
+    */
     function getSpaceViews(spaceId) {
         return spaceViewMap.get(spaceId) || [];
     }
+    /*
+    function update(modelUpdate) {
+        Array.from(modelUpdate.spaceViews.entries()).forEach(function ([
+            spaceId,
+            spaceModel,
+        ]) {
+            // Rectify the space's view with its model
+            spaceViews.get(spaceId).views.forEach(function (spaceView) {
+                // Clear the space's view
+                spaceView.contents.forEach(function (tileView) {
+                    if (tileView.isClone) {
+                        tileView.remove();
+                    }
+                });
+                // Add the tiles back based on the model
+                spaceModel.contents.forEach(function (tileModel) {
+                    const tileView = getTile(tileModel.index);
+                    if (doClone) {
+                        const clone = tileView.clone(spaceView.svgElmt);
+                        spaceView.contents.push(clone);
+                    } else {
+                        //spaceView.svgElmt.appendChild(tile.svgElmt);
+                        spaceView.contents.push(tileView);
+                    }
+                });
+            });
+        });
+    }
+    function getTile(index) {
+        return tiles[index];
+    }
+    function getSpace(spaceId) {
+        return spaceViews.get(spaceId);
+    }
+    */
     const feedback = document.createElement("div");
     function render(model) {
         return new Promise(function (resolve) {
@@ -297,47 +332,77 @@ function View(update) {
             });
         });
     }
-    const placedTileViewsMap = new Map();
+    // We have an array of arrays. Each element in the outer array corresponds to a space, and consists of a list of tiles.
+    // Each
     function placeTiles(model) {
         // Generate a mapping from tile ids to tile views that are free to be placed in space views.
-        // Populate spaces with tiles from freeTileViewMap
-        clearTiles(model);
-        Array.from(model.data.spaceMap.values()).forEach(function (space) {
-            space.contents.forEach(function (tile) {
-                placedTileViewsMap.set(tile.id, []);
-                const spaceViews = spaceViewMap.get(space.id) ?? [];
-                const tileView = tileViewMap.get(tile.id);
+        const freeTileViewMap = new Map();
+        feedback.textContent = JSON.stringify(model.data, mapReplacer);
+        tileViewMap.forEach(function (tileView, tileId) {
+            freeTileViewMap.set(tileId, [tileView]);
+        });
+        Array.from(model.data.tileMap.values()).map(function (tile) {
+            var tileCount = 0;
+            Array.from(model.data.spaceMap.values()).forEach(function (space) {
+                tileCount += Array.from(space.contents.values()).filter(
+                    function (tileContent) {
+                        return tileContent.id === tile.id;
+                    }
+                ).length;
+                // Remove TileViews which are in the contents of a SpaceView,
+                // but which should not be there, and place them in the freeTileViewMap
+                const spaceViews = spaceViewMap.get(space.id);
                 spaceViews.forEach(function (spaceView, index) {
-                    const tileViewClone = tileView.clone();
-                    tileViewClone.show();
-                    tileView.reset();
-                    makeTileViewDraggable(self, tileViewClone, update);
-                    spaceView.insertTileView(tileViewClone);
-                    placedTileViewsMap.get(tile.id).push(tileViewClone);
+                    const matchingTileViews = Array.from(
+                        spaceView.contents.values()
+                    ).filter(function (tileView) {
+                        return tileView.tileId === tile.id;
+                    });
+                    while (matchingTileViews.length > tileCount) {
+                        const extraTile = matchingTileViews.pop();
+                        freeTileViewMap.get(tile.id).push(extraTile);
+                        spaceView.removeTileView(extraTile);
+                    }
                 });
             });
         });
-        tileViewMap.forEach(function (tileView, tileId) {
-            if (placedTileViewsMap.get(tileId)?.length > 0) {
-                tileView.hide();
-            } else {
-                tileView.show();
-            }
-        });
-    }
-    function clearTiles() {
-        placedTileViewsMap.forEach(function (placedTileViews) {
-            placedTileViews.forEach(function (placedTileView) {
-                placedTileView.remove();
+        // Populate spaces with tiles from freeTileViewMap
+        Array.from(model.data.spaceMap.values()).forEach(function (space) {
+            space.contents.forEach(function (tile) {
+                const freeTileViews = freeTileViewMap.get(tile.id) ?? [];
+                const spaceViews = spaceViewMap.get(space.id) ?? [];
+                spaceViews.forEach(function (spaceView, index) {
+                    if (freeTileViews.length > minStack) {
+                        const tileView = freeTileViews.pop();
+                        spaceView.insertTileView(tileView);
+                    } else {
+                        const tileView = tileViewMap.get(tile.id).clone();
+                        makeTileViewDraggable(self, tileView, update);
+                        spaceView.insertTileView(tileView);
+                    }
+                });
             });
         });
-        placedTileViewsMap.clear();
+        // Reset any unused tiles in freeTileViewMap
+        freeTileViewMap.forEach(function (tileViews) {
+            tileViews.forEach(function (tileView, index) {
+                if (!tileView.isClone) {
+                    tileView.reset();
+                } else {
+                    tileView.remove();
+                }
+            });
+        });
     }
     return Object.assign(self, {
         rootElement,
         render,
         placeTiles,
         getSpaceViews,
+        //getTile,
+        //getTiles,
+        //update,
+        //getSpaces,
     });
 }
 function makeUpdateFunction(model) {
@@ -424,9 +489,19 @@ function Model(paramsMap) {
             if (!isFull()) {
                 contents.push(tile);
             }
+            /*
+            updateHandlers.forEach(function (updateHandler) {
+                updateHandler(modelUpdate);
+            });
+            */
         }
         function removeTile(tile) {
             space.contents.splice(space.contents.indexOf(tile), 1);
+            /*
+            updateHandlers.forEach(function (updateHandler) {
+                updateHandler(modelUpdate);
+            });
+            */
         }
         data.spaceMap.set(space.id, space);
         return space;

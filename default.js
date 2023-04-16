@@ -85,7 +85,7 @@ function markdownViewer(file) {
         document.getElementById("virginia-content").innerHTML = html;
     });
 }
-function jsonViewer(file, searchParams) {
+function jsonViewer(file, paramsMap) {
     const container = document.getElementById("virginia-content");
     getFile(file, {
         transformResponse: (res) => {
@@ -93,10 +93,10 @@ function jsonViewer(file, searchParams) {
         },
         responseType: "json",
     }).then(function (response) {
-        const moduleUrl = searchParams.get("module");
+        const moduleUrl = paramsMap.get("module");
         if (moduleUrl !== null) {
             import(moduleUrl).then(function (module) {
-                const reviver = searchParams.get("reviver") ?? "reviver";
+                const reviver = paramsMap.get("reviver") ?? "reviver";
                 const object = JSON.parse(response.data, module[reviver]);
                 return object.render(container);
             });
@@ -106,7 +106,7 @@ function jsonViewer(file, searchParams) {
         }
     });
 }
-function epubViewer(file, searchParams) {
+function epubViewer(file, paramsMap) {
     const container = document.getElementById("virginia-content");
     getFile("/lib/epub/html/epub-viewer.html").then(function (response) {
         container.innerHTML = response.data;
@@ -122,7 +122,7 @@ function epubViewer(file, searchParams) {
     var displayed = rendition.display();
     */
 }
-function htmlViewer(file, searchParams) {
+function htmlViewer(file, paramsMap) {
     const container = document.getElementById("virginia-content");
     getFile(file, {
         transformResponse: (res) => {
@@ -150,7 +150,7 @@ function htmlViewer(file, searchParams) {
     */
 }
 
-function handler(file, searchParams) {
+function handler(file, paramsMap) {
     /*
     const handlers = new Map([
         ["dot", dotViewer],
@@ -158,12 +158,12 @@ function handler(file, searchParams) {
         ["json", jsonViewer],
     ]);
     const extension = file.split(".").pop();
-    handlers.get(extension)(file, searchParams);
+    handlers.get(extension)(file, paramsMap);
     */
-    txtViewer(file, searchParams);
+    txtViewer(file, paramsMap);
 }
-function main(searchParams) {
-    const file = searchParams.get("file");
+function main(paramsMap) {
+    const file = paramsMap.get("file");
     const handlers = new Map([
         ["dot", dotViewer],
         ["txt", txtViewer],
@@ -173,7 +173,7 @@ function main(searchParams) {
         ["md", markdownViewer],
     ]);
     const extension = file.split(".").pop();
-    handlers.get(extension)(file, searchParams);
+    handlers.get(extension)(file, paramsMap);
 }
 
 export { main, handler, dotViewer, txtViewer, jsonViewer, markdownViewer };

@@ -3,11 +3,15 @@
         <meta charset="utf-8">
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="/styles/main.css">
         <link rel="stylesheet" type="text/css" href="/styles/modals.css">
         <script src="/lib/wasm/dist/index.min.js"></script><!--https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js-->
-        <script src="/lib/d3.v5.min.js"></script>
+        <script src="/node_modules/d3/dist/d3.js"></script>
         <script src="/lib/polyfill.min.js?features=es6"></script>
-        <script src="/node_modules/d3-graphviz/build/d3-graphviz.js"></script><!--https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js-->
+        <script src="https://unpkg.com/@hpcc-js/wasm/dist/graphviz.umd.js" type="application/javascript/"></script>
+        <script src="/node_modules/d3-graphviz/build/d3-graphviz.js"></script>
+        <!--<script src="https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js"></script>-->
         <script src="/node_modules/axios/dist/axios.min.js"></script><!--https://unpkg.com/axios/dist/axios.min.js-->
         <!--<script src="/node_modules/@svgdotjs/svg.js/dist/svg.js"></script>-->
         <!--https://unpkg.com/@svgdotjs/svg.js-->
@@ -98,7 +102,9 @@
         -->
     </head>
     <body>
-        <div id="virginia-content"></div>
+        <div class="content pure-g">
+        <div id="virginia-content" class="pure-u-1"></div>
+        </div>
     </body>
 </html>
 </html>

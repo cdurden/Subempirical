@@ -1,4 +1,14 @@
-import { any, all, getFile, mapReplacer, loadScript } from "../lib/common.js";
+import {
+    any,
+    all,
+    getFile,
+    mapReplacer,
+    loadScript,
+    composeUpdateThenRender,
+} from "../lib/common.js";
+
+import { init as initModal } from "./Modal.js";
+
 function drawCircle(group, r, fill = "none") {
     const drawing = group.circle(2 * r).attr({
         stroke: "black",
@@ -43,82 +53,18 @@ function drawLabel(group, r, theta = 0, label) {
     return drawing;
 }
 
-function Modal(update, container) {
+function View(model, update) {
     const self = Object.create(null);
-    var modalBackdropElmt = document.createElement("div");
+    const rootElement = document.createElement("div");
     Object.setPrototypeOf(self, View.prototype);
-    function render(model) {
-        function show() {
-            modalBackdropElmt.style.display = "block";
-        }
-        function hide() {
-            modalBackdropElmt.style.display = "none";
-            document.removeEventListener("keydown", keyboardHandler);
-        }
-        const keyboardHandler = function (event) {
-            if (event.key === "Escape") {
-                hide();
-            } else if (event.key === "Enter") {
-                model.onSubmit(model);
-                hide();
-            }
-        };
+    function render() {
         return new Promise(function (resolve) {
-            modalBackdropElmt.replaceWith();
-            modalBackdropElmt = document.createElement("div");
-            container.appendChild(modalBackdropElmt);
-            modalBackdropElmt.classList.add("modal-backdrop");
-            const modalElmt = document.createElement("div");
-            modalElmt.replaceWith();
-            modalElmt.classList.add("modal");
-            modalBackdropElmt.appendChild(modalElmt);
-            const modalHeaderElmt = document.createElement("div");
-            modalHeaderElmt.classList.add("modal-header");
-            modalHeaderElmt.textContent = model.header;
-            modalElmt.appendChild(modalHeaderElmt);
-            const modalBodyElmt = document.createElement("div");
-            modalBodyElmt.classList.add("modal-body");
-            modalBodyElmt.innerHTML = model.body;
-            modalElmt.appendChild(modalBodyElmt);
-            const focusable = modalBodyElmt.querySelectorAll(
-                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-            );
-            if (focusable.length > 0) {
-                focusable[0].focus();
-                focusable[0].select();
-            }
-            const modalOkButtonElmt = document.createElement("button");
-            modalOkButtonElmt.textContent = "OK";
-            modalBodyElmt.appendChild(modalOkButtonElmt);
-            const modalCancelButtonElmt = document.createElement("button");
-            modalCancelButtonElmt.textContent = "Cancel";
-            modalBodyElmt.appendChild(modalCancelButtonElmt);
-            modalOkButtonElmt.addEventListener("click", function () {
-                model.onSubmit(model);
-            });
-            modalCancelButtonElmt.addEventListener("click", function () {
-                hide();
-            });
-            document.addEventListener("keydown", keyboardHandler);
-        });
-    }
-    return Object.assign(self, {
-        render,
-    });
-}
-
-function View(update) {
-    const self = Object.create(null);
-    const rootElmt = document.createElement("div");
-    Object.setPrototypeOf(self, View.prototype);
-    function render(model) {
-        return new Promise(function (resolve) {
-            rootElmt.replaceChildren();
-            const modal = new Modal(function (model) {
-                update(model, self);
-            }, rootElmt);
+            rootElement.replaceChildren();
+            //const modal = new ModalView();
+            //rootElement.appendChild(modal.rootElement);
+            rootElement.appendChild(self.modalView.rootElement);
             const viewContainerElmt = document.createElement("div");
-            rootElmt.appendChild(viewContainerElmt);
+            rootElement.appendChild(viewContainerElmt);
             const maxRating = model.data.maxRating;
             const nSectors = model.data.nSectors;
             const radius = 250;
@@ -131,10 +77,11 @@ function View(update) {
                 width,
             };
             const draw = SVG()
-                .addTo(rootElmt)
+                .addTo(rootElement)
                 .size(width, height)
                 .viewbox(boundingRect);
             const svg = draw.node;
+            svg.style.height = "100%";
             const pt = svg.createSVGPoint();
 
             // Draw dividing line segments
@@ -150,24 +97,8 @@ function View(update) {
                     model.data.sectorLabels[sector]
                 );
                 labelSvgElmt.node.addEventListener("click", function (event) {
-                    modal.render({
-                        header: "Set label",
-                        sector,
-                        body: `<input type='text' id='sectorLabelInput', value=${model.data.sectorLabels[sector]}>`,
-                        onSubmit: function () {
-                            const label = document.getElementById(
-                                "sectorLabelInput"
-                            ).value;
-                            update(
-                                {
-                                    action: "setSectorLabel",
-                                    sector,
-                                    label,
-                                },
-                                self
-                            );
-                        },
-                    });
+                    update({ action: "editSectorLabel", sector });
+                    //modal.render(update);
                 });
             });
             // Draw sectors
@@ -208,102 +139,59 @@ function View(update) {
                         const sector = Math.floor(
                             (theta / (2 * Math.PI)) * nSectors
                         );
-                        update({ action: "setRating", sector, rating }, self);
+                        update({ action: "setRating", sector, rating }, model);
                     }
                 });
             });
             // Controls
+            const menuElmt = document.createElement("ul");
+            menuElmt.className = "pure-menu-list pure-menu-horizontal";
+            menuElmt.style.position = "fixed";
+            const settingsListElmt = document.createElement("li");
+            settingsListElmt.className =
+                "pure-menu-item pure-menu-has-children pure-menu-allow-hover";
+            const settingsButtonElmt = document.createElement("button");
+            settingsButtonElmt.textContent = "Settings";
+            settingsButtonElmt.className = "pure-menu-link";
+            const settingsMenuElmt = document.createElement("ul");
+            settingsMenuElmt.className = "pure-menu-children";
+            const nSectorsMenuItemElmt = document.createElement("li");
+            const maxRatingMenuItemElmt = document.createElement("li");
+            nSectorsMenuItemElmt.className = "pure-menu-item";
+            maxRatingMenuItemElmt.className = "pure-menu-item";
+            settingsMenuElmt.appendChild(nSectorsMenuItemElmt);
+            settingsMenuElmt.appendChild(maxRatingMenuItemElmt);
             const nSectorsIndicatorElmt = document.createElement("button");
             nSectorsIndicatorElmt.textContent = `${nSectors} sectors`;
+            nSectorsIndicatorElmt.className = "pure-menu-link";
             viewContainerElmt.appendChild(nSectorsIndicatorElmt);
             nSectorsIndicatorElmt.addEventListener("click", function (event) {
-                modal.render({
-                    header: "Set number of sectors",
-                    nSectors,
-                    body: `<input type='text' id='nSectorsInput', value=${model.data.nSectors}>`,
-                    onSubmit: function () {
-                        const nSectors = Number(
-                            document.getElementById("nSectorsInput").value
-                        );
-                        update(
-                            {
-                                action: "setNumberOfSectors",
-                                nSectors,
-                            },
-                            self
-                        );
-                    },
-                });
+                update({ action: "editNumberOfSectors" });
             });
             const maxRatingIndicatorElmt = document.createElement("button");
             maxRatingIndicatorElmt.textContent = `Max rating: ${maxRating}`;
-            viewContainerElmt.appendChild(maxRatingIndicatorElmt);
+            maxRatingIndicatorElmt.className = "pure-menu-link";
+            //viewContainerElmt.appendChild(maxRatingIndicatorElmt);
             maxRatingIndicatorElmt.addEventListener("click", function (event) {
-                modal.render({
-                    header: "Set number of sectors",
-                    maxRating,
-                    body: `<input type='text' id='maxRatingInput', value=${model.data.maxRating}>`,
-                    onSubmit: function () {
-                        const maxRating = Number(
-                            document.getElementById("maxRatingInput").value
-                        );
-                        update(
-                            {
-                                action: "setMaxRating",
-                                maxRating,
-                            },
-                            self
-                        );
-                    },
-                });
+                update({ action: "editMaxRating" });
             });
+            settingsListElmt.appendChild(settingsButtonElmt);
+            settingsListElmt.appendChild(settingsMenuElmt);
+            maxRatingMenuItemElmt.appendChild(maxRatingIndicatorElmt);
+            nSectorsMenuItemElmt.appendChild(nSectorsIndicatorElmt);
+            settingsMenuElmt.appendChild(maxRatingMenuItemElmt);
+            settingsMenuElmt.appendChild(nSectorsMenuItemElmt);
+            viewContainerElmt.appendChild(menuElmt);
+            menuElmt.appendChild(settingsListElmt);
             resolve(self);
         });
     }
     return Object.assign(self, {
-        rootElmt,
+        rootElement,
         render,
+        modalView: undefined,
     });
 }
-function makeUpdateFunction(model, callbacks) {
-    return function update(message, view) {
-        if (message.action === "setNumberOfSectors") {
-            const sectorLabels = [
-                ...model.data.sectorLabels.slice(
-                    0,
-                    Math.min(model.data.nSectors, message.nSectors)
-                ),
-                ...Array.from({
-                    length: message.nSectors - model.data.nSectors,
-                }).fill("Unnamed"),
-            ];
-            model.data.nSectors = message.nSectors;
-            model.data.sectorLabels = sectorLabels;
-        } else if (message.action === "setMaxRating") {
-            const maxRating = message.maxRating;
-            model.data.ratings = model.data.ratings.map(function (rating) {
-                if (rating > maxRating) {
-                    return maxRating;
-                } else {
-                    return rating;
-                }
-            });
-            model.data.maxRating = maxRating;
-        } else if (message.action === "setRating") {
-            model.data.ratings[message.sector] = message.rating;
-        } else if (message.action === "setSectorLabel") {
-            model.data.sectorLabels[message.sector] = message.label;
-        }
-        if (view !== undefined) {
-            view.render(model);
-        }
-        callbacks.forEach(function (callback) {
-            callback(model);
-        });
-        return Promise.resolve(true);
-    };
-}
-
 function Model(paramsMap) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, Model.prototype);
@@ -350,6 +238,7 @@ function Model(paramsMap) {
         });
     });
 }
+
 function init(paramsMap, onUpdateCallbacks = []) {
     const scriptSourceMap = new Map([
         ["localhost", ["/node_modules/@svgdotjs/svg.js/dist/svg.js"]],
@@ -363,23 +252,141 @@ function init(paramsMap, onUpdateCallbacks = []) {
         })
     ).then(function () {
         return new Model(paramsMap).then(function (model) {
-            const update = makeUpdateFunction(model, onUpdateCallbacks);
-            const view = new View(update);
-            return { model, view, update };
+            const view = new View(model, update);
+            var modalUpdate;
+            function update(message) {
+                if (message.action === "setNumberOfSectors") {
+                    const sectorLabels = [
+                        ...model.data.sectorLabels.slice(
+                            0,
+                            Math.min(model.data.nSectors, message.nSectors)
+                        ),
+                        ...Array.from({
+                            length: message.nSectors - model.data.nSectors,
+                        }).fill("Unnamed"),
+                    ];
+                    model.data.nSectors = message.nSectors;
+                    model.data.sectorLabels = sectorLabels;
+                    view.render();
+                } else if (message.action === "editNumberOfSectors") {
+                    modalUpdate({
+                        action: "updateModal",
+                        modalSpec: {
+                            header: "Set number of sectors",
+                            //nSectors,
+                            body: `<input type='text' id='nSectorsInput', value=${model.data.nSectors}>`,
+                            onSubmit: function () {
+                                const nSectors = Number(
+                                    document.getElementById("nSectorsInput")
+                                        .value
+                                );
+                                update(
+                                    {
+                                        action: "setNumberOfSectors",
+                                        nSectors,
+                                    },
+                                    model
+                                );
+                            },
+                        },
+                    });
+                    modalUpdate({ action: "show" });
+                    //view.render();
+                } else if (message.action === "setMaxRating") {
+                    const maxRating = message.maxRating;
+                    model.data.ratings = model.data.ratings.map(function (
+                        rating
+                    ) {
+                        if (rating > maxRating) {
+                            return maxRating;
+                        } else {
+                            return rating;
+                        }
+                    });
+                    model.data.maxRating = maxRating;
+                    view.render();
+                } else if (message.action === "editMaxRating") {
+                    modalUpdate({
+                        action: "updateModal",
+                        modalSpec: {
+                            header: "Set maximum rating",
+                            //maxRating,
+                            body: `<input type='text' id='maxRatingInput', value=${model.data.maxRating}>`,
+                            onSubmit: function () {
+                                const maxRating = Number(
+                                    document.getElementById("maxRatingInput")
+                                        .value
+                                );
+                                update(
+                                    {
+                                        action: "setMaxRating",
+                                        maxRating,
+                                    },
+                                    model
+                                );
+                            },
+                        },
+                    });
+                    modalUpdate({ action: "show" });
+                    //view.render();
+                } else if (message.action === "setRating") {
+                    model.data.ratings[message.sector] = message.rating;
+                    view.render();
+                } else if (message.action === "setSectorLabel") {
+                    model.data.sectorLabels[message.sector] = message.label;
+                    view.render();
+                } else if (message.action === "editSectorLabel") {
+                    modalUpdate({
+                        action: "updateModal",
+                        modalSpec: {
+                            header: "Set label",
+                            //sector,
+                            body: `<input type='text' id='sectorLabelInput', value=${
+                                model.data.sectorLabels[message.sector]
+                            }>`,
+                            onSubmit: function () {
+                                const label = document.getElementById(
+                                    "sectorLabelInput"
+                                ).value;
+                                update(
+                                    {
+                                        action: "setSectorLabel",
+                                        sector: message.sector,
+                                        label,
+                                    },
+                                    model
+                                );
+                            },
+                        },
+                    });
+                    modalUpdate({ action: "show" });
+                    //view.render();
+                } else if (message.action === "setModal") {
+                    view.modalView = message.modalView;
+                    modalUpdate = message.modalUpdate;
+                }
+                return Promise.resolve(message);
+            }
+            return initModal(new Map(), update).then(function (modalMVU) {
+                update({
+                    action: "setModal",
+                    modalUpdate: modalMVU.update,
+                    modalView: modalMVU.view,
+                });
+                return {
+                    model,
+                    view,
+                    update,
+                };
+            });
+
+            return {
+                model,
+                view,
+                update,
+            };
         });
     });
 }
 
-function main(paramsMap, onUpdateCallbacks) {
-    const container = document.getElementById("virginia-content");
-    init(paramsMap, onUpdateCallbacks).then(function ({ model, view, update }) {
-        container.appendChild(view.rootElmt);
-        update({ message: "init" }, view).then(function () {
-            const exportModelLink = document.createElement("a");
-            exportModelLink.textContent = "Export";
-            exportModelLink.addEventListener("click", model.exportModel);
-            container.appendChild(exportModelLink);
-        });
-    });
-}
-export { init, main, Model };
+export { init };

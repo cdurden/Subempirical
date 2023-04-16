@@ -1,66 +1,48 @@
 import { any, all, getFile, mapReplacer, loadScript } from "../lib/common.js";
 
-function View(update) {
+var typesetPromise = Promise.resolve(); // Used to hold chain of typesetting calls
+
+function typeset(code) {
+    typesetPromise = typesetPromise
+        .then(() => MathJax.typesetPromise(code()))
+        .catch((err) => console.log("Typeset failed: " + err.message));
+    return typesetPromise;
+}
+function View(model, update) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, View.prototype);
     const rootElement = document.createElement("div");
-    function render(model) {
-        return new Promise(function (resolve) {
-            rootElement.replaceChildren();
-            const viewContainerElmt = document.createElement("div");
-            const converter = new showdown.Converter({ tables: true });
-            //html = converter.makeHtml(model.data.prompt);
-            //viewContainerElmt.textContent = model.data.prompt;
-            viewContainerElmt.innerHTML = converter.makeHtml(model.data.prompt);
-            new Map([
-                ["font-size", "32px"],
-                ["margin", "1em"],
-                ["padding", "8px"],
-            ]).forEach(function (value, key) {
-                viewContainerElmt.style.setProperty(key, value);
-            });
-
-            rootElement.appendChild(viewContainerElmt);
-            //            const responseInputElmt = document.createElement("math-field");
-            //            new Map([
-            //                ["font-size", "32px"],
-            //                ["margin", "3em"],
-            //                ["padding", "8px"],
-            //                ["border-radius", "8px"],
-            //                ["border", "1px solid rgba(0, 0, 0, .3)"],
-            //                ["box-shadow", "0 0 8px rgba(0, 0, 0, .2)"],
-            //            ]).forEach(function (value, key) {
-            //                responseInputElmt.style.setProperty(key, value);
-            //            });
-            //            responseInputElmt.value = model.data.response;
-            //            viewContainerElmt.appendChild(responseInputElmt);
-            //            responseInputElmt.addEventListener("change", function (event) {
-            //                update(
-            //                    { action: "updateModel", response: event.target.value },
-            //                    self
-            //                );
-            //            });
-            resolve(self);
+    function typesetPrompt() {
+        return typeset(modifyDom).then(function () {
+            return self;
         });
+    }
+    function modifyDom() {
+        rootElement.replaceChildren();
+        const viewContainerElmt = document.createElement("div");
+        const converter = new showdown.Converter({ tables: true });
+        viewContainerElmt.innerHTML = converter.makeHtml(model.data.prompt);
+        new Map([
+            ["font-size", "32px"],
+            //["margin", "1em"],
+            //["padding", "8px"],
+        ]).forEach(function (value, key) {
+            viewContainerElmt.style.setProperty(key, value);
+        });
+
+        rootElement.appendChild(viewContainerElmt);
+        return [rootElement];
+    }
+    function render() {
+        //return modifyDom();
+        return typesetPrompt();
     }
     return Object.assign(self, {
         rootElement,
         render,
+        typesetPrompt,
     });
 }
-function makeUpdateFunction(model, callbacks) {
-    return function update(message, view) {
-        if (message.action === "updateModel") {
-            model.data.response = message.response;
-        }
-        //view.render(model);
-        callbacks.forEach(function (callback) {
-            callback(model);
-        });
-        return true;
-    };
-}
-
 function Model(paramsMap) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, Model.prototype);
@@ -82,45 +64,42 @@ function Model(paramsMap) {
         anchor.addEventListener("click", clickHandler, false);
         anchor.click();
     }
-    return new Promise(function (resolve) {
-        // FIXME: don't need resolve here
-        const promptModuleUrl = new URL(
-            paramsMap.get("promptModuleUrl") ?? "./lib/math-prompts.js",
-            paramsMap.get("repoBaseUrl") ?? window.location.href
-        );
-        import(promptModuleUrl).then(function (promptModule) {
-            promptModule["getPrompt"](paramsMap).then(function (prompt) {
-                data.prompt = prompt;
-                resolve(
-                    Object.assign(self, {
-                        data,
-                        exportModel,
-                        //update,
-                    })
-                );
+    // FIXME: don't need resolve here
+    const mathModelModuleUrl = new URL(
+        paramsMap.get("mathModel") ?? "./Models/MathExpression.js",
+        paramsMap.get("repoBaseUrl") ?? window.location.href
+    );
+    return import(mathModelModuleUrl).then(function (mathModelModule) {
+        return mathModelModule.init(paramsMap).then(function (mathModelMVU) {
+            data.prompt = mathModelMVU.model.prompt();
+            return Object.assign(self, {
+                data,
+                exportModel,
+                //update,
             });
         });
     });
 }
-function init(paramsMap, onUpdateCallbacks = []) {
+function init(
+    paramsMap,
+    updateParent = function () {
+        return Promise.resolve();
+    }
+) {
     const scriptSourceMap = new Map([
         [
             "localhost",
             [
                 "/lib/mathjax/es5/tex-svg.js",
-                "/lib/mathjax-openmiddle.js",
-                //"/node_modules/mathlive/dist/mathlive.js",
+                "/lib/mathjax-default.js",
                 "/node_modules/showdown/dist/showdown.min.js",
-                //"https://unpkg.com/@cortex-js/compute-engine?module",
-                //"https://unpkg.com/mathlive?module",
-                //"//unpkg.com/mathlive",
             ],
         ],
         [
             "other",
             [
                 `${paramsMap.get("repoBaseUrl")}/lib/mathjax/es5/tex-svg.js`,
-                `${paramsMap.get("repoBaseUrl")}/lib/mathjax-openmiddle.js`,
+                `${paramsMap.get("repoBaseUrl")}/lib/mathjax-default.js`,
                 "https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js",
             ],
         ],
@@ -133,25 +112,41 @@ function init(paramsMap, onUpdateCallbacks = []) {
         })
     ).then(function (modules) {
         return new Model(paramsMap).then(function (model) {
-            const update = makeUpdateFunction(model, onUpdateCallbacks);
-            const view = new View(update);
-            return { model, view, update };
+            const view = new View(model, update);
+            function update(message) {
+                if (message.action === "updateModel") {
+                    model.data.response = message.response;
+                }
+                return true;
+            }
+            /*
+            updateParent({
+                action: "addEventListener",
+                eventName: "mounted",
+                listener: function () {
+                    MathJax.startup.promise.then(() => {
+                        if (document.readyState === "loading") {
+                            // Loading hasn't finished yet
+                            document.addEventListener(
+                                "DOMContentLoaded",
+                                view.typesetPrompt
+                            );
+                        } else {
+                            // `DOMContentLoaded` has already fired
+                            view.typesetPrompt();
+                        }
+                    });
+                },
+            });
+            */
+
+            return {
+                model,
+                view,
+                update,
+            };
         });
     });
 }
 
-function main(paramsMap, onUpdate) {
-    const container = document.getElementById("virginia-content");
-    init(paramsMap).then(function (mvu) {
-        container.appendChild(mvu.view.rootElement);
-        mvu.view.render(mvu.model).then(function (view) {
-            const exportModelLink = document.createElement("a");
-            exportModelLink.textContent = "Export";
-            exportModelLink.addEventListener("click", mvu.model.exportModel);
-            container.appendChild(exportModelLink);
-            MathJax.startup.defaultPageReady();
-            //MathJax.typeset();
-        });
-    });
-}
-export { init, main, Model };
+export { init };
