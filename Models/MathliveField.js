@@ -68,6 +68,7 @@ function View(model, update) {
         responseInputElmt.setPromptState(state);
     }
     function render() {
+        MathLive.renderMathInDocument();
         return new Promise(function (resolve) {
             rootElement.replaceChildren();
             const viewContainerElmt = document.createElement("div");
@@ -146,8 +147,9 @@ function init(
         [
             "other",
             [
+                "./lib/mathlive.js",
                 //"https://unpkg.com/@cortex-js/compute-engine",
-                "https://unpkg.com/mathlive",
+                //"https://unpkg.com/mathlive",
             ],
         ],
     ]);
@@ -158,7 +160,6 @@ function init(
             return loadScript(script);
         })
     ).then(function (modules) {
-        MathLive.renderMathInDocument();
         const mathPromptModuleUrl = new URL(
             "./Models/MathPrompt.js",
             paramsMap.get("repoBaseUrl") ?? window.location.href
