@@ -1,34 +1,76 @@
 <html>
     <head>
-        <meta charset="utf-8">
+        <meta charset="utf-8" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
-        <link rel="stylesheet" type="text/css" href="/styles/main.css">
-        <link rel="stylesheet" type="text/css" href="/styles/modals.css">
-        <script src="/lib/wasm/dist/index.min.js"></script><!--https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js-->
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"
+            integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls"
+            crossorigin="anonymous"
+        />
+        <link rel="stylesheet" type="text/css" href="/styles/main.css" />
+        <link rel="stylesheet" type="text/css" href="/styles/modals.css" />
+        <script src="/lib/wasm/dist/index.min.js"></script>
+        <!--https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js-->
         <script src="/node_modules/d3/dist/d3.js"></script>
         <script src="/lib/polyfill.min.js?features=es6"></script>
-        <script src="https://unpkg.com/@hpcc-js/wasm/dist/graphviz.umd.js" type="application/javascript/"></script>
+        <script
+            src="https://unpkg.com/@hpcc-js/wasm/dist/graphviz.umd.js"
+            type="application/javascript/"
+        ></script>
         <script src="/node_modules/d3-graphviz/build/d3-graphviz.js"></script>
-        <script src="/node_modules/axios/dist/axios.min.js"></script><!--https://unpkg.com/axios/dist/axios.min.js-->
+        <script src="/node_modules/axios/dist/axios.min.js"></script>
+        <!--https://unpkg.com/axios/dist/axios.min.js-->
         <script src="/node_modules/marked/marked.min.js"></script>
-        <script type="text/javascript" src="/node_modules/epubjs/dist/epub.js"></script>
+        <script
+            type="text/javascript"
+            src="/node_modules/epubjs/dist/epub.js"
+        ></script>
         <script type="text/javascript" src="loader.js"></script>
         <script type="text/javascript">
-document.addEventListener("DOMContentLoaded", function () {
-    const baseURL = window.location.origin;
-    const searchParams = new URLSearchParams(window.location.search);
-    const taskId = searchParams.get("taskId");
-    init({ taskId, baseURL });
-});
+            function getRandomInt(max) {
+                return Math.floor(Math.random() * max);
+            }
+            const seed = getRandomInt(10000);
+            const baseURL = window.location.origin;
+            document.addEventListener("DOMContentLoaded", function () {
+                import("./lib/common.js").then(function ({
+                    getFile,
+                    mapReviver,
+                    mapReplacer,
+                }) {
+                    getFile("./Data/Tasks/Chapter9.json", {
+                        transformResponse: (response) => response,
+                        baseURL,
+                    })
+                        .then(function (response) {
+                            return JSON.parse(response.data, mapReviver);
+                        })
+                        .then(function (taskParamsMap) {
+                            const searchParams = new URLSearchParams(
+                                window.location.search
+                            );
+                            const taskId = searchParams.get("taskId");
+                            const paramsMap = taskParamsMap.get(taskId);
+                            paramsMap.set("baseURL", baseURL);
+                            paramsMap.set("taskParamsMap", taskParamsMap);
+                            paramsMap.set("seed", seed);
+                            init(paramsMap, function (message) {
+                                if (message.action === "submit") {
+                                    console.log("submit");
+                                    console.log(message);
+                                }
+                                return Promise.resolve(message);
+                            });
+                        });
+                });
+            });
         </script>
-
     </head>
     <body>
         <div class="content pure-g">
-        <div id="virginia-content" class="pure-u-1"></div>
+            <div id="virginia-content" class="pure-u-1"></div>
         </div>
     </body>
-</html>
 </html>

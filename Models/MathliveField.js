@@ -187,6 +187,9 @@ function init(
                     updateFeedback(model.data.response).then(function () {
                         view.showFeedback();
                     });
+                    message.data = model.data;
+                    message.paramsMap = paramsMap;
+                    return updateParent(message);
                 } else if (message.action === "setTaskState") {
                     if (message.state === "correct") {
                         model.setCompleted(true);
@@ -198,7 +201,7 @@ function init(
 
                     //view.setPromptState(message.state);
                 }
-                return updateParent(message);
+                return Promise.resolve(message);
             }
 
             return Promise.all([

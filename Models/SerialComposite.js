@@ -143,7 +143,7 @@ function Model(paramsMap) {
         );
     });
 }
-function init(paramsMap, postUpdateCallback = function () {}) {
+function init(paramsMap, updateParent) {
     const scriptSourceMap = new Map([
         ["localhost", []],
         ["other", []],
@@ -180,7 +180,8 @@ function init(paramsMap, postUpdateCallback = function () {}) {
                     model.setCompleted(message.childIndex, message.value);
                     view.render();
                 }
-                return Promise.resolve();
+                return updateParent(message);
+                //return Promise.resolve();
             }
 
             const view = new View(model, update);
