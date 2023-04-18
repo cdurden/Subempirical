@@ -1,7 +1,7 @@
 import { all, loadScript } from "../lib/common.js";
 
 function randInt(rand, { min, max }) {
-    return Math.floor(rand() * (max - (min ?? 0))) - (min ?? 0);
+    return Math.floor(rand() * (max - (min ?? 0))) + (min ?? 0);
 }
 
 const allPrimes = [2, 3, 5, 7, 11, 13];

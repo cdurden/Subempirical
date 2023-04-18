@@ -76,13 +76,13 @@ const taskParamsMap = new Map([
             [
                 "expressionSpec",
                 {
-                    template: "(x-a)*(x-b)",
+                    template: "(x+a)*(x+b)",
                     params: new Map([
                         [
                             "a",
                             {
                                 generator: "randInt",
-                                options: { max: 10 },
+                                options: { min: 1, max: 10 },
                             },
                         ],
                         [
@@ -90,6 +90,7 @@ const taskParamsMap = new Map([
                             {
                                 generator: "randInt",
                                 options: {
+                                    min: 1,
                                     max: 10,
                                 },
                             },
@@ -112,13 +113,13 @@ const taskParamsMap = new Map([
             [
                 "expressionSpec",
                 {
-                    template: "(x-a)*(x-b)",
+                    template: "(x+a)*(x+b)",
                     params: new Map([
                         [
                             "a",
                             {
                                 generator: "randInt",
-                                options: { max: 10, sign: -1 },
+                                options: { min: -10, max: -1 },
                             },
                         ],
                         [
@@ -126,6 +127,7 @@ const taskParamsMap = new Map([
                             {
                                 generator: "randInt",
                                 options: {
+                                    min: 1,
                                     max: 10,
                                 },
                             },
@@ -148,7 +150,7 @@ const taskParamsMap = new Map([
             [
                 "expressionSpec",
                 {
-                    template: "expand((x-a)*(x-b))",
+                    template: "expand((x+a)*(x+b))",
                     eval: true,
                     params: new Map([
                         [
@@ -185,14 +187,14 @@ const taskParamsMap = new Map([
             [
                 "expressionSpec",
                 {
-                    template: "expand((x-a)*(x-b))",
+                    template: "expand((x+a)*(x+b))",
                     eval: true,
                     params: new Map([
                         [
                             "a",
                             {
                                 generator: "randInt",
-                                options: { max: 10, sign: -1 },
+                                options: { min: -10, max: -1 },
                             },
                         ],
                         [
@@ -222,24 +224,21 @@ const taskParamsMap = new Map([
             [
                 "expressionSpec",
                 {
-                    template: "expand((x-a)*(x-b))",
+                    template: "expand((x+a)*(x+b))",
                     eval: true,
                     params: new Map([
                         [
                             "a",
                             {
                                 generator: "randInt",
-                                options: { max: 10, sign: -1 },
+                                options: { min: -10, max: -1 },
                             },
                         ],
                         [
                             "b",
                             {
                                 generator: "randInt",
-                                options: {
-                                    max: 10,
-                                    sign: -1,
-                                },
+                                options: { min: -10, max: -1 },
                             },
                         ],
                     ]),
@@ -260,7 +259,7 @@ const taskParamsMap = new Map([
             [
                 "expressionSpec",
                 {
-                    template: "expand((x-a)^2)",
+                    template: "expand((x+a)^2)",
                     eval: true,
                     params: new Map([
                         [
@@ -288,14 +287,14 @@ const taskParamsMap = new Map([
             [
                 "expressionSpec",
                 {
-                    template: "expand((x-a)^2)",
+                    template: "expand((x+a)^2)",
                     eval: true,
                     params: new Map([
                         [
                             "a",
                             {
                                 generator: "randInt",
-                                options: { max: 10, sign: -1 },
+                                options: { min: -10, max: -1 },
                             },
                         ],
                     ]),
