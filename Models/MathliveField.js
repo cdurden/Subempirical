@@ -175,11 +175,11 @@ function init(
     ).then(function (modules) {
         const mathPromptModuleUrl = new URL(
             "./Models/MathPrompt.js",
-            paramsMap.get("repoBaseUrl") ?? window.location.href
+            paramsMap.get("baseURL") ?? window.location.href
         );
         const feedbackModuleUrl = new URL(
             "./Models/Feedback.js",
-            paramsMap.get("repoBaseUrl") ?? window.location.href
+            paramsMap.get("baseURL") ?? window.location.href
         );
         return new Model(paramsMap).then(function (model) {
             const view = new View(model, update);
