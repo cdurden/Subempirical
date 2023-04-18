@@ -113,7 +113,7 @@ function init(paramsMap, updateParent) {
             const view = new View(model, update);
             const mathModelModuleUrl = new URL(
                 paramsMap.get("mathModel") ?? "./Models/MathExpression.js",
-                paramsMap.get("repoBaseUrl") ?? window.location.href
+                paramsMap.get("baseURL") ?? window.location.href
             );
             function update(message) {
                 if (message.action === "updateModel") {
@@ -125,7 +125,7 @@ function init(paramsMap, updateParent) {
                 }
                 return true;
             }
-            return import(new URL(mathModelModuleUrl, paramsMap.get("baseURL")))
+            return import(mathModelModuleUrl)
                 .then(function (mathModelModule) {
                     return mathModelModule
                         .init(paramsMap, update)

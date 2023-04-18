@@ -50,7 +50,7 @@ function Model(paramsMap) {
     }
     const mathModelModuleUrl = new URL(
         paramsMap.get("mathModel") ?? "./Models/MathExpression.js",
-        paramsMap.get("repoBaseUrl") ?? window.location.href
+        paramsMap.get("baseURL") ?? window.location.href
     );
     /*
     return import(mathModelModuleUrl).then(function (mathModelModule) {
