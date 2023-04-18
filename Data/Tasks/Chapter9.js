@@ -28,26 +28,19 @@ const taskParamsMap = new Map([
                 "moduleUrl",
                 new URL("/Models/SerialComposite.js", repoBaseUrl).href,
             ],
-            ["file", "/Data/Assignments/One.json"],
-        ]),
-    ],
-    [
-        "Assignment2",
-        new Map([
-            ["repoBaseUrl", repoBaseUrl],
-            [
-                "moduleUrl",
-                new URL("/Models/SerialComposite.js", repoBaseUrl).href,
-            ],
             [
                 "tasks",
                 [
-                    "FactorMonicTrinomial",
                     "ExpandMonicBinomialProduct",
+                    "ExpandMonicBinomialProductOneNegative",
+                    "FactorMonicPerfectSquareTrinomialFITB",
+                    "FactorMonicTrinomial",
                     "FactorMonicTrinomial",
                     "FactorMonicPerfectSquareTrinomial",
-                    "ExpandMonicBinomialProduct",
-                    "FactorMonicPerfectSquareTrinomialFITB",
+                    "FactorMonicTrinomialOneNegative",
+                    "FactorMonicTrinomialTwoNegatives",
+                    "FactorMonicTrinomialOneNegative",
+                    "FactorMonicPerfectSquareTrinomialNegative",
                 ],
             ],
         ]),
@@ -108,6 +101,42 @@ const taskParamsMap = new Map([
         ]),
     ],
     [
+        "ExpandMonicBinomialProductOneNegative",
+        new Map([
+            ["repoBaseUrl", repoBaseUrl],
+            [
+                "moduleUrl",
+                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+            ],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "(x-a)*(x-b)",
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { max: 10, sign: -1 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    max: 10,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            ["type", "simplify"],
+        ]),
+    ],
+    [
         "FactorMonicTrinomial",
         new Map([
             ["repoBaseUrl", repoBaseUrl],
@@ -145,6 +174,81 @@ const taskParamsMap = new Map([
         ]),
     ],
     [
+        "FactorMonicTrinomialOneNegative",
+        new Map([
+            ["repoBaseUrl", repoBaseUrl],
+            [
+                "moduleUrl",
+                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+            ],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((x-a)*(x-b))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { max: 10, sign: -1 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    max: 10,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            ["type", "factor"],
+        ]),
+    ],
+    [
+        "FactorMonicTrinomialTwoNegatives",
+        new Map([
+            ["repoBaseUrl", repoBaseUrl],
+            [
+                "moduleUrl",
+                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+            ],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((x-a)*(x-b))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { max: 10, sign: -1 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    max: 10,
+                                    sign: -1,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            ["type", "factor"],
+        ]),
+    ],
+    [
         "FactorMonicPerfectSquareTrinomial",
         new Map([
             ["repoBaseUrl", repoBaseUrl],
@@ -164,6 +268,34 @@ const taskParamsMap = new Map([
                             {
                                 generator: "randInt",
                                 options: { max: 10 },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            ["type", "factor"],
+        ]),
+    ],
+    [
+        "FactorMonicPerfectSquareTrinomialNegative",
+        new Map([
+            ["repoBaseUrl", repoBaseUrl],
+            [
+                "moduleUrl",
+                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+            ],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((x-a)^2)",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { max: 10, sign: -1 },
                             },
                         ],
                     ]),

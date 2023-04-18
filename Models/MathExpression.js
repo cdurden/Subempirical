@@ -1,15 +1,15 @@
 import { all, loadScript } from "../lib/common.js";
 
-function randInt(rand, { max }) {
-    return Math.floor(rand() * max);
+function randInt(rand, { min, max }) {
+    return Math.floor(rand() * (max - (min ?? 0))) - (min ?? 0);
 }
 
 const allPrimes = [2, 3, 5, 7, 11, 13];
-function randPrime(rand, { max, primes }) {
+function randPrime(rand, { max, primes, sign }) {
     const candidates = (primes ?? allPrimes).filter(function (n) {
         return n <= max;
     });
-    return candidates[randInt(rand, { max: candidates.length })];
+    return candidates[(sign ?? 1) * randInt(rand, { max: candidates.length })];
 }
 
 function zip(x, y) {
@@ -30,7 +30,7 @@ function minComposite(primes, multiplicities) {
     1);
 }
 
-function randComposite(rand, { multiplicities, max }) {
+function randComposite(rand, { sign, multiplicities, max }) {
     var n = 1;
     const unusedPrimes = allPrimes;
     multiplicities.map(function (multiplicity, index) {
@@ -56,7 +56,7 @@ function randComposite(rand, { multiplicities, max }) {
         unusedPrimes.splice(unusedPrimes.indexOf(p), 1);
         n *= p ** multiplicity;
     });
-    return n;
+    return (sign ?? 1) * n;
 }
 
 const paramGenerators = new Map([
