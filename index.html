@@ -53,6 +53,7 @@
                             );
                             const taskId = searchParams.get("taskId");
                             const paramsMap = taskParamsMap.get(taskId);
+                            paramsMap.set("taskId", taskId);
                             paramsMap.set("baseURL", baseURL);
                             paramsMap.set("taskParamsMap", taskParamsMap);
                             paramsMap.set("seed", seed);

@@ -179,9 +179,14 @@ function init(paramsMap, updateParent) {
                 } else if (message.action === "setCompleted") {
                     model.setCompleted(message.childIndex, message.value);
                     view.render();
+                } else if (message.action === "submit") {
+                    updateParent({
+                        ...message,
+                        taskId: `${message.taskId}:${message.childIndex + 1}`,
+                    });
                 }
-                return updateParent(message);
-                //return Promise.resolve();
+                //return updateParent(message);
+                return Promise.resolve(message);
             }
 
             const view = new View(model, update);
@@ -213,7 +218,9 @@ function init(paramsMap, updateParent) {
                             ...Array.from(childParamsMap.entries()),
                         ]);
                         const moduleUrl = childParamsMap.get("moduleUrl");
-                        return import(new URL(moduleUrl, paramsMap.get("baseURL"))).then(function ({ init }) {
+                        return import(
+                            new URL(moduleUrl, paramsMap.get("baseURL"))
+                        ).then(function ({ init }) {
                             return init(mergedParamsMap, function (message) {
                                 update({ ...message, childIndex });
                             }).then(function (childMVU) {

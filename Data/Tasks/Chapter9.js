@@ -27,7 +27,7 @@ const taskParamsMap = new Map([
                 [
                     "ExpandMonicBinomialProduct",
                     "ExpandMonicBinomialProductOneNegative",
-                    "FactorMonicPerfectSquareTrinomialFITB",
+                    "FactorMonicTrinomialFITB",
                     "FactorMonicTrinomial",
                     "FactorMonicTrinomial",
                     "FactorMonicPerfectSquareTrinomial",
@@ -268,14 +268,14 @@ const taskParamsMap = new Map([
         ]),
     ],
     [
-        "FactorMonicPerfectSquareTrinomialFITB",
+        "FactorMonicTrinomialFITB",
         new Map([
             ["moduleUrl", "./Models/MathliveField.js"],
             ["mathModel", "./Models/MathExpression.js"],
             [
                 "expressionSpec",
                 {
-                    template: "expand((x-a)^2)",
+                    template: "expand((x+a)*(x+b))",
                     eval: true,
                     params: new Map([
                         [
@@ -285,10 +285,19 @@ const taskParamsMap = new Map([
                                 options: { max: 10 },
                             },
                         ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    max: 10,
+                                },
+                            },
+                        ],
                     ]),
                 },
             ],
-            ["value", "(x-\\placeholder[a]{})^2"],
+            ["value", "(x+\\placeholder[a]{})(x+\\placeholder[b]{})"],
             ["fill-in-the-blank", true],
             ["responseFields", ["a"]],
             ["type", "factor"],
