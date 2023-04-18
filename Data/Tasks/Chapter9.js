@@ -21,10 +21,7 @@ const taskParamsMap = new Map([
     [
         "Assignment1",
         new Map([
-            [
-                "moduleUrl",
-                "./Models/SerialComposite.js",
-            ],
+            ["moduleUrl", "./Models/SerialComposite.js"],
             [
                 "tasks",
                 [
@@ -45,14 +42,14 @@ const taskParamsMap = new Map([
     [
         "GoalCheck1",
         new Map([
-            ["moduleUrl", "./Models/WheelOfLife.js", repoBaseUrl).href],
+            ["moduleUrl", "./Models/WheelOfLife.js"],
             ["file", "/Data/WheelOfLife/Original.json"],
         ]),
     ],
     [
         "TeachingGoals",
         new Map([
-            ["moduleUrl", `${repoBaseUrl}/Models/WheelOfLife.js`],
+            ["moduleUrl", "./Models/WheelOfLife.js"],
             [
                 "file",
                 "https://raw.githubusercontent.com/cdurden/Subempirical/main/Data/WheelOfLife/Teaching.json",
@@ -62,10 +59,7 @@ const taskParamsMap = new Map([
     [
         "ExpandMonicBinomialProduct",
         new Map([
-            [
-                "moduleUrl",
-                "./Models/MathliveField.js",
-            ],
+            ["moduleUrl", "./Models/MathliveField.js"],
             ["mathModel", "./Models/MathExpression.js"],
             [
                 "expressionSpec",
@@ -98,10 +92,7 @@ const taskParamsMap = new Map([
     [
         "ExpandMonicBinomialProductOneNegative",
         new Map([
-            [
-                "moduleUrl",
-                "./Models/MathliveField.js",
-            ],
+            ["moduleUrl", "./Models/MathliveField.js"],
             ["mathModel", "./Models/MathExpression.js"],
             [
                 "expressionSpec",
@@ -134,10 +125,7 @@ const taskParamsMap = new Map([
     [
         "FactorMonicTrinomial",
         new Map([
-            [
-                "moduleUrl",
-                "./Models/MathliveField.js",
-            ],
+            ["moduleUrl", "./Models/MathliveField.js"],
             ["mathModel", "./Models/MathExpression.js"],
             [
                 "expressionSpec",
@@ -170,10 +158,7 @@ const taskParamsMap = new Map([
     [
         "FactorMonicTrinomialOneNegative",
         new Map([
-            [
-                "moduleUrl",
-                "./Models/MathliveField.js",
-            ],
+            ["moduleUrl", "./Models/MathliveField.js"],
             ["mathModel", "./Models/MathExpression.js"],
             [
                 "expressionSpec",
@@ -206,10 +191,7 @@ const taskParamsMap = new Map([
     [
         "FactorMonicTrinomialTwoNegatives",
         new Map([
-            [
-                "moduleUrl",
-                "./Models/MathliveField.js",
-            ],
+            ["moduleUrl", "./Models/MathliveField.js"],
             ["mathModel", "./Models/MathExpression.js"],
             [
                 "expressionSpec",
@@ -240,10 +222,7 @@ const taskParamsMap = new Map([
     [
         "FactorMonicPerfectSquareTrinomial",
         new Map([
-            [
-                "moduleUrl",
-                "./Models/MathliveField.js",
-            ],
+            ["moduleUrl", "./Models/MathliveField.js"],
             ["mathModel", "./Models/MathExpression.js"],
             [
                 "expressionSpec",
@@ -267,10 +246,7 @@ const taskParamsMap = new Map([
     [
         "FactorMonicPerfectSquareTrinomialNegative",
         new Map([
-            [
-                "moduleUrl",
-                "./Models/MathliveField.js",
-            ],
+            ["moduleUrl", "./Models/MathliveField.js"],
             ["mathModel", "./Models/MathExpression.js"],
             [
                 "expressionSpec",
@@ -294,10 +270,7 @@ const taskParamsMap = new Map([
     [
         "FactorMonicPerfectSquareTrinomialFITB",
         new Map([
-            [
-                "moduleUrl",
-                "./Models/MathliveField.js",
-            ],
+            ["moduleUrl", "./Models/MathliveField.js"],
             ["mathModel", "./Models/MathExpression.js"],
             [
                 "expressionSpec",
