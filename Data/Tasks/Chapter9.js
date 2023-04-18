@@ -9,13 +9,11 @@ function mapReplacer(key, value) {
     }
 }
 
-const repoBaseUrl = "https://localhost:1024";
 const taskParamsMap = new Map([
     [
         "Course1",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
-            ["moduleUrl", new URL("/Models/CourseGraph.js", repoBaseUrl).href],
+            ["moduleUrl", "./Models/CourseGraph.js"],
             ["graphUrl", "/Data/Graphs/Course1.dot"],
             ["submissions", [["", "", "GoalCheck1"]]],
         ]),
@@ -23,10 +21,9 @@ const taskParamsMap = new Map([
     [
         "Assignment1",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
             [
                 "moduleUrl",
-                new URL("/Models/SerialComposite.js", repoBaseUrl).href,
+                "./Models/SerialComposite.js",
             ],
             [
                 "tasks",
@@ -48,15 +45,13 @@ const taskParamsMap = new Map([
     [
         "GoalCheck1",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
-            ["moduleUrl", new URL("/Models/WheelOfLife.js", repoBaseUrl).href],
+            ["moduleUrl", "./Models/WheelOfLife.js", repoBaseUrl).href],
             ["file", "/Data/WheelOfLife/Original.json"],
         ]),
     ],
     [
         "TeachingGoals",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
             ["moduleUrl", `${repoBaseUrl}/Models/WheelOfLife.js`],
             [
                 "file",
@@ -67,10 +62,9 @@ const taskParamsMap = new Map([
     [
         "ExpandMonicBinomialProduct",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
             [
                 "moduleUrl",
-                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+                "./Models/MathliveField.js",
             ],
             ["mathModel", "./Models/MathExpression.js"],
             [
@@ -104,10 +98,9 @@ const taskParamsMap = new Map([
     [
         "ExpandMonicBinomialProductOneNegative",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
             [
                 "moduleUrl",
-                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+                "./Models/MathliveField.js",
             ],
             ["mathModel", "./Models/MathExpression.js"],
             [
@@ -141,10 +134,9 @@ const taskParamsMap = new Map([
     [
         "FactorMonicTrinomial",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
             [
                 "moduleUrl",
-                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+                "./Models/MathliveField.js",
             ],
             ["mathModel", "./Models/MathExpression.js"],
             [
@@ -178,10 +170,9 @@ const taskParamsMap = new Map([
     [
         "FactorMonicTrinomialOneNegative",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
             [
                 "moduleUrl",
-                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+                "./Models/MathliveField.js",
             ],
             ["mathModel", "./Models/MathExpression.js"],
             [
@@ -215,10 +206,9 @@ const taskParamsMap = new Map([
     [
         "FactorMonicTrinomialTwoNegatives",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
             [
                 "moduleUrl",
-                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+                "./Models/MathliveField.js",
             ],
             ["mathModel", "./Models/MathExpression.js"],
             [
@@ -250,10 +240,9 @@ const taskParamsMap = new Map([
     [
         "FactorMonicPerfectSquareTrinomial",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
             [
                 "moduleUrl",
-                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+                "./Models/MathliveField.js",
             ],
             ["mathModel", "./Models/MathExpression.js"],
             [
@@ -278,10 +267,9 @@ const taskParamsMap = new Map([
     [
         "FactorMonicPerfectSquareTrinomialNegative",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
             [
                 "moduleUrl",
-                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+                "./Models/MathliveField.js",
             ],
             ["mathModel", "./Models/MathExpression.js"],
             [
@@ -306,10 +294,9 @@ const taskParamsMap = new Map([
     [
         "FactorMonicPerfectSquareTrinomialFITB",
         new Map([
-            ["repoBaseUrl", repoBaseUrl],
             [
                 "moduleUrl",
-                new URL("/Models/MathliveField.js", repoBaseUrl).href,
+                "./Models/MathliveField.js",
             ],
             ["mathModel", "./Models/MathExpression.js"],
             [
