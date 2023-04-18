@@ -213,7 +213,7 @@ function init(paramsMap, updateParent) {
                             ...Array.from(childParamsMap.entries()),
                         ]);
                         const moduleUrl = childParamsMap.get("moduleUrl");
-                        return import(moduleUrl).then(function ({ init }) {
+                        return import(new URL(moduleUrl, paramsMap.get("baseURL"))).then(function ({ init }) {
                             return init(mergedParamsMap, function (message) {
                                 update({ ...message, childIndex });
                             }).then(function (childMVU) {
