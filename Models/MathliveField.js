@@ -66,6 +66,7 @@ function View(model, update) {
         update({
             action: "submit",
             data: model.data,
+            taskId: model.paramsMap.get("taskId"),
         });
     });
     function setPromptState(state) {
