@@ -21,6 +21,12 @@ function View(model, update) {
 function Model(paramsMap) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, Model.prototype);
+    self.validate = function () {
+        return false;
+    };
+    function setValidator(validate) {
+        self.validate = validate;
+    }
     const data = {
         prompt: self.promptModel?.data?.prompt,
         response: null,
@@ -46,9 +52,9 @@ function Model(paramsMap) {
         paramsMap.get("mathModel") ?? "./Models/MathExpression.js",
         paramsMap.get("repoBaseUrl") ?? window.location.href
     );
+    /*
     return import(mathModelModuleUrl).then(function (mathModelModule) {
         return mathModelModule.init(paramsMap).then(function (mathModelMVU) {
-            /*
             function updateFeedback(response) {
                 if (mathModelMVU.model.validate(response)) {
                     self.message = "Correct";
@@ -57,7 +63,6 @@ function Model(paramsMap) {
                 }
                 return Promise.resolve();
             }
-            */
             return Object.assign(self, {
                 data,
                 message: undefined,
@@ -66,6 +71,16 @@ function Model(paramsMap) {
             });
         });
     });
+    */
+    return Promise.resolve(
+        Object.assign(self, {
+            data,
+            message: undefined,
+            //updateFeedback,
+            promptModel: undefined,
+            setValidator,
+        })
+    );
 }
 function init(paramsMap, updateParent = function () {}) {
     const scriptSourceMap = new Map([
@@ -84,47 +99,44 @@ function init(paramsMap, updateParent = function () {}) {
                 paramsMap.get("mathModel") ?? "./Models/MathExpression.js",
                 paramsMap.get("repoBaseUrl") ?? window.location.href
             );
-            return import(mathModelModuleUrl).then(function (mathModelModule) {
+            /*return import(mathModelModuleUrl).then(function (mathModelModule) {
                 return mathModelModule
                     .init(paramsMap)
                     .then(function (mathModelMVU) {
-                        const view = new View(model, update);
-                        var messageUpdate;
-                        function update(message) {
-                            if (message.action === "setModal") {
-                                view.messageView = message.messageView;
-                                messageUpdate = message.messageUpdate;
-                                view.render();
-                            } else if (message.action === "showFeedback") {
-                                messageUpdate({ action: "show" });
-                            } else if (message.action === "hideFeedback") {
-                                messageUpdate({ action: "hide" });
-                            } else if (message.action === "updateFeedback") {
-                                if (
-                                    mathModelMVU.model.validate(
-                                        message.response
-                                    )
-                                ) {
-                                    model.message = "Correct";
-                                    updateParent({
-                                        action: "setTaskState",
-                                        state: "correct",
-                                    });
-                                } else {
-                                    model.message = "Incorrect";
-                                    updateParent({
-                                        action: "setTaskState",
-                                        state: "incorrect",
-                                    });
-                                }
-                                messageUpdate({
-                                    action: "updateModal",
-                                    messageSpec: {
-                                        header: "",
-                                        className: "tooltip",
-                                        body: `${model.message}`,
-                                        buttons: [
-                                            /*
+                    */
+            const view = new View(model, update);
+            var messageUpdate;
+            function update(message) {
+                if (message.action === "setModal") {
+                    view.messageView = message.messageView;
+                    messageUpdate = message.messageUpdate;
+                    view.render();
+                } else if (message.action === "showFeedback") {
+                    messageUpdate({ action: "show" });
+                } else if (message.action === "hideFeedback") {
+                    messageUpdate({ action: "hide" });
+                } else if (message.action === "submit") {
+                    if (model.validate(message.response)) {
+                        model.message = "Correct";
+                        updateParent({
+                            action: "setTaskState",
+                            state: "correct",
+                        });
+                    } else {
+                        model.message = "Incorrect";
+                        updateParent({
+                            action: "setTaskState",
+                            state: "incorrect",
+                        });
+                    }
+                    messageUpdate({
+                        action: "updateModal",
+                        messageSpec: {
+                            header: "",
+                            className: "tooltip",
+                            body: `${model.message}`,
+                            buttons: [
+                                /*
                                             {
                                                 textContent: "Okay",
                                                 onClick: function () {
@@ -138,28 +150,30 @@ function init(paramsMap, updateParent = function () {}) {
                                                 },
                                             },
                                             */
-                                        ],
-                                    },
-                                });
-                                return Promise.resolve(message);
-                            }
-                        }
-                        return initMessage(new Map(), update).then(function (
-                            messageMVU
-                        ) {
-                            update({
-                                action: "setModal",
-                                messageUpdate: messageMVU.update,
-                                messageView: messageMVU.view,
-                            });
-                            return {
-                                model,
-                                view,
-                                update,
-                            };
-                        });
+                            ],
+                        },
+                    });
+                    return Promise.resolve(message);
+                } else if (message.action === "setValidator") {
+                    model.setValidator(message.validate);
+                }
+            }
+            return initMessage(new Map(), update).then(function (messageMVU) {
+                update({
+                    action: "setModal",
+                    messageUpdate: messageMVU.update,
+                    messageView: messageMVU.view,
+                });
+                return {
+                    model,
+                    view,
+                    update,
+                };
+            });
+            /*
                     });
             });
+    */
         });
     });
 }

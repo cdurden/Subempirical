@@ -64,28 +64,16 @@ function Model(paramsMap) {
         anchor.addEventListener("click", clickHandler, false);
         anchor.click();
     }
-    // FIXME: don't need resolve here
-    const mathModelModuleUrl = new URL(
-        paramsMap.get("mathModel") ?? "./Models/MathExpression.js",
-        paramsMap.get("repoBaseUrl") ?? window.location.href
+    return Promise.resolve(
+        Object.assign(self, {
+            data,
+            exportModel,
+            //update,
+        })
     );
-    return import(mathModelModuleUrl).then(function (mathModelModule) {
-        return mathModelModule.init(paramsMap).then(function (mathModelMVU) {
-            data.prompt = mathModelMVU.model.prompt();
-            return Object.assign(self, {
-                data,
-                exportModel,
-                //update,
-            });
-        });
-    });
+    // FIXME: don't need resolve here
 }
-function init(
-    paramsMap,
-    updateParent = function () {
-        return Promise.resolve();
-    }
-) {
+function init(paramsMap, updateParent) {
     const scriptSourceMap = new Map([
         [
             "localhost",
@@ -113,12 +101,39 @@ function init(
     ).then(function (modules) {
         return new Model(paramsMap).then(function (model) {
             const view = new View(model, update);
+            const mathModelModuleUrl = new URL(
+                paramsMap.get("mathModel") ?? "./Models/MathExpression.js",
+                paramsMap.get("repoBaseUrl") ?? window.location.href
+            );
             function update(message) {
                 if (message.action === "updateModel") {
                     model.data.response = message.response;
+                } else if (message.action === "setPrompt") {
+                    model.data.prompt = message.prompt;
+                } else if (message.action === "setValidator") {
+                    updateParent(message);
                 }
                 return true;
             }
+            return import(mathModelModuleUrl)
+                .then(function (mathModelModule) {
+                    return mathModelModule
+                        .init(paramsMap, update)
+                        .then(function (mathModelMVU) {
+                            update({
+                                action: "setPrompt",
+                                prompt: mathModelMVU.model.prompt(),
+                            });
+                            //data.prompt = mathModelMVU.model.prompt();
+                        });
+                })
+                .then(function () {
+                    return {
+                        model,
+                        view,
+                        update,
+                    };
+                });
             /*
             updateParent({
                 action: "addEventListener",

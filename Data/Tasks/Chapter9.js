@@ -43,6 +43,8 @@ const taskParamsMap = new Map([
                 "tasks",
                 [
                     "FactorMonicTrinomial",
+                    "ExpandMonicBinomialProduct",
+                    "FactorMonicTrinomial",
                     "FactorMonicPerfectSquareTrinomial",
                     "ExpandMonicBinomialProduct",
                     "FactorMonicPerfectSquareTrinomialFITB",

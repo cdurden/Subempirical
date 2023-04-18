@@ -1,37 +1,5 @@
 import { all, loadScript } from "../lib/common.js";
 
-function cyrb128(str) {
-    let h1 = 1779033703,
-        h2 = 3144134277,
-        h3 = 1013904242,
-        h4 = 2773480762;
-    for (let i = 0, k; i < str.length; i++) {
-        k = str.charCodeAt(i);
-        h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
-        h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
-        h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
-        h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
-    }
-    h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
-    h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
-    h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
-    h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
-    return [
-        (h1 ^ h2 ^ h3 ^ h4) >>> 0,
-        (h2 ^ h1) >>> 0,
-        (h3 ^ h1) >>> 0,
-        (h4 ^ h1) >>> 0,
-    ];
-}
-function mulberry32(a) {
-    return function () {
-        var t = (a += 0x6d2b79f5);
-        t = Math.imul(t ^ (t >>> 15), t | 1);
-        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-}
-
 function randInt(rand, { max }) {
     return Math.floor(rand() * max);
 }
@@ -129,9 +97,19 @@ function isSimplified(expression) {
 function equal(exprA, exprB) {
     try {
         return Algebrite.equal(
+            Algebrite.simplify(
+                Algebrite.parse(
+                    exprA.toString() + "-(" + exprB.toString() + ")"
+                )
+            ),
+            Algebrite.parse("0")
+        );
+        /*
+        return Algebrite.equal(
             Algebrite.simplify(exprA),
             Algebrite.simplify(exprB)
         );
+        */
     } catch (e) {
         return false;
     }
@@ -204,13 +182,16 @@ function generateExpression(expressionSpec, expressionParams) {
 
 function Model(paramsMap) {
     const expressionSpec = paramsMap.get("expressionSpec");
-    const rand = mulberry32(
+    const rand = paramsMap.get("rand");
+    /*
+    mulberry32(
         cyrb128(
             `${paramsMap.get("expressionSpec").template}${paramsMap.get(
                 "seed"
             )}`
         )[0]
     );
+    */
     const self = Object.create(null);
     Object.setPrototypeOf(self, Model.prototype);
     const expressionParams = generateParams(
@@ -249,7 +230,7 @@ function Model(paramsMap) {
         if (paramsMap.get("type") === "simplify") {
             return (
                 Algebrite.isadd(parsedResponse) &&
-                equal(data.expression, parsedResponse) &&
+                equal(parsedExpression, parsedResponse) &&
                 isSimplified(parsedResponse)
             );
         } else if (paramsMap.get("type") === "factor") {
@@ -263,7 +244,7 @@ function Model(paramsMap) {
                     (Algebrite.ispower(parsedResponse) &&
                         parsedResponse.cons.cdr.cons.cdr.cons.car.toString() !==
                             "1")) &&
-                equal(data.expression, parsedResponse)
+                equal(parsedExpression, parsedResponse)
             );
         } else {
             return false;
@@ -321,6 +302,10 @@ function init(
                 }
                 return true;
             }
+            updateParent({
+                action: "setValidator",
+                validate: model.validate,
+            });
             updateParent({
                 action: "addEventListener",
                 eventName: "mounted",

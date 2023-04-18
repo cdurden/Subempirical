@@ -65,6 +65,7 @@ function View(model, update) {
     submitButtonElmt.addEventListener("click", function (event) {
         update({
             action: "submit",
+            data: model.data,
         });
     });
     function setPromptState(state) {
@@ -182,6 +183,7 @@ function init(
         return new Model(paramsMap).then(function (model) {
             const view = new View(model, update);
             var updateFeedback;
+            var validate;
             function update(message) {
                 if (message.action === "updateModel") {
                     model.data.response = message.response;
@@ -192,11 +194,15 @@ function init(
                     updateFeedback = message.updateFeedback;
                     view.renderFeedback = message.renderFeedback;
                     view.showFeedback = message.showFeedback;
+                    updateFeedback({ action: "setValidator", validate });
                 } else if (message.action === "submit") {
                     if (updateFeedback === undefined) {
                         throw "submit called but updateFeedback has not been defined";
                     }
-                    updateFeedback(model.data.response).then(function () {
+                    updateFeedback({
+                        action: "submit",
+                        response: model.data.response,
+                    }).then(function () {
                         view.showFeedback();
                     });
                     message.data = model.data;
@@ -212,38 +218,40 @@ function init(
                     }
 
                     //view.setPromptState(message.state);
+                } else if (message.action === "setValidator") {
+                    validate = message.validate;
+                    if (updateFeedback !== undefined) {
+                        updateFeedback(message);
+                    }
                 }
                 return Promise.resolve(message);
             }
 
-            return Promise.all([
-                import(feedbackModuleUrl).then(function (feedbackModule) {
-                    return feedbackModule
-                        .init(paramsMap, update)
-                        .then(function (feedbackMVU) {
-                            update({
-                                action: "insertFeedback",
-                                showFeedback: function () {
-                                    feedbackMVU.update({
-                                        action: "showFeedback",
-                                    });
-                                },
-                                renderFeedback: feedbackMVU.view.render,
-                                updateFeedback: function (response) {
-                                    return feedbackMVU.update({
-                                        action: "updateFeedback",
-                                        response,
-                                    });
-                                    //feedbackMVU.model.updateFeedback
-                                },
-                            });
-                            return feedbackMVU;
-                        });
-                }),
-                import(mathPromptModuleUrl).then(function (mathPromptModule) {
+            return import(mathPromptModuleUrl)
+                .then(function (mathPromptModule) {
                     return mathPromptModule
                         .init(paramsMap, update)
                         .then(function (promptMVU) {
+                            import(feedbackModuleUrl).then(function (
+                                feedbackModule
+                            ) {
+                                return feedbackModule
+                                    .init(paramsMap, update)
+                                    .then(function (feedbackMVU) {
+                                        update({
+                                            action: "insertFeedback",
+                                            showFeedback: function () {
+                                                feedbackMVU.update({
+                                                    action: "showFeedback",
+                                                });
+                                            },
+                                            renderFeedback:
+                                                feedbackMVU.view.render,
+                                            updateFeedback: feedbackMVU.update,
+                                        });
+                                        return feedbackMVU;
+                                    });
+                            });
                             update({
                                 action: "setPrompt",
                                 promptModel: promptMVU.model,
@@ -251,11 +259,11 @@ function init(
                             });
                             return promptMVU;
                         });
-                }),
-            ]).then(function () {
-                //update({ action: "init" });
-                return { model, view, update };
-            });
+                })
+                .then(function () {
+                    //update({ action: "init" });
+                    return { model, view, update };
+                });
             //            });
         });
     });
