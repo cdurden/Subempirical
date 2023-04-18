@@ -10,6 +10,7 @@ function typeset(code) {
 }
 function View(model, update) {
     const self = Object.create(null);
+    var typesetComplete = false;
     Object.setPrototypeOf(self, View.prototype);
     const rootElement = document.createElement("div");
     function typesetPrompt() {
@@ -35,6 +36,15 @@ function View(model, update) {
     }
     function render() {
         //return modifyDom();
+        if (!typesetComplete) {
+            document.addEventListener(
+                "DOMContentLoadedAndMathJaxReady",
+                function () {
+                    typesetComplete = true;
+                    typesetPrompt();
+                }
+            );
+        }
         return typesetPrompt();
     }
     return Object.assign(self, {
