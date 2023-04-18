@@ -125,7 +125,7 @@ function init(paramsMap, updateParent) {
                 }
                 return true;
             }
-            return import(mathModelModuleUrl)
+            return import(new URL(mathModelModuleUrl, paramsMap.get("baseURL")))
                 .then(function (mathModelModule) {
                     return mathModelModule
                         .init(paramsMap, update)
