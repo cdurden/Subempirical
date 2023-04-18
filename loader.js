@@ -56,10 +56,12 @@ function init(paramsMap, updateParent) {
                     listener();
                 });
             });
+            /*
             const exportModelLink = document.createElement("a");
             exportModelLink.textContent = "Export";
             exportModelLink.addEventListener("click", model.exportModel);
             container.appendChild(exportModelLink);
+            */
         });
     });
 }

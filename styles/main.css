@@ -154,15 +154,16 @@ a {
  * On desktops and other large-sized devices, we want to customize some
  * of the mobile styles.
  */
+/* This will now take up it's own column, so don't need position: fixed; */
+/*
 @media (min-width: 60em) {
-    /* This will now take up it's own column, so don't need position: fixed; */
     .main {
         position: static;
         margin: 0;
         padding: 0;
     }
 }
-
+*/
 .tooltip {
     width: 100%;
     position: relative;
@@ -198,5 +199,4 @@ a {
     border-width: 5px;
     border-style: solid;
     border-color: transparent transparent black transparent;
-}
 }
