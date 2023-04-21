@@ -1,4 +1,11 @@
-import { any, all, getFile, mapReplacer, loadScript } from "../lib/common.js";
+import {
+    any,
+    all,
+    getFile,
+    mapReplacer,
+    loadScript,
+    callWhenReady,
+} from "../lib/common.js";
 
 var typesetPromise = Promise.resolve(); // Used to hold chain of typesetting calls
 
@@ -43,16 +50,24 @@ function View(model, update, paramsMap) {
     }
     function render() {
         //return modifyDom();
+        return callWhenReady(
+            "DOMContentLoadedAndMathJaxReady",
+            window.mathJaxReady,
+            typesetPrompt
+        );
+        /*
         if (!typesetComplete) {
             document.addEventListener(
                 "DOMContentLoadedAndMathJaxReady",
                 function () {
-                    typesetComplete = true;
-                    typesetPrompt();
+                    typesetPrompt().then(function () {
+                        typesetComplete = true;
+                    });
                 }
             );
         }
         return typesetPrompt();
+        */
     }
     return Object.assign(self, {
         rootElement,

@@ -1,4 +1,11 @@
-import { any, all, getFile, mapReplacer, loadScript } from "../lib/common.js";
+import {
+    any,
+    all,
+    getFile,
+    mapReplacer,
+    loadScript,
+    callWhenReady,
+} from "../lib/common.js";
 
 var typesetPromise = Promise.resolve(); // Used to hold chain of typesetting calls
 
@@ -242,7 +249,11 @@ function View(model, update, paramsMap) {
                 viewContainerElmt.appendChild(responseContainerElmt);
                 viewContainerElmt.appendChild(areaOutputElmt);
                 viewContainerElmt.appendChild(submitButtonElmt);
-                typesetAreas();
+                callWhenReady(
+                    "DOMContentLoadedAndMathJaxReady",
+                    window.mathJaxReady,
+                    typesetAreas
+                );
                 self.renderFeedback()
                     .then(function (feedbackView) {
                         //rootElement.appendChild(feedbackView.rootElement);
