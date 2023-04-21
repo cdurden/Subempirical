@@ -3,8 +3,8 @@ import {
     all,
     getFile,
     mapReplacer,
-    loadScript,
     callWhenReady,
+    loadResourcesInParallel,
 } from "../lib/common.js";
 
 var typesetPromise = Promise.resolve(); // Used to hold chain of typesetting calls
@@ -107,30 +107,11 @@ function Model(paramsMap) {
     // FIXME: don't need resolve here
 }
 function init(paramsMap, updateParent) {
-    const scriptSourceMap = new Map([
-        [
-            "localhost",
-            [
-                "./lib/mathjax/es5/tex-svg.js",
-                "./lib/mathjax-default.js",
-                "./node_modules/showdown/dist/showdown.min.js",
-            ],
-        ],
-        [
-            "other",
-            [
-                "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js",
-                "./lib/mathjax-remote.js",
-                "https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js",
-            ],
-        ],
-    ]);
-    const hostname = window.location.hostname;
-    const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
-    return Promise.all(
-        scriptSourceMap.get(scriptSource).map(function (script) {
-            return loadScript(script, { baseURL: paramsMap.get("baseURL") });
-        })
+    return loadResourcesInParallel(
+        ["MathJax", "Mathlive", "Algebrite", "Showdown"],
+        {
+            baseURL: paramsMap.get("baseURL"),
+        }
     ).then(function (modules) {
         return new Model(paramsMap).then(function (model) {
             const view = new View(model, update);

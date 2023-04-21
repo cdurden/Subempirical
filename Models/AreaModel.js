@@ -3,8 +3,8 @@ import {
     all,
     getFile,
     mapReplacer,
-    loadScript,
     callWhenReady,
+    loadResourcesInParallel,
 } from "../lib/common.js";
 
 var typesetPromise = Promise.resolve(); // Used to hold chain of typesetting calls
@@ -350,39 +350,9 @@ function init(
         return Promise.resolve(message);
     }
 ) {
-    const scriptSourceMap = new Map([
-        [
-            "localhost",
-            [
-                //"./node_modules/mathlive/dist/mathlive.js",
-                "./lib/mathlive/dist/mathlive.js",
-                "./lib/mathjax/es5/tex-svg.js",
-                "./lib/mathjax-default.js",
-                "./lib/algebrite.bundle-for-browser-min.js",
-                "./lib/algebra-latex.js",
-            ],
-        ],
-        [
-            "other",
-            [
-                "./lib/mathlive/dist/mathlive.js",
-                //"https://unpkg.com/@cortex-js/compute-engine",
-                //"https://unpkg.com/mathlive",
-                //"https://cdn.jsdelivr.net/npm/mathlive@2994c497407d510edd1696ffd435299b12ff0980/dist/mathlive.min.js",
-                "./lib/algebrite.bundle-for-browser-min.js",
-                "./lib/algebra-latex.js",
-                "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js",
-                "./lib/mathjax-remote.js",
-            ],
-        ],
-    ]);
-    const hostname = window.location.hostname;
-    const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
-    return Promise.all(
-        scriptSourceMap.get(scriptSource).map(function (script) {
-            return loadScript(script, { baseURL: paramsMap.get("baseURL") });
-        })
-    ).then(function (modules) {
+    return loadResourcesInParallel(["MathJax", "Mathlive", "Algebrite"], {
+        baseURL: paramsMap.get("baseURL"),
+    }).then(function (modules) {
         const mathPromptModuleUrl = new URL(
             "./Models/MathPrompt.js",
             paramsMap.get("baseURL") ?? window.location.href
