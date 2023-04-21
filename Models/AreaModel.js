@@ -488,7 +488,7 @@ function init(
                     }
                     updateFeedback({
                         action: "submit",
-                        response: model.area,
+                        response: `(${model.length})(${model.width})`,
                     }).then(function () {
                         view.showFeedback();
                     });

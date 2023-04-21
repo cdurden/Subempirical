@@ -740,7 +740,7 @@ const taskParamsMap = new Map([
                     ]),
                 },
             ],
-            ["type", "simplify"],
+            ["type", "factor"],
         ]),
     ],
     [
@@ -784,7 +784,7 @@ const taskParamsMap = new Map([
                     ]),
                 },
             ],
-            ["type", "simplify"],
+            ["type", "factor"],
         ]),
     ],
     [
@@ -818,7 +818,7 @@ const taskParamsMap = new Map([
                     ]),
                 },
             ],
-            ["type", "simplify"],
+            ["type", "factor"],
         ]),
     ],
     [
@@ -862,7 +862,7 @@ const taskParamsMap = new Map([
                     ]),
                 },
             ],
-            ["type", "simplify"],
+            ["type", "factor"],
         ]),
     ],
 ]);

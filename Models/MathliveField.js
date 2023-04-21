@@ -102,10 +102,14 @@ function View(model, update, paramsMap) {
                 }
                 //responseInputElmt.value = model.data.response;
                 viewContainerElmt.appendChild(responseContainerElmt);
-                self.renderFeedback().then(function (feedbackView) {
-                    //rootElement.appendChild(feedbackView.rootElement);
-                    responseContainerElmt.appendChild(feedbackView.rootElement);
-                });
+                self.renderFeedback()
+                    .then(function (feedbackView) {
+                        //rootElement.appendChild(feedbackView.rootElement);
+                        responseContainerElmt.appendChild(
+                            feedbackView.rootElement
+                        );
+                    })
+                    .catch(function () {});
                 resolve(self);
             });
         });
