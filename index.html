@@ -52,7 +52,12 @@
                                 window.location.search
                             );
                             const taskId = searchParams.get("taskId");
-                            const paramsMap = taskParamsMap.get(taskId);
+                            const paramsMap = new Map([
+                                ...Array.from(searchParams.entries()),
+                                ...Array.from(
+                                    taskParamsMap.get(taskId).entries()
+                                ),
+                            ]);
                             paramsMap.set("taskId", taskId);
                             paramsMap.set("baseURL", baseURL);
                             paramsMap.set("taskParamsMap", taskParamsMap);

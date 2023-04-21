@@ -8,11 +8,15 @@ function typeset(code) {
         .catch((err) => console.log("Typeset failed: " + err.message));
     return typesetPromise;
 }
-function View(model, update) {
+function View(model, update, paramsMap) {
     const self = Object.create(null);
     var typesetComplete = false;
     Object.setPrototypeOf(self, View.prototype);
     const rootElement = document.createElement("div");
+    var label = "";
+    function setLabel(_label) {
+        label = _label;
+    }
     function typesetPrompt() {
         return typeset(modifyDom).then(function () {
             return self;
@@ -22,9 +26,12 @@ function View(model, update) {
         rootElement.replaceChildren();
         const viewContainerElmt = document.createElement("div");
         const converter = new showdown.Converter({ tables: true });
-        viewContainerElmt.innerHTML = converter.makeHtml(model.data.prompt);
+        viewContainerElmt.innerHTML = converter.makeHtml(
+            //`${label}. ${model.data.prompt}`
+            `${model.data.prompt}`
+        );
         new Map([
-            ["font-size", "32px"],
+            ["font-size", "16pt"],
             //["margin", "1em"],
             //["padding", "8px"],
         ]).forEach(function (value, key) {
@@ -51,6 +58,7 @@ function View(model, update) {
         rootElement,
         render,
         typesetPrompt,
+        setLabel,
     });
 }
 function Model(paramsMap) {
@@ -122,6 +130,8 @@ function init(paramsMap, updateParent) {
                     model.data.prompt = message.prompt;
                 } else if (message.action === "setValidator") {
                     updateParent(message);
+                } else if (message.action === "setLabel") {
+                    view.setLabel(message.label);
                 }
                 return true;
             }

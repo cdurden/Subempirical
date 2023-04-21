@@ -200,3 +200,25 @@ a {
     border-style: solid;
     border-color: transparent transparent black transparent;
 }
+
+math-field.no-toggle-button::part(virtual-keyboard-toggle) {
+    display: none;
+}
+
+table.area-model th:first-child {
+    padding-right: 35px;
+}
+table.area-model th:not(:first-child) {
+    padding-bottom: 20px;
+}
+table.area-model td,
+th {
+    padding-right: 20px;
+}
+table.area-model td {
+    padding: 2em;
+    border: 1px solid black;
+}
+table.area-model {
+    border-collapse: collapse;
+}

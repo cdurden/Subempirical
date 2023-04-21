@@ -7,7 +7,7 @@ import {
     composeUpdateThenRender,
 } from "../lib/common.js";
 
-function View(model, update) {
+function View(model, update, paramsMap) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, View.prototype);
     const rootElement = document.createElement("div");
@@ -39,6 +39,7 @@ function View(model, update) {
                       })
               )
             : event.target.value;
+        //const response = event.target.value;
         update({
             action: "updateModel",
             response,
@@ -48,10 +49,12 @@ function View(model, update) {
     submitButtonElmt.className = "pure-button pure-button-active";
     submitButtonElmt.textContent = "Submit";
     new Map([
-        ["font-size", "32px"],
+        ["font-size", "24pt"],
         ["width", "100%"],
+        ["min-height", "1em"],
         //["margin", "3em"],
         //["display", "inline"],
+        ["overflow", "visible"],
         ["padding", "8px"],
         ["border-radius", "8px"],
         ["border", "1px solid rgba(0, 0, 0, .3)"],
@@ -60,8 +63,19 @@ function View(model, update) {
         responseInputElmt.style.setProperty(key, value);
     });
     responseContainerElmt.appendChild(responseInputContainerElmt);
-    responseInputContainerElmt.appendChild(responseInputElmt);
-    responseInputContainerElmt.appendChild(submitButtonElmt);
+    if (paramsMap.has("printMode")) {
+        responseInputElmt.classList.add("no-toggle-button");
+        responseInputElmt.style.setProperty("border", "0px");
+        responseInputElmt.style.setProperty("box-shadow", "none");
+        const responseSpaceElmt = document.createElement("div");
+        responseSpaceElmt.style.setProperty("height", "12em");
+        responseContainerElmt.appendChild(responseSpaceElmt);
+        responseInputContainerElmt.appendChild(responseInputElmt);
+        responseContainerElmt.appendChild(responseInputContainerElmt);
+    } else {
+        responseInputContainerElmt.appendChild(responseInputElmt);
+        responseInputContainerElmt.appendChild(submitButtonElmt);
+    }
     submitButtonElmt.addEventListener("click", function (event) {
         update({
             action: "submit",
@@ -182,8 +196,9 @@ function init(
             paramsMap.get("baseURL") ?? window.location.href
         );
         return new Model(paramsMap).then(function (model) {
-            const view = new View(model, update);
+            const view = new View(model, update, paramsMap);
             var updateFeedback;
+            var promptUpdate;
             var validate;
             function update(message) {
                 if (message.action === "updateModel") {
@@ -191,6 +206,9 @@ function init(
                 } else if (message.action === "setPrompt") {
                     model.promptModel = message.promptModel;
                     view.promptView = message.promptView;
+                    promptUpdate = message.promptUpdate;
+                } else if (message.action === "setLabel") {
+                    promptUpdate(message);
                 } else if (message.action === "insertFeedback") {
                     updateFeedback = message.updateFeedback;
                     view.renderFeedback = message.renderFeedback;
@@ -257,6 +275,7 @@ function init(
                                 action: "setPrompt",
                                 promptModel: promptMVU.model,
                                 promptView: promptMVU.view,
+                                promptUpdate: promptMVU.update,
                             });
                             return promptMVU;
                         });

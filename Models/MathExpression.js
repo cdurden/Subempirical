@@ -206,7 +206,23 @@ function Model(paramsMap) {
         expression: parsedExpression.toString(),
     };
     function validate(response) {
+        var parsedResponse;
         if (response instanceof Map) {
+            parsedResponse = Algebrite.eval(
+                Array.from(response.entries()).reduce(function (
+                    accumulatorExpr,
+                    [fieldName, value]
+                ) {
+                    return Algebrite_subst(
+                        accumulatorExpr,
+                        Algebrite.parse(fieldName),
+                        Algebrite.parse(value)
+                    );
+                },
+                Algebrite.parse(expressionSpec.template))
+            );
+            return equal(parsedExpression, parsedResponse);
+            /*
             return all(
                 Array.from(response.entries()).map(function ([
                     fieldName,
@@ -218,8 +234,8 @@ function Model(paramsMap) {
                     );
                 })
             );
+            */
         }
-        var parsedResponse;
         try {
             parsedResponse = Algebrite.parse(
                 new AlgebraLatex().parseLatex(response).toMath()

@@ -40,6 +40,35 @@ const taskParamsMap = new Map([
         ]),
     ],
     [
+        "Assignment2",
+        new Map([
+            ["moduleUrl", "./Models/SerialComposite.js"],
+            [
+                "tasks",
+                [
+                    "Factor3ParamTrinomialFITBExample1",
+                    "AreaModelFactorTrinomialExample1",
+                    "Factor3ParamTrinomialFITBExample2",
+                    "AreaModelFactorTrinomialExample2",
+                    "Factor3ParamTrinomialFITBExample3",
+                    "AreaModelFactorTrinomial",
+                    "AreaModelFactorTrinomial",
+                    "AreaModelFactorTrinomial",
+                    "AreaModelFactorTrinomial",
+                    "Factor3ParamTrinomialFITB",
+                    "Factor3ParamTrinomialFITB",
+                    "Factor3ParamTrinomialFITB",
+                    "Factor3ParamTrinomial",
+                    "Factor3ParamTrinomial",
+                    "Factor3ParamTrinomial",
+                    //"Factor4ParamTrinomialFITBExample1",
+                    //"Factor4ParamTrinomialFITB",
+                    //"AreaModelFactorMonicTrinomial",
+                ],
+            ],
+        ]),
+    ],
+    [
         "GoalCheck1",
         new Map([
             ["moduleUrl", "./Models/WheelOfLife.js"],
@@ -137,7 +166,7 @@ const taskParamsMap = new Map([
                             "a",
                             {
                                 generator: "randInt",
-                                options: { max: 10 },
+                                options: { min: 1, max: 10 },
                             },
                         ],
                         [
@@ -145,6 +174,7 @@ const taskParamsMap = new Map([
                             {
                                 generator: "randInt",
                                 options: {
+                                    min: 1,
                                     max: 10,
                                 },
                             },
@@ -178,6 +208,7 @@ const taskParamsMap = new Map([
                             {
                                 generator: "randInt",
                                 options: {
+                                    min: 1,
                                     max: 10,
                                 },
                             },
@@ -234,7 +265,7 @@ const taskParamsMap = new Map([
                             "a",
                             {
                                 generator: "randInt",
-                                options: { max: 10 },
+                                options: { min: 1, max: 10 },
                             },
                         ],
                     ]),
@@ -282,7 +313,7 @@ const taskParamsMap = new Map([
                             "a",
                             {
                                 generator: "randInt",
-                                options: { max: 10 },
+                                options: { min: 1, max: 10 },
                             },
                         ],
                         [
@@ -290,6 +321,7 @@ const taskParamsMap = new Map([
                             {
                                 generator: "randInt",
                                 options: {
+                                    min: 1,
                                     max: 10,
                                 },
                             },
@@ -301,6 +333,536 @@ const taskParamsMap = new Map([
             ["fill-in-the-blank", true],
             ["responseFields", ["a"]],
             ["type", "factor"],
+        ]),
+    ],
+    [
+        "Factor3ParamTrinomialFITBExample1",
+        new Map([
+            ["moduleUrl", "./Models/MathliveField.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((a*x+b)*(x+c))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { min: 3, max: 3 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 1,
+                                },
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 1,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            [
+                "value",
+                "(\\placeholder[a]{}x+\\placeholder[b]{})(x+\\placeholder[c]{})",
+            ],
+            ["fill-in-the-blank", true],
+            ["responseFields", ["a", "b", "c"]],
+            ["type", "factor"],
+        ]),
+    ],
+    [
+        "Factor3ParamTrinomialFITBExample2",
+        new Map([
+            ["moduleUrl", "./Models/MathliveField.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((a*x+b)*(x+c))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { min: 3, max: 3 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 1,
+                                },
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 5,
+                                    max: 5,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            [
+                "value",
+                "(\\placeholder[a]{}x+\\placeholder[b]{})(x+\\placeholder[c]{})",
+            ],
+            ["fill-in-the-blank", true],
+            ["responseFields", ["a", "b", "c"]],
+            ["type", "factor"],
+        ]),
+    ],
+    [
+        "Factor3ParamTrinomialFITBExample3",
+        new Map([
+            ["moduleUrl", "./Models/MathliveField.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((a*x+b)*(x+c))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { min: 2, max: 2 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 3,
+                                    max: 3,
+                                },
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 5,
+                                    max: 5,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            [
+                "value",
+                "(\\placeholder[a]{}x+\\placeholder[b]{})(x+\\placeholder[c]{})",
+            ],
+            ["fill-in-the-blank", true],
+            ["responseFields", ["a", "b", "c"]],
+            ["type", "factor"],
+        ]),
+    ],
+    [
+        "Factor3ParamTrinomialFITB",
+        new Map([
+            ["moduleUrl", "./Models/MathliveField.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((a*x+b)*(x+c))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randPrime",
+                                options: { min: 2, max: 10 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 10,
+                                },
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 10,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            [
+                "value",
+                "(\\placeholder[a]{}x+\\placeholder[b]{})(x+\\placeholder[c]{})",
+            ],
+            ["fill-in-the-blank", true],
+            ["responseFields", ["a", "b", "c"]],
+            ["type", "factor"],
+        ]),
+    ],
+    [
+        "Factor3ParamTrinomial",
+        new Map([
+            ["moduleUrl", "./Models/MathliveField.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((a*x+b)*(x+c))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randPrime",
+                                options: { min: 2, max: 10 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 10,
+                                },
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 10,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            ["type", "factor"],
+        ]),
+    ],
+    [
+        "Factor4ParamTrinomialFITBExample1",
+        new Map([
+            ["moduleUrl", "./Models/MathliveField.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((a*x+b)*(c*x+d))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { min: 2, max: 2 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 1,
+                                },
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 3,
+                                    max: 3,
+                                },
+                            },
+                        ],
+                        [
+                            "d",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 5,
+                                    max: 5,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            [
+                "value",
+                "(\\placeholder[a]{}x+\\placeholder[b]{})(\\placeholder[c]{}x+\\placeholder[d]{})",
+            ],
+            ["fill-in-the-blank", true],
+            ["responseFields", ["a", "b", "c", "d"]],
+            ["type", "factor"],
+        ]),
+    ],
+    [
+        "Factor4ParamTrinomialFITB",
+        new Map([
+            ["moduleUrl", "./Models/MathliveField.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((a*x+b)*(c*x+d))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { min: 2, max: 10 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 10,
+                                },
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 3,
+                                    max: 10,
+                                },
+                            },
+                        ],
+                        [
+                            "d",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 10,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            [
+                "value",
+                "(\\placeholder[a]{}x+\\placeholder[b]{})(\\placeholder[c]{}x+\\placeholder[d]{})",
+            ],
+            ["fill-in-the-blank", true],
+            ["responseFields", ["a", "b", "c", "d"]],
+            ["type", "factor"],
+        ]),
+    ],
+    [
+        "AreaModelFactorTrinomialExample1",
+        new Map([
+            ["moduleUrl", "./Models/AreaModel.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((a*x+b)*(x+c))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { min: 5, max: 5 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 3,
+                                    max: 3,
+                                },
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 1,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            ["type", "simplify"],
+        ]),
+    ],
+    [
+        "AreaModelFactorTrinomialExample2",
+        new Map([
+            ["moduleUrl", "./Models/AreaModel.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((a*x+b)*(x+c))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { min: 7, max: 7 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 1,
+                                },
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 2,
+                                    max: 2,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            ["type", "simplify"],
+        ]),
+    ],
+    [
+        "AreaModelFactorMonicTrinomial",
+        new Map([
+            ["moduleUrl", "./Models/AreaModel.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((x+a)*(x+b))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randInt",
+                                options: { min: 1, max: 10 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 10,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            ["type", "simplify"],
+        ]),
+    ],
+    [
+        "AreaModelFactorTrinomial",
+        new Map([
+            ["moduleUrl", "./Models/AreaModel.js"],
+            ["mathModel", "./Models/MathExpression.js"],
+            [
+                "expressionSpec",
+                {
+                    template: "expand((a*x+b)*(x+c))",
+                    eval: true,
+                    params: new Map([
+                        [
+                            "a",
+                            {
+                                generator: "randPrime",
+                                options: { min: 2, max: 10 },
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 10,
+                                },
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                generator: "randInt",
+                                options: {
+                                    min: 1,
+                                    max: 10,
+                                },
+                            },
+                        ],
+                    ]),
+                },
+            ],
+            ["type", "simplify"],
         ]),
     ],
 ]);

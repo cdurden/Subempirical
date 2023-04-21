@@ -8,7 +8,7 @@ import {
     composeUpdateThenRender,
 } from "../lib/common.js";
 
-function View(model, update) {
+function View(model, update, paramsMap) {
     const self = Object.create(null);
     const childRenderers = [];
     const childViews = [];
@@ -16,9 +16,22 @@ function View(model, update) {
     const rootElement = document.createElement("div");
     const viewContainerElmt = document.createElement("div");
     const mainElmt = document.createElement("div");
+    if (paramsMap.has("printMode")) {
+        mainElmt.style.setProperty("display", "flex");
+        mainElmt.style.setProperty("flex-wrap", "wrap");
+    }
     const navElmt = document.createElement("div");
     const previousButtonElmt = document.createElement("button");
     const nextButtonElmt = document.createElement("button");
+    const headingElmt = document.createElement("div");
+    const nameElmt = document.createElement("div");
+    const titleElmt = document.createElement("div");
+    headingElmt.style.setProperty("font-size", "16pt");
+    nameElmt.style.setProperty("float", "right");
+    nameElmt.textContent = "Name: ___________________________";
+    titleElmt.textContent = "Quiz 9-5";
+    headingElmt.appendChild(nameElmt);
+    headingElmt.appendChild(titleElmt);
     previousButtonElmt.className = "pure-button";
     nextButtonElmt.className = "pure-button";
     nextButtonElmt.textContent = "Next";
@@ -34,9 +47,12 @@ function View(model, update) {
         viewContainerElmt.replaceChildren();
         navElmt.replaceChildren();
         mainElmt.className = "main";
+        //viewContainerElmt.appendChild(headingElmt);
         viewContainerElmt.appendChild(mainElmt);
         rootElement.appendChild(viewContainerElmt);
-        viewContainerElmt.appendChild(navElmt);
+        if (!paramsMap.has("printMode")) {
+            viewContainerElmt.appendChild(navElmt);
+        }
         navElmt.appendChild(previousButtonElmt);
         if (model.completed[model.data.activeIndex]) {
             nextButtonElmt.className = "pure-button pure-button-primary";
@@ -46,6 +62,13 @@ function View(model, update) {
         return Promise.all(
             childViews.map(function (childView, childIndex) {
                 mainElmt.appendChild(childView.rootElement);
+                if (paramsMap.has("printMode")) {
+                    childView.rootElement.style.setProperty("width", "40%");
+                    childView.rootElement.style.setProperty(
+                        "padding",
+                        "0% 8% 0% 2%"
+                    );
+                }
                 return childView.render().then(function (childView) {
                     const showItemButtonElmt = document.createElement("button");
                     if (childIndex === model.data.activeIndex) {
@@ -80,7 +103,7 @@ function View(model, update) {
             childViews.forEach(function (childView, childIndex) {
                 if (childIndex === model.data.activeIndex) {
                     childView.rootElement.style.display = "block";
-                } else {
+                } else if (!paramsMap.has("printMode")) {
                     childView.rootElement.style.display = "none";
                 }
             });
@@ -174,6 +197,12 @@ function init(paramsMap, updateParent) {
                 } else if (message.action === "addChild") {
                     model.addChildModel(message.childModel);
                     view.childViews.push(message.childView);
+                    if (paramsMap.has("printMode")) {
+                        message.childUpdate({
+                            action: "setLabel",
+                            label: `${message.childIndex + 1}`,
+                        });
+                    }
                 } else if (message.action === "updateChild") {
                     model.childModels[message.childIndex] = message.childModel;
                 } else if (message.action === "setCompleted") {
@@ -189,7 +218,7 @@ function init(paramsMap, updateParent) {
                 return Promise.resolve(message);
             }
 
-            const view = new View(model, update);
+            const view = new View(model, update, paramsMap);
             return new Promise(function (resolve) {
                 if (paramsMap.has("paramsMaps")) {
                     resolve(paramsMap.get("paramsMaps"));
@@ -229,12 +258,14 @@ function init(paramsMap, updateParent) {
                         });
                     })
                 ).then(function (childMVUs) {
-                    childMVUs.forEach(function (childMVU) {
+                    childMVUs.forEach(function (childMVU, childIndex) {
                         update(
                             {
                                 action: "addChild",
                                 childModel: childMVU.model,
                                 childView: childMVU.view,
+                                childUpdate: childMVU.update,
+                                childIndex,
                             },
                             model,
                             view
