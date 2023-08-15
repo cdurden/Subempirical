@@ -72,17 +72,14 @@ const taskParamsMap = new Map([
         "GoalCheck1",
         new Map([
             ["moduleUrl", "./Models/WheelOfLife.js"],
-            ["file", "/Data/WheelOfLife/Original.json"],
+            ["file", "./Data/WheelOfLife/Original.json"],
         ]),
     ],
     [
         "TeachingGoals",
         new Map([
             ["moduleUrl", "./Models/WheelOfLife.js"],
-            [
-                "file",
-                "/Data/WheelOfLife/Teaching.json",
-            ],
+            ["file", "./Data/WheelOfLife/Teaching.json"],
         ]),
     ],
     [

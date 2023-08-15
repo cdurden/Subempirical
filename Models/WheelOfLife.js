@@ -234,7 +234,9 @@ function Model(paramsMap) {
         anchor.click();
     }
     return new Promise(function (resolve) {
-        getFile(paramsMap.get("file")).then(function (response) {
+        getFile(
+            paramsMap.get("file", { baseURL: paramsMap.get("baseURL") })
+        ).then(function (response) {
             resolve(
                 Object.assign(self, {
                     data: JSON.parse(response.data),
