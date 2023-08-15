@@ -1,6 +1,7 @@
 import {
     any,
     all,
+    dom,
     getFile,
     mapReplacer,
     loadScript,
@@ -182,6 +183,11 @@ function View(model, update) {
             settingsMenuElmt.appendChild(maxRatingMenuItemElmt);
             settingsMenuElmt.appendChild(nSectorsMenuItemElmt);
             viewContainerElmt.appendChild(menuElmt);
+            const submitButtonElmt = dom("button", "Submit");
+            submitButtonElmt.addEventListener("click", function (e) {
+                update({ action: "submit", data: model.data });
+            });
+            menuElmt.append(submitButtonElmt);
             menuElmt.appendChild(settingsListElmt);
             resolve(self);
         });
@@ -231,7 +237,7 @@ function Model(paramsMap) {
         getFile(paramsMap.get("file")).then(function (response) {
             resolve(
                 Object.assign(self, {
-                    data: response.data,
+                    data: JSON.parse(response.data),
                     exportModel,
                 })
             );
@@ -239,10 +245,10 @@ function Model(paramsMap) {
     });
 }
 
-function init(paramsMap, onUpdateCallbacks = []) {
+function init(paramsMap, updateParent) {
     const scriptSourceMap = new Map([
         ["localhost", ["/node_modules/@svgdotjs/svg.js/dist/svg.js"]],
-        ["other", ["https://unpkg.com/@svgdotjs/svg.js"]],
+        ["other", ["https://unpkg.com/@svgdotjs/svg.js@3.2.0/dist/svg.js"]],
     ]);
     const hostname = window.location.hostname;
     const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
@@ -364,9 +370,16 @@ function init(paramsMap, onUpdateCallbacks = []) {
                 } else if (message.action === "setModal") {
                     view.modalView = message.modalView;
                     modalUpdate = message.modalUpdate;
+                } else if (message.action === "loadSubmissions") {
+                    model.data = JSON.parse(
+                        message.submissions.pop().modelJsonData
+                    );
+                    view.render();
                 }
+                updateParent(message);
                 return Promise.resolve(message);
             }
+            updateParent({ action: "getSubmissions", update });
             return initModal(new Map(), update).then(function (modalMVU) {
                 update({
                     action: "setModal",
@@ -379,12 +392,6 @@ function init(paramsMap, onUpdateCallbacks = []) {
                     update,
                 };
             });
-
-            return {
-                model,
-                view,
-                update,
-            };
         });
     });
 }

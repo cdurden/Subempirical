@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const https = require("https");
+const http = require("http");
 const fs = require("fs");
 
 const app = express();
@@ -19,13 +20,19 @@ app.get("/", (req, res) => {
 // serve the API with signed certificate on 443 (SSL/HTTPS) port
 const httpsServer = https.createServer(
     {
-        key: fs.readFileSync("certs/cert.pem"),
-        cert: fs.readFileSync("certs/cert.crt"),
+        key: fs.readFileSync("certs/localhost/localhost.decrypted.key"),
+        cert: fs.readFileSync("certs/localhost/localhost.crt"),
     },
     app
 );
 
+const httpServer = http.createServer(app);
 const port = 1024;
+httpServer.listen(port, () => {
+    console.log(`HTTP Server running on port ${port}`);
+});
+/*
 httpsServer.listen(port, () => {
     console.log(`HTTPS Server running on port ${port}`);
 });
+*/

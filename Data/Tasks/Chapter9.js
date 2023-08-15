@@ -81,7 +81,7 @@ const taskParamsMap = new Map([
             ["moduleUrl", "./Models/WheelOfLife.js"],
             [
                 "file",
-                "https://raw.githubusercontent.com/cdurden/Subempirical/main/Data/WheelOfLife/Teaching.json",
+                "/Data/WheelOfLife/Teaching.json",
             ],
         ]),
     ],

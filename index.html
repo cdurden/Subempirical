@@ -29,6 +29,7 @@
         ></script>
         <script type="text/javascript" src="loader.js"></script>
         <script type="text/javascript">
+            const appUrl = "http://localhost:4096";
             function getRandomInt(max) {
                 return Math.floor(Math.random() * max);
             }
@@ -64,8 +65,49 @@
                             paramsMap.set("seed", seed);
                             init(paramsMap, function (message) {
                                 if (message.action === "submit") {
-                                    console.log("submit");
-                                    console.log(message);
+                                    fetch(
+                                        `${appUrl}?action=submit&json=${JSON.stringify(
+                                            {
+                                                modelJsonData: JSON.stringify(
+                                                    message.data
+                                                ),
+                                                paramsMapJson: JSON.stringify(
+                                                    paramsMap,
+                                                    mapReplacer
+                                                ),
+                                                taskId:
+                                                    message.taskId ??
+                                                    paramsMap.get("taskId"),
+                                            }
+                                        )}`,
+                                        {
+                                            credentials: "include",
+                                            redirect: "follow",
+                                            mode: "no-cors",
+                                        }
+                                    );
+                                } else if (
+                                    message.action === "getSubmissions"
+                                ) {
+                                    axios(
+                                        `${appUrl}?action=getSubmissions&json=${JSON.stringify(
+                                            {
+                                                taskId:
+                                                    message.taskId ??
+                                                    paramsMap.get("taskId"),
+                                            }
+                                        )}`,
+                                        {
+                                            credentials: "include",
+                                            //redirect: "follow",
+                                            //mode: "no-cors",
+                                        }
+                                    ).then(function (response) {
+                                        message.update({
+                                            action: "loadSubmissions",
+                                            submissions: response.data,
+                                        });
+                                    });
                                 }
                                 return Promise.resolve(message);
                             });
