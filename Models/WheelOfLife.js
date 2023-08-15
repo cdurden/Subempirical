@@ -373,9 +373,7 @@ function init(paramsMap, updateParent) {
                     view.modalView = message.modalView;
                     modalUpdate = message.modalUpdate;
                 } else if (message.action === "loadSubmissions") {
-                    model.data = JSON.parse(
-                        message.submissions.pop().modelJsonData
-                    );
+                    model.data = JSON.parse(message.submissions.pop()[4]);
                     view.render();
                 }
                 updateParent(message);
