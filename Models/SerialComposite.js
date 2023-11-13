@@ -408,13 +408,11 @@ function init(paramsMap, updateParent) {
                 } else if (message.action === "setCompleted") {
                     model.setCompleted(message.taskPath, message.value);
                     view.render();
-                    /*
                 } else if (message.action === "submit") {
                     updateParent({
                         ...message,
                         taskPath: model.childModels.get(message.model),
                     });
-                    */
                 } else if (message.action === "loadTask") {
                     const childParamsMap = message.paramsMap;
                     const moduleUrl = childParamsMap.get("moduleUrl");

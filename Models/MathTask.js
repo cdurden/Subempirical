@@ -117,6 +117,7 @@ function init(paramsMap, updateParent) {
                                 });
                             });
                             view.render();
+                            updateParent({ ...message, model });
                         } else if (message.action === "renderTask") {
                             view.render();
                         }
