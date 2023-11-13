@@ -1,37 +1,30 @@
 import {
     any,
+    repeat,
     all,
     getFile,
     mapReplacer,
     mapReviver,
     loadScript,
     composeUpdateThenRender,
+    dom,
 } from "../lib/common.js";
 
 function View(model, update, paramsMap) {
     const self = Object.create(null);
-    const childRenderers = [];
-    const childViews = [];
+    const childViews = new Map();
     Object.setPrototypeOf(self, View.prototype);
     const rootElement = document.createElement("div");
+    const showChildButtons = new Map();
+    const childViewContainers = new Map();
+    const setContainers = new Map();
+    var activeTaskPath = Array.from(model.tasks.keys())[0];
+    /*
     const viewContainerElmt = document.createElement("div");
     const mainElmt = document.createElement("div");
-    if (paramsMap.has("printMode")) {
-        mainElmt.style.setProperty("display", "flex");
-        mainElmt.style.setProperty("flex-wrap", "wrap");
-    }
     const navElmt = document.createElement("div");
     const previousButtonElmt = document.createElement("button");
     const nextButtonElmt = document.createElement("button");
-    const headingElmt = document.createElement("div");
-    const nameElmt = document.createElement("div");
-    const titleElmt = document.createElement("div");
-    headingElmt.style.setProperty("font-size", "16pt");
-    nameElmt.style.setProperty("float", "right");
-    nameElmt.textContent = "Name: ___________________________";
-    titleElmt.textContent = "Quiz 9-5";
-    headingElmt.appendChild(nameElmt);
-    headingElmt.appendChild(titleElmt);
     previousButtonElmt.className = "pure-button";
     nextButtonElmt.className = "pure-button";
     nextButtonElmt.textContent = "Next";
@@ -40,100 +33,267 @@ function View(model, update, paramsMap) {
         update({ action: "showNext" }, model, self);
     });
     previousButtonElmt.addEventListener("click", function (event) {
-        update({ action: "showPrevious" }, model, self);
+        update({ action: "showPrevious", activeTaskPath }, model, self);
     });
-    function render() {
-        rootElement.replaceChildren();
-        viewContainerElmt.replaceChildren();
-        navElmt.replaceChildren();
-        mainElmt.className = "main";
-        //viewContainerElmt.appendChild(headingElmt);
-        viewContainerElmt.appendChild(mainElmt);
-        rootElement.appendChild(viewContainerElmt);
-        if (!paramsMap.has("printMode")) {
-            viewContainerElmt.appendChild(navElmt);
-        }
-        navElmt.appendChild(previousButtonElmt);
-        if (model.completed[model.data.activeIndex]) {
-            nextButtonElmt.className = "pure-button pure-button-primary";
-        } else {
-            nextButtonElmt.className = "pure-button";
-        }
-        return Promise.all(
-            childViews.map(function (childView, childIndex) {
-                mainElmt.appendChild(childView.rootElement);
+    */
+    /*
+            const childLabelContainer = document.createElement("label");
+            childLabelContainer.style.setProperty(
+                "border-bottom",
+                "1px solid black"
+            );
+            childLabelContainer.textContent = label;
+            const childViewContainer = document.createElement("div");
+            const setIndex = Math.floor(
+                taskIndex / paramsMap.get("tasks").length
+            );
+            if (taskIndex % paramsMap.get("tasks").length === 0) {
+                const setContainer = document.createElement("div");
+                //setContainer.style.setProperty("page-break-before", "always");
+                const directionsContainer = document.createElement("div");
+                directionsContainer.style.setProperty("float", "left");
+                directionsContainer.style.setProperty("width", "100%");
+                setContainer.appendChild(directionsContainer);
+                directionsContainer.textContent = paramsMap.get("directions");
                 if (paramsMap.has("printMode")) {
-                    childView.rootElement.style.setProperty("width", "40%");
-                    childView.rootElement.style.setProperty(
-                        "padding",
-                        "0% 8% 0% 2%"
-                    );
+                    setContainer.style.setProperty("display", "flex");
+                    setContainer.style.setProperty("flex-wrap", "wrap");
                 }
-                return childView.render().then(function (childView) {
-                    const showItemButtonElmt = document.createElement("button");
-                    if (childIndex === model.data.activeIndex) {
-                        showItemButtonElmt.className =
-                            "pure-button pure-button-disabled";
-                    } else if (model.completed[childIndex]) {
-                        showItemButtonElmt.className = "pure-button";
-                    } else {
-                        showItemButtonElmt.className =
-                            "pure-button pure-button-active";
-                    }
-                    showItemButtonElmt.addEventListener(
+                setContainers.set(setIndex, setContainer);
+            }
+            if (paramsMap.has("printMode")) {
+                childViewContainer.style.setProperty("width", "25%");
+                childViewContainer.style.setProperty("padding", "0% 4% 0% 2%");
+                childViewContainer.style.setProperty("margin-bottom", "1em");
+            }
+            childViewContainers.set(taskIndex, childViewContainer);
+            childViewContainer.appendChild(childLabelContainer);
+            const setContainer = setContainers.get(setIndex);
+            setContainer.appendChild(childViewContainer);
+            viewContainerElmt.appendChild(setContainer);
+            const showChildButtonElmt = document.createElement("button");
+            showChildButtons.set(taskIndex, showChildButtonElmt);
+            showChildButtonElmt.addEventListener("click", function (event) {
+                update(
+                    {
+                        action: "showChild",
+                        taskPath: taskIndex,
+                    },
+                    model
+                );
+            });
+            showChildButtonElmt.textContent = label;
+            navElmt.appendChild(showChildButtonElmt);
+        })
+        */
+    function myDom() {
+        const selectTaskDom = dom("select", {}, [
+            ...model.tasks.map(function (task, taskIndex) {
+                const label = model.labels?.[taskIndex] ?? taskIndex;
+                const showChildButtonElmt = dom(
+                    "option",
+                    { value: taskIndex },
+                    [label]
+                );
+                showChildButtons.set(taskIndex, showChildButtonElmt);
+                return showChildButtonElmt;
+            }),
+        ]);
+        selectTaskDom.addEventListener("change", function (e) {
+            update(
+                {
+                    action: "showChild",
+                    taskPath: Number(e.target.value),
+                },
+                model
+            );
+        });
+        return dom("div", {}, [
+            dom("div", { class: "serial-composite-nav" }, [selectTaskDom]),
+            /*
+            dom("div", { class: "serial-composite-nav" }, [
+                ...model.tasks.map(function (task, taskIndex) {
+                    const label = model.labels?.[taskIndex] ?? taskIndex;
+                    const showChildButtonElmt = dom("button", {}, [label]);
+                    showChildButtons.set(taskIndex, showChildButtonElmt);
+                    showChildButtonElmt.addEventListener(
                         "click",
                         function (event) {
                             update(
                                 {
-                                    action: "showItem",
-                                    itemIndex: childIndex,
+                                    action: "showChild",
+                                    taskPath: taskIndex,
                                 },
                                 model
                             );
                         }
                     );
-                    showItemButtonElmt.textContent = `${childIndex + 1}`;
-                    navElmt.appendChild(showItemButtonElmt);
-                    return childView;
-                });
-            })
-        ).then(function (childViews) {
-            navElmt.appendChild(nextButtonElmt);
-            navElmt.className = "nav pure-u";
-            childViews.forEach(function (childView, childIndex) {
-                if (childIndex === model.data.activeIndex) {
-                    childView.rootElement.style.display = "block";
-                } else if (!paramsMap.has("printMode")) {
-                    childView.rootElement.style.display = "none";
-                }
-            });
-            return self;
-        });
+                    return showChildButtonElmt;
+                }),
+            ]),
+            */
+            dom("div", { class: "serial-composite-task" }, [
+                ...model.tasks.map(function (task, taskIndex) {
+                    //showChildButtonElmt.textContent = label;
+                    const childViewContainer = dom("div", {}, []);
+                    childViewContainers.set(taskIndex, childViewContainer);
+                    return childViewContainer;
+                }),
+                //dom("button", {}, "Previous"),
+                //dom("button", {}, "Next"),
+            ]),
+        ]);
     }
+    function render() {
+        rootElement.replaceChildren();
+        rootElement.appendChild(self.dom());
+        /*
+        mainElmt.className = "main";
+        viewContainerElmt.style.setProperty("font-size", "16pt");
+        //viewContainerElmt.appendChild(headingElmt);
+        rootElement.appendChild(viewContainerElmt);
+        viewContainerElmt.appendChild(mainElmt);
+        if (!paramsMap.has("printMode")) {
+            viewContainerElmt.appendChild(navElmt);
+        }
+        navElmt.appendChild(previousButtonElmt);
+        model.tasks.forEach(function (task, taskIndex) {
+            const label = model.labels?.[taskIndex] ?? taskIndex;
+            const childLabelContainer = document.createElement("label");
+            childLabelContainer.style.setProperty(
+                "border-bottom",
+                "1px solid black"
+            );
+            childLabelContainer.textContent = label;
+            const childViewContainer = document.createElement("div");
+            const setIndex = Math.floor(
+                taskIndex / paramsMap.get("tasks").length
+            );
+            if (taskIndex % paramsMap.get("tasks").length === 0) {
+                const setContainer = document.createElement("div");
+                //setContainer.style.setProperty("page-break-before", "always");
+                const directionsContainer = document.createElement("div");
+                directionsContainer.style.setProperty("float", "left");
+                directionsContainer.style.setProperty("width", "100%");
+                setContainer.appendChild(directionsContainer);
+                directionsContainer.textContent = paramsMap.get("directions");
+                if (paramsMap.has("printMode")) {
+                    setContainer.style.setProperty("display", "flex");
+                    setContainer.style.setProperty("flex-wrap", "wrap");
+                }
+                setContainers.set(setIndex, setContainer);
+            }
+            if (paramsMap.has("printMode")) {
+                childViewContainer.style.setProperty("width", "25%");
+                childViewContainer.style.setProperty("padding", "0% 4% 0% 2%");
+                childViewContainer.style.setProperty("margin-bottom", "1em");
+            }
+            childViewContainers.set(taskIndex, childViewContainer);
+            childViewContainer.appendChild(childLabelContainer);
+            const setContainer = setContainers.get(setIndex);
+            setContainer.appendChild(childViewContainer);
+            viewContainerElmt.appendChild(setContainer);
+            const showChildButtonElmt = document.createElement("button");
+            showChildButtons.set(taskIndex, showChildButtonElmt);
+            showChildButtonElmt.addEventListener("click", function (event) {
+                update(
+                    {
+                        action: "showChild",
+                        taskPath: taskIndex,
+                    },
+                    model
+                );
+            });
+            showChildButtonElmt.textContent = label;
+            navElmt.appendChild(showChildButtonElmt);
+        });
+        navElmt.appendChild(nextButtonElmt);
+        */
+        updateButtonStates();
+        return Promise.resolve(self);
+    }
+    function addChild(taskPath, childView) {
+        childViews.set(taskPath, childView);
+        childViewContainers.get(taskPath).appendChild(childView.rootElement);
+        if (!paramsMap.has("printMode") && taskPath !== activeTaskPath) {
+            childView.rootElement.style.display = "none";
+        }
+        return childView;
+    }
+    function updateButtonStates() {
+        model.tasks.forEach(function (task, taskPath) {
+            const showChildButtonElmt = showChildButtons.get(taskPath);
+            if (taskPath === activeTaskPath) {
+                showChildButtonElmt.className =
+                    "pure-button pure-button-disabled";
+            } else if (model.completed.get(taskPath)) {
+                showChildButtonElmt.className = "pure-button";
+            } else {
+                showChildButtonElmt.className =
+                    "pure-button pure-button-active";
+            }
+        });
+        /*
+        if (model.completed.get(activeTaskPath)) {
+            nextButtonElmt.className = "pure-button pure-button-primary";
+        } else {
+            nextButtonElmt.className = "pure-button";
+        }
+        */
+    }
+    function showChild(taskPath) {
+        activeTaskPath = taskPath;
+        Array.from(childViews.entries()).forEach(function ([
+            childTaskPath,
+            childView,
+        ]) {
+            if (childTaskPath === activeTaskPath) {
+                childView.rootElement.style.display = "block";
+            } else if (!paramsMap.has("printMode")) {
+                childView.rootElement.style.display = "none";
+            }
+        });
+        updateButtonStates();
+    }
+
     return Object.assign(self, {
-        childRenderers,
-        childViews,
+        showChild,
+        addChild,
         rootElement,
         render,
+        dom: myDom,
     });
 }
 function Model(paramsMap) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, Model.prototype);
-    const childModels = [];
-    const completed = [];
+    const childModels = new Map();
+    const completed = new Map();
+    const tasks = [];
+    const labels = [];
+    paramsMap.get("tasks").forEach(function (task) {
+        tasks.push(...repeat(task, paramsMap.get("reps") ?? 1));
+    });
+    paramsMap.get("labels").forEach(function (label) {
+        labels.push(
+            ...repeat(label, paramsMap.get("reps") ?? 1).map(function (_, i) {
+                return `${label} ${i + 1}`;
+            })
+        );
+    });
     const data = {
-        childModels: childModels.map(function (childModel) {
+        childModels: Array.from(childModels.keys()).map(function (childModel) {
             return childModel.data;
         }),
-        activeIndex: 0,
+        //activeTaskPath: null,
+        //activeIndex: 0,
     };
-    function setCompleted(childIndex, value) {
-        completed[childIndex] = value;
+    function setCompleted(taskPath, value) {
+        completed.set(taskPath, value);
     }
-    function addChildModel(childModel) {
-        childModels.push(childModel);
-        completed.push(false);
+    function addChild(taskPath, childModel) {
+        childModels.set(childModel, taskPath);
+        completed.set(taskPath, false);
     }
     function exportModel() {
         const blob = new Blob([JSON.stringify(data, mapReplacer)], {
@@ -159,8 +319,10 @@ function Model(paramsMap) {
                 exportModel,
                 childModels,
                 setCompleted,
-                addChildModel,
+                addChild,
                 completed,
+                tasks,
+                labels,
                 //update,
             })
         );
@@ -171,6 +333,7 @@ function init(paramsMap, updateParent) {
         ["localhost", []],
         ["other", []],
     ]);
+    const childUpdateQueues = new Map();
     const hostname = window.location.hostname;
     const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
     return Promise.all(
@@ -181,102 +344,118 @@ function init(paramsMap, updateParent) {
         return new Model(paramsMap).then(function (model) {
             function update(message) {
                 if (message.action === "showNext") {
-                    model.data.activeIndex =
-                        (model.data.activeIndex + 1) % model.childModels.length;
-                    view.render();
+                    //model.data.activeIndex =
+                    //    (model.data.activeIndex + 1) % model.childModels.length;
+                    //view.render();
                 } else if (message.action === "showPrevious") {
-                    model.data.activeIndex =
-                        (model.childModels.length +
-                            model.data.activeIndex -
-                            1) %
-                        model.childModels.length;
-                    view.render();
-                } else if (message.action === "showItem") {
-                    model.data.activeIndex = message.itemIndex;
-                    view.render();
+                    const taskPaths = Array.from(model.tasks.keys());
+                    const prevActiveIndex = taskPaths.indexOf(
+                        message.activeTaskPath
+                    );
+                    const newActiveIndex =
+                        (taskPaths.length + prevActiveIndex - 1) %
+                        taskPaths.length;
+                    view.showChild(taskPaths[newActiveIndex]);
+                    //view.render();
+                } else if (message.action === "postFeedback") {
+                    if (message.correct) {
+                        model.setCompleted(message.taskPath, message.value);
+                    }
+                    //view.activeTaskPath = message.taskPath;
+                    //view.render();
+                } else if (message.action === "showChild") {
+                    view.showChild(message.taskPath);
+                    //view.activeTaskPath = message.taskPath;
+                    //view.render();
                 } else if (message.action === "addChild") {
-                    model.addChildModel(message.childModel);
-                    view.childViews.push(message.childView);
+                    model.addChild(message.taskPath, message.childModel);
+                    view.addChild(message.taskPath, message.childView);
                     if (paramsMap.has("printMode")) {
                         message.childUpdate({
                             action: "setLabel",
-                            label: `${message.childIndex + 1}`,
+                            label: message.taskPath,
                         });
                     }
-                } else if (message.action === "updateChild") {
-                    model.childModels[message.childIndex] = message.childModel;
+                    /*
+                    childUpdateQueues
+                        .get(message.childModel)
+                        .forEach(function (callUpdate) {
+                            callUpdate();
+                        });
+                    */
+                    // Clear queue
+                    childUpdateQueues.set(message.childModel, []);
                 } else if (message.action === "setCompleted") {
-                    model.setCompleted(message.childIndex, message.value);
+                    model.setCompleted(message.taskPath, message.value);
                     view.render();
+                    /*
                 } else if (message.action === "submit") {
                     updateParent({
                         ...message,
-                        taskId: `${message.taskId}:${message.childIndex + 1}`,
+                        taskPath: model.childModels.get(message.model),
                     });
-                }
-                //return updateParent(message);
-                return Promise.resolve(message);
-            }
-
-            const view = new View(model, update, paramsMap);
-            return new Promise(function (resolve) {
-                if (paramsMap.has("paramsMaps")) {
-                    resolve(paramsMap.get("paramsMaps"));
-                } else if (
-                    paramsMap.has("tasks") &&
-                    paramsMap.has("taskParamsMap")
-                ) {
-                    const taskParamsMap = paramsMap.get("taskParamsMap");
-                    resolve(
-                        paramsMap.get("tasks").map(function (taskId) {
-                            return taskParamsMap.get(taskId);
-                        })
-                    );
-                } else {
-                    getFile(paramsMap.get("file"), {
-                        transformResponse: (response) => response,
-                    }).then(function (response) {
-                        resolve(JSON.parse(response.data, mapReviver));
-                    });
-                }
-            }).then(function (paramsMaps) {
-                return Promise.all(
-                    paramsMaps.map(function (childParamsMap, childIndex) {
+                    */
+                } else if (message.action === "loadTask") {
+                    const childParamsMap = message.paramsMap;
+                    const moduleUrl = childParamsMap.get("moduleUrl");
+                    return import(
+                        new URL(moduleUrl, paramsMap.get("baseURL"))
+                    ).then(function ({ init }) {
                         const mergedParamsMap = new Map([
                             ...Array.from(paramsMap.entries()),
                             ...Array.from(childParamsMap.entries()),
                         ]);
-                        const moduleUrl = childParamsMap.get("moduleUrl");
-                        return import(
-                            new URL(moduleUrl, paramsMap.get("baseURL"))
-                        ).then(function ({ init }) {
-                            return init(mergedParamsMap, function (message) {
-                                update({ ...message, childIndex });
-                            }).then(function (childMVU) {
-                                return childMVU;
-                            });
+                        return init(mergedParamsMap, function (message) {
+                            update({ ...message });
+                        }).then(function (childMVU) {
+                            update(
+                                {
+                                    action: "addChild",
+                                    childModel: childMVU.model,
+                                    childView: childMVU.view,
+                                    childUpdate: childMVU.update,
+                                    taskPath: message.taskPath,
+                                },
+                                model,
+                                view
+                            );
+                            childMVU.view.render();
+                            return childMVU;
                         });
-                    })
-                ).then(function (childMVUs) {
-                    childMVUs.forEach(function (childMVU, childIndex) {
-                        update(
-                            {
-                                action: "addChild",
-                                childModel: childMVU.model,
-                                childView: childMVU.view,
-                                childUpdate: childMVU.update,
-                                childIndex,
-                            },
-                            model,
-                            view
-                        );
                     });
-                    return {
-                        model,
-                        view,
-                        update,
-                    };
-                });
+                } else if (message.action === "getSubmissions") {
+                    console.log("got submissions request from model");
+                }
+                if (!childUpdateQueues.has(message.model)) {
+                    childUpdateQueues.set(message.model, []);
+                }
+                if (model.childModels.has(message.model)) {
+                    updateParent({
+                        ...message,
+                        taskPath: model.childModels.get(message.model),
+                    });
+                } else {
+                    childUpdateQueues.get(message.model).push(function () {
+                        updateParent({
+                            ...message,
+                            taskPath: model.childModels.get(message.model),
+                        });
+                    });
+                }
+                return Promise.resolve(message);
+            }
+
+            const view = new View(model, update, paramsMap);
+            const tasks = model.tasks;
+            updateParent({
+                action: "getTasks",
+                tasks,
+                update,
+            });
+            return Promise.resolve({
+                model,
+                view,
+                update,
             });
         });
     });

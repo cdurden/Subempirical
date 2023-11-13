@@ -313,6 +313,11 @@ function init(
         return new Model(paramsMap).then(function (model) {
             const view = new View(model, update);
             function update(message) {
+                if (message.action === "checkNumericalEquality") {
+                    message.values.reduce(function (a, b) {
+                        return a === false ? false : a === b ? b : false;
+                    }) !== false;
+                }
                 if (message.action === "updateModel") {
                     model.data.response = message.response;
                 }
@@ -321,26 +326,6 @@ function init(
             updateParent({
                 action: "setValidator",
                 validate: model.validate,
-            });
-            updateParent({
-                action: "addEventListener",
-                eventName: "mounted",
-                listener: function () {
-                        /*
-                    MathJax.startup.promise.then(() => {
-                        if (document.readyState === "loading") {
-                            // Loading hasn't finished yet
-                            document.addEventListener(
-                                "DOMContentLoaded",
-                                view.typesetPrompt
-                            );
-                        } else {
-                            // `DOMContentLoaded` has already fired
-                            view.typesetPrompt();
-                        }
-                    });
-                        */
-                },
             });
 
             return {

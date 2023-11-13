@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0.2 (e86c870879, 2021-01-15)"
+   sodipodi:docname="MathliveComponentDocumentation.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="1917.5889"
+     inkscape:cy="484.2577"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="1918"
+     inkscape:window-height="1008"
+     inkscape:window-x="0"
+     inkscape:window-y="70"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="27.445644"
+       y="98.773911"
+       id="text835"><tspan
+         sodipodi:role="line"
+         id="tspan833"
+         x="27.445644"
+         y="98.773911"
+         style="stroke-width:0.264583">MathliveField</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="49.607841"
+       y="124.09103"
+       id="text839"><tspan
+         sodipodi:role="line"
+         id="tspan837"
+         x="49.607841"
+         y="124.09103"
+         style="stroke-width:0.264583">Feedback</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="74.005249"
+       y="190.15092"
+       id="text843"><tspan
+         sodipodi:role="line"
+         id="tspan841"
+         x="74.005249"
+         y="190.15092"
+         style="stroke-width:0.264583">HtmPrompt</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="3.4540055"
+       y="77.704651"
+       id="text847"><tspan
+         sodipodi:role="line"
+         id="tspan845"
+         x="3.4540055"
+         y="77.704651"
+         style="stroke-width:0.264583">SerialComposite</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="50.409935"
+       y="162.23207"
+       id="text851"><tspan
+         sodipodi:role="line"
+         id="tspan849"
+         x="50.409935"
+         y="162.23207"
+         style="stroke-width:0.264583">MathPrompt</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="123.62334"
+       y="77.386986"
+       id="text855"><tspan
+         sodipodi:role="line"
+         id="tspan853"
+         x="123.62334"
+         y="77.386986"
+         style="font-size:4.23333px;stroke-width:0.264583">Represents an ordered collection of models</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;white-space:pre;inline-size:95.2289;stroke-width:0.264583"
+       x="109.62938"
+       y="96.520561"
+       id="text859"
+       transform="translate(13.712294,0.07827715)"><tspan
+         x="109.62938"
+         y="96.520561"><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">Creates a Mathlive component with a submit </tspan></tspan><tspan
+         x="109.62938"
+         y="101.81222"><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">button</tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">.</tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583"> Also creates a feedback component </tspan></tspan><tspan
+         x="109.62938"
+         y="107.13386"><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">and</tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">forwards a </tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">'</tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">setValidator</tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">'</tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583"> message to it</tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">.</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;white-space:pre;inline-size:201.692;stroke-width:0.264583"
+       x="110.78868"
+       y="116.57072"
+       id="text867"
+       transform="translate(13.712294,0.07827715)"><tspan
+         x="110.78868"
+         y="116.57072"><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">Uses a validate function to test for correctness
+</tspan></tspan><tspan
+         x="110.78868"
+         y="121.86238"><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">of a submission</tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">,</tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583"> and generates a message indicating
+</tspan></tspan><tspan
+         x="110.78868"
+         y="127.18401"><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">this</tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">.</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="65.079643"
+       y="141.22792"
+       id="text871"><tspan
+         sodipodi:role="line"
+         id="tspan869"
+         x="65.079643"
+         y="141.22792"
+         style="stroke-width:0.264583">Message</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="125.33568"
+       y="162.28749"
+       id="text895"><tspan
+         sodipodi:role="line"
+         id="tspan893"
+         x="125.33568"
+         y="163.83365"
+         style="font-size:4.23333px;stroke-width:0.264583">Handles rendering of MathJax within an HTML prompt.</tspan><tspan
+         sodipodi:role="line"
+         x="125.33568"
+         y="169.12531"
+         style="font-size:4.23333px;stroke-width:0.264583"
+         id="tspan897">Forwards 'setValidator' message to parent.</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;white-space:pre;inline-size:162.278;stroke-width:0.264583"
+       x="232.97925"
+       y="116.16941"
+       id="text901"><tspan
+         x="232.97925"
+         y="116.16941"><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">Uses a provided method to generate feedback
+</tspan></tspan><tspan
+         x="232.97925"
+         y="121.46107"><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">based on submission data</tspan><tspan
+           style="font-size:4.23333px;stroke-width:0.264583">. </tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="438.42935"
+       y="107.75336"
+       id="text907"><tspan
+         sodipodi:role="line"
+         id="tspan905"
+         x="438.42935"
+         y="107.75336"
+         style="stroke-width:0.264583">&lt;MathModel&gt;</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="465.71777"
+       y="124.64755"
+       id="text911"><tspan
+         sodipodi:role="line"
+         id="tspan909"
+         x="465.71777"
+         y="124.64755"
+         style="stroke-width:0.264583">generatePrompt</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="464.992"
+       y="147.75114"
+       id="text915"><tspan
+         sodipodi:role="line"
+         id="tspan913"
+         x="464.992"
+         y="147.75114"
+         style="stroke-width:0.264583">generateFeedback</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="555.21954"
+       y="144.83546"
+       id="text919"><tspan
+         sodipodi:role="line"
+         id="tspan917"
+         x="555.21954"
+         y="144.83546"
+         style="font-size:4.23333px;stroke-width:0.264583">Passes a message to parent component requesting feedback</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="406.22708"
+       y="75.680313"
+       id="text923"><tspan
+         sodipodi:role="line"
+         id="tspan921"
+         x="406.22708"
+         y="75.680313"
+         style="stroke-width:0.264583">MathModel</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:MathJax_Math;-inkscape-font-specification:'MathJax_Math, Normal';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583"
+       x="439.91638"
+       y="87.410202"
+       id="text927"><tspan
+         sodipodi:role="line"
+         id="tspan925"
+         x="439.91638"
+         y="87.410202"
+         style="stroke-width:0.264583">Algebrite</tspan></text>
+  </g>
+</svg>

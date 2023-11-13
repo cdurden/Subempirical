@@ -23,6 +23,7 @@
         <script src="/node_modules/axios/dist/axios.min.js"></script>
         <!--https://unpkg.com/axios/dist/axios.min.js-->
         <script src="/node_modules/marked/marked.min.js"></script>
+        <script src="/node_modules/jsonpath-lite/jsonpath-lite.min.js"></script>
         <script
             type="text/javascript"
             src="/node_modules/epubjs/dist/epub.js"
@@ -40,45 +41,59 @@
                     getFile,
                     mapReviver,
                     mapReplacer,
+                    query,
+                    joinPath,
                 }) {
-                    getFile("./Data/Tasks/Chapter9.json", {
-                        transformResponse: (response) => response,
-                        baseURL,
-                    })
+                    const searchParams = new URLSearchParams(
+                        window.location.search
+                    );
+                    getFile(
+                        searchParams.get("tasksFile") ??
+                            "./Data/Tasks/Chapter9.json",
+                        {
+                            transformResponse: (response) => response,
+                            baseURL,
+                        }
+                    )
                         .then(function (response) {
                             return JSON.parse(response.data, mapReviver);
                         })
                         .then(function (taskParamsMap) {
-                            const searchParams = new URLSearchParams(
-                                window.location.search
-                            );
-                            const taskId = searchParams.get("taskId");
+                            const taskPath = searchParams.get("taskPath");
+                            //const paramsMap = query(taskParamsMap, taskPath);
                             const paramsMap = new Map([
                                 ...Array.from(searchParams.entries()),
-                                ...Array.from(
-                                    taskParamsMap.get(taskId).entries()
-                                ),
+                                ...query(taskParamsMap, taskPath),
                             ]);
-                            paramsMap.set("taskId", taskId);
+                            /*
+                             const paramsMap = new Map([
+                                 ...Array.from(searchParams.entries()),
+                                 ...Array.from(
+                                     taskParamsMap.get(taskId).entries()
+                                 ),
+                             ]);
+            */
+                            //paramsMap.set("taskId", taskId);
                             paramsMap.set("baseURL", baseURL);
-                            paramsMap.set("taskParamsMap", taskParamsMap);
+                            //paramsMap.set("taskParamsMap", taskParamsMap);
                             paramsMap.set("seed", seed);
                             init(paramsMap, function (message) {
                                 if (message.action === "submit") {
                                     fetch(
-                                        `${appUrl}?action=submit&json=${JSON.stringify(
-                                            {
-                                                modelJsonData: JSON.stringify(
+                                        `${appUrl}?action=submit&json=${encodeURIComponent(
+                                            JSON.stringify({
+                                                data: JSON.stringify(
                                                     message.data
                                                 ),
                                                 paramsMapJson: JSON.stringify(
                                                     paramsMap,
                                                     mapReplacer
                                                 ),
-                                                taskId:
-                                                    message.taskId ??
-                                                    paramsMap.get("taskId"),
-                                            }
+                                                taskPath: `${joinPath(
+                                                    taskPath,
+                                                    message.taskPath
+                                                )}`,
+                                            })
                                         )}`,
                                         {
                                             credentials: "include",
@@ -89,14 +104,12 @@
                                 } else if (
                                     message.action === "getSubmissions"
                                 ) {
+                                    const fullTaskPath = joinPath(
+                                        taskPath,
+                                        message.taskPath ?? ""
+                                    );
                                     axios(
-                                        `${appUrl}?action=getSubmissions&json=${JSON.stringify(
-                                            {
-                                                taskId:
-                                                    message.taskId ??
-                                                    paramsMap.get("taskId"),
-                                            }
-                                        )}`,
+                                        `${appUrl}?action=getSubmissions&taskPath=${fullTaskPath}`,
                                         {
                                             credentials: "include",
                                             //redirect: "follow",
@@ -106,6 +119,17 @@
                                         message.update({
                                             action: "loadSubmissions",
                                             submissions: response.data,
+                                        });
+                                    });
+                                } else if (message.action === "getTasks") {
+                                    message.tasks.forEach(function (
+                                        task,
+                                        taskKey
+                                    ) {
+                                        message.update({
+                                            action: "loadTask",
+                                            taskPath: taskKey,
+                                            paramsMap: taskParamsMap.get(task),
                                         });
                                     });
                                 }

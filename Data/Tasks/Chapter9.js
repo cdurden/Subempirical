@@ -69,6 +69,18 @@ const taskParamsMap = new Map([
         ]),
     ],
     [
+        "Assignment3",
+        new Map([
+            ["moduleUrl", "./Models/SerialComposite.js"],
+            [
+                "tasks",
+                [
+                    "ExpandMonicBinomialProduct",
+                ],
+            ],
+        ]),
+    ],
+    [
         "GoalCheck1",
         new Map([
             ["moduleUrl", "./Models/WheelOfLife.js"],

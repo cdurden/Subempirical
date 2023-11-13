@@ -62,32 +62,33 @@ function View(model, update, paramsMap) {
     ]).forEach(function (value, key) {
         responseInputElmt.style.setProperty(key, value);
     });
-    responseContainerElmt.appendChild(responseInputContainerElmt);
     if (paramsMap.has("printMode")) {
         responseInputElmt.classList.add("no-toggle-button");
         responseInputElmt.style.setProperty("border", "0px");
         responseInputElmt.style.setProperty("box-shadow", "none");
         const responseSpaceElmt = document.createElement("div");
-        responseSpaceElmt.style.setProperty("height", "12em");
-        responseContainerElmt.appendChild(responseSpaceElmt);
+        //responseSpaceElmt.style.setProperty("height", "12em");
+        //responseContainerElmt.appendChild(responseSpaceElmt);
         responseInputContainerElmt.appendChild(responseInputElmt);
-        responseContainerElmt.appendChild(responseInputContainerElmt);
+        //responseContainerElmt.appendChild(responseInputContainerElmt);
     } else {
+        responseContainerElmt.appendChild(responseInputContainerElmt);
         responseInputContainerElmt.appendChild(responseInputElmt);
         responseInputContainerElmt.appendChild(submitButtonElmt);
     }
     submitButtonElmt.addEventListener("click", function (event) {
         update({
             action: "submit",
-            data: model.data,
-            taskId: model.paramsMap.get("taskId"),
+            model: model,
+            //data: model.data,
+            //taskId: model.paramsMap.get("taskId"),
         });
     });
     function setPromptState(state) {
         responseInputElmt.setPromptState(state);
     }
     function render() {
-        MathLive.renderMathInDocument();
+        //MathLive.renderMathInDocument();
         //window.mathVirtualKeyboard._boundingRect = { height: undefined };
         return new Promise(function (resolve) {
             rootElement.replaceChildren();
@@ -96,11 +97,12 @@ function View(model, update, paramsMap) {
             viewContainerElmt.appendChild(self.promptView.rootElement);
             self.promptView.render().then(function () {
                 //responseInputElmt.setAttribute("script-depth", "[0, 1]");
-                responseInputElmt.textContent = model.data.value;
                 if (model.paramsMap.get("fill-in-the-blank") === true) {
                     responseInputElmt.setAttribute("readonly", true);
+                    responseInputElmt.textContent = model.data.value;
+                } else {
+                    responseInputElmt.textContent = model.data.response;
                 }
-                //responseInputElmt.value = model.data.response;
                 viewContainerElmt.appendChild(responseContainerElmt);
                 self.renderFeedback()
                     .then(function (feedbackView) {
@@ -171,7 +173,7 @@ function init(
             "localhost",
             [
                 //"./node_modules/mathlive/dist/mathlive.js",
-                "./lib/mathlive/dist/mathlive.js",
+                //"./lib/mathlive/dist/mathlive.js",
             ],
         ],
         [
@@ -191,10 +193,16 @@ function init(
             return loadScript(script, { baseURL: paramsMap.get("baseURL") });
         })
     ).then(function (modules) {
+        const mathModelModuleUrl = new URL(
+            "./Models/MathModel.js",
+            paramsMap.get("baseURL") ?? window.location.href
+        );
+        /*
         const mathPromptModuleUrl = new URL(
             "./Models/MathPrompt.js",
             paramsMap.get("baseURL") ?? window.location.href
         );
+        */
         const feedbackModuleUrl = new URL(
             "./Models/Feedback.js",
             paramsMap.get("baseURL") ?? window.location.href
@@ -207,6 +215,8 @@ function init(
             function update(message) {
                 if (message.action === "updateModel") {
                     model.data.response = message.response;
+                } else if (message.action === "updateFeedback") {
+                    updateFeedback(message);
                 } else if (message.action === "setPrompt") {
                     model.promptModel = message.promptModel;
                     view.promptView = message.promptView;
@@ -228,7 +238,7 @@ function init(
                     }).then(function () {
                         view.showFeedback();
                     });
-                    message.data = model.data;
+                    //message.data = model.data;
                     message.paramsMap = paramsMap;
                     return updateParent(message);
                 } else if (message.action === "setTaskState") {
@@ -246,10 +256,57 @@ function init(
                     if (updateFeedback !== undefined) {
                         updateFeedback(message);
                     }
+                } else if (message.action === "loadSubmissions") {
+                    Object.assign(
+                        model.data,
+                        JSON.parse(message.submissions.pop()?.[4] ?? "{}")
+                    );
+                    view.render();
                 }
+                updateParent(message);
                 return Promise.resolve(message);
             }
+            updateParent({ action: "getSubmissions", model, update });
 
+            return import(mathModelModuleUrl)
+                .then(function (mathModelModule) {
+                    return mathModelModule
+                        .init(paramsMap, update)
+                        .then(function (mathModelMVU) {
+                            import(feedbackModuleUrl).then(function (
+                                feedbackModule
+                            ) {
+                                return feedbackModule
+                                    .init(paramsMap, update)
+                                    .then(function (feedbackMVU) {
+                                        update({
+                                            action: "insertFeedback",
+                                            showFeedback: function () {
+                                                feedbackMVU.update({
+                                                    action: "showFeedback",
+                                                });
+                                            },
+                                            renderFeedback:
+                                                feedbackMVU.view.render,
+                                            updateFeedback: feedbackMVU.update,
+                                        });
+                                        return feedbackMVU;
+                                    });
+                            });
+                            update({
+                                action: "setPrompt",
+                                mathModelModel: mathModelMVU.model,
+                                mathModelView: mathModelMVU.view,
+                                mathModelUpdate: mathModelMVU.update,
+                            });
+                            return mathModelMVU;
+                        });
+                })
+                .then(function () {
+                    //update({ action: "init" });
+                    return { model, view, update };
+                });
+            /*
             return import(mathPromptModuleUrl)
                 .then(function (mathPromptModule) {
                     return mathPromptModule
@@ -289,6 +346,7 @@ function init(
                     return { model, view, update };
                 });
             //            });
+            */
         });
     });
 }

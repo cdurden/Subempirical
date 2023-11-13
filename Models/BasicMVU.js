@@ -1,10 +1,10 @@
 import { any, all, getFile, mapReplacer, loadScript } from "../lib/common.js";
 
-function View(update) {
+function View(model, update, paramsMap) {
     const self = Object.create(null);
     Object.setPrototypeOf(self, View.prototype);
     const rootElement = document.createElement("div");
-    function render(model) {
+    function render() {
         return new Promise(function (resolve) {
             rootElement.replaceChildren();
             const viewContainerElmt = document.createElement("div");
@@ -37,15 +37,6 @@ function View(update) {
         render,
     });
 }
-function makeUpdateFunction(model) {
-    return function update(message, view) {
-        if (message.action === "updateModel") {
-            model.data.response = message.response;
-        }
-        view.render(model);
-        return true;
-    };
-}
 
 function Model(paramsMap) {
     const self = Object.create(null);
@@ -75,18 +66,6 @@ function Model(paramsMap) {
                 exportModel,
             })
         );
-        /*
-        getFile(paramsMap.get("file")).then(function (response) {
-            data.omtex = response.data;
-            resolve(
-                Object.assign(self, {
-                    data,
-                    exportModel,
-                    update,
-                })
-            );
-        });
-        */
     });
 }
 function init(paramsMap) {
@@ -96,32 +75,29 @@ function init(paramsMap) {
         //"https://unpkg.com/mathlive?module",
         //"//unpkg.com/mathlive",
     ];
-    return Promise.all([
-        import("/node_modules/mathlive/dist/mathlive.js"),
-        ...scripts.map(function (script) {
-            return loadScript(script, true);
-        }),
-    ]).then(function (modules) {
+    const promptModuleUrl = new URL(
+        paramsMap.get("promptModel") ?? "./Models/HtmPrompt.js",
+        paramsMap.get("baseURL") ?? window.location.href
+    );
+    return import(promptModuleUrl).then(function (promptModule) {
         //const mathlive = modules[0];
-        MathLive.renderMathInDocument();
         return new Model(paramsMap).then(function (model) {
-            const update = makeUpdateFunction(model);
-            const view = new View(update);
-            return { model, view, update };
+            const view = new View(model, update);
+            function update(message) {
+                if (message.action === "") {
+                    return;
+                }
+            }
+            promptModule.init(paramsMap, update).then(function (promptMVU) {
+                promptMVU.update({ action: "render" });
+            });
+            return {
+                model,
+                view,
+                update,
+            };
         });
     });
 }
 
-function main(paramsMap, onUpdate) {
-    const container = document.getElementById("virginia-content");
-    init(paramsMap).then(function (mvu) {
-        container.appendChild(mvu.view.rootElement);
-        mvu.view.render(mvu.model).then(function (view) {
-            const exportModelLink = document.createElement("a");
-            exportModelLink.textContent = "Export";
-            exportModelLink.addEventListener("click", mvu.model.exportModel);
-            container.appendChild(exportModelLink);
-        });
-    });
-}
-export { init, main, Model };
+export { init };

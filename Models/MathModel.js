@@ -126,6 +126,8 @@ function init(paramsMap, updateParent) {
                 paramsMap.get("mathModel") ?? "./Models/MathExpression.js",
                 paramsMap.get("baseURL") ?? window.location.href
             );
+            var generatePrompt;
+            var generateFeedbackMessage;
             function update(message) {
                 if (message.action === "updateModel") {
                     model.data.response = message.response;
@@ -142,19 +144,9 @@ function init(paramsMap, updateParent) {
             }
             return import(mathModelModuleUrl)
                 .then(function (mathModelModule) {
-                    return mathModelModule
-                        .init(paramsMap, update)
-                        .then(function (mathModelMVU) {
-                            view.addPromptView(mathModelMVU.view);
-                            /*
-                            update({
-                                action: "setPrompt",
-                                prompt: mathModelMVU.model.prompt(),
-                            });
-                            */
-                            mathModelMVU.update({ action: "render" });
-                            //data.prompt = mathModelMVU.model.prompt();
-                        });
+                    generatePrompt = mathModelModule.generatePrompt;
+                    generateFeedbackMessage =
+                        mathModelModule.generateFeedbackMessage;
                 })
                 .then(function () {
                     return {

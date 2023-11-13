@@ -9,6 +9,7 @@
     "author": "Chris Durden <cld@aleksi.org>",
     "license": "MIT",
     "dependencies": {
+        "@cortex-js/compute-engine": "^0.19.1",
         "@svgdotjs/svg.js": "^3.1.2",
         "algebra-latex": "^2.0.3",
         "algebrite": "^1.4.0",
@@ -20,6 +21,7 @@
         "epubjs-es6": "^0.3.3",
         "express": "^4.17.1",
         "interactjs": "^1.10.17",
+        "jsonpath-lite": "^0.2.7",
         "kas": "^1.0.0",
         "marked": "^4.2.12",
         "mathlive": "^0.91.2",

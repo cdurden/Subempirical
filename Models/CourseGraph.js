@@ -1,4 +1,4 @@
-import { any, all, getFile, mapReplacer, loadScript } from "../lib/common.js";
+import { any, all, getFile, mapReplacer, loadScript, joinPath } from "../lib/common.js";
 import { init as epubInit } from "../lib/epub/js/epub-loader.js";
 
 function matchComment(str, index, delimiters) {
@@ -25,8 +25,7 @@ function closest(elmt, testFunction) {
         return closest(elmt.parent, testFunction);
     }
 }
-
-function dotViewer(model, rootElement) {
+function extractComments(model) {
     const comments = [];
     var startCommentPosition, endCommentPosition;
     const commentDelimiters = [
@@ -52,8 +51,12 @@ function dotViewer(model, rootElement) {
             model.data.slice(startCommentPosition, endCommentPosition)
         );
     }
-    console.log(comments);
-    d3.select(rootElement)
+    return comments;
+}
+
+function dotViewer(model, rootElement) {
+    return d3
+        .select(rootElement)
         .graphviz()
         .attributer(function (d) {
             if (d.tag === "#comment") {
@@ -65,7 +68,7 @@ function dotViewer(model, rootElement) {
                     return elmt.attributes.class === "node";
                 });
                 const url = new URL(
-                    `?taskId=${node.key}`,
+                    `?taskPath=${node.key}`,
                     window.location.href
                 );
                 const searchParams = new URLSearchParams(url.search);
@@ -85,6 +88,7 @@ function dotViewer(model, rootElement) {
             }
         })
         .renderDot(model.data);
+
     return Promise.resolve(rootElement);
 }
 
@@ -94,9 +98,22 @@ function View(model, update) {
     const rootElement = document.createElement("div");
     function render() {
         return new Promise(function (resolve) {
-            dotViewer(model, rootElement).then(function () {
-                resolve(self);
-            });
+            function eqSet(xs, ys) {
+                return xs.size === ys.size && [...xs].every((x) => ys.has(x));
+            }
+            function setNodes() {
+                const originalNodes = model.nodes;
+                const newNodes = [];
+                d3.selectAll(".node").each(function (node) {
+                    newNodes.push(node.key);
+                });
+                model.setNodes(newNodes);
+                if (!eqSet(new Set(originalNodes), new Set(newNodes))) {
+                    update({ action: "nodeChange" });
+                }
+                resolve();
+            }
+            dotViewer(model, rootElement).on("end", setNodes);
         });
     }
     return Object.assign(self, {
@@ -110,12 +127,12 @@ function Model(paramsMap) {
     Object.setPrototypeOf(self, Model.prototype);
     const graphUrl = paramsMap.get("graphUrl");
     const completedTasks = [];
-    paramsMap.get("submissions").forEach(function (submission) {
-        if (!completedTasks.includes(submission[2])) {
-            completedTasks.push(submission[2]);
-        }
-    });
     const extension = graphUrl.split(".").pop();
+    function setNodes(nodes) {
+        Object.assign(self, {
+            nodes,
+        });
+    }
     function exportModel() {
         const blob = new Blob([JSON.stringify(data, mapReplacer)], {
             type: "application/json",
@@ -140,6 +157,8 @@ function Model(paramsMap) {
             extension,
             exportModel,
             completedTasks,
+            nodes: [],
+            setNodes,
             //update,
         });
         return self;
@@ -164,6 +183,22 @@ function init(paramsMap, updateParent) {
                     model.polypadInstance = message.polypadInstance;
                 } else if (message.action === "change") {
                     model.data.polypadData = model.polypadInstance.serialize();
+                } else if (message.action === "loadSubmissions") {
+                    message.submissions.forEach(function (submission) {
+                        if (!model.completedTasks.includes(submission[3])) {
+                            model.completedTasks.push(submission[3]);
+                        }
+                    });
+                    view.render();
+                } else if (message.action === "nodeChange") {
+                    model.nodes.forEach(function (node) {
+                        updateParent({
+                            action: "getSubmissions",
+                            model,
+                            update,
+                            taskPath: joinPath(baseTaskPath, node),
+                        });
+                    });
                 }
                 return updateParent(message).then(function (message) {
                     return message;

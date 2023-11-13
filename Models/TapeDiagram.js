@@ -5,59 +5,102 @@ import {
     getFile,
     mapReplacer,
     loadScript,
+    loadResource,
     composeUpdateThenRender,
 } from "../lib/common.js";
+import * as MathField from "./lib/MathField.js";
 
 import { init as initModal } from "./Modal.js";
 
-function drawCircle(group, r, fill = "none") {
-    const drawing = group.circle(2 * r).attr({
-        stroke: "black",
-        "fill-opacity": 0,
-        fill,
-        cx: 0,
-        cy: 0,
-        cursor: "pointer",
-    });
-    return drawing;
+function gcf(n, m) {
+    const a = Math.max(n, m);
+    const b = Math.min(n, m);
+    if (a % b === 0) {
+        return b;
+    } else {
+        return gcf(a % b, b);
+    }
 }
-function drawDivider(group, r, theta = 0) {
-    const dx = r * Math.cos(theta);
-    const dy = -r * Math.sin(theta);
-    const drawing = group.line(0, 0, dx, dy).attr({ stroke: "black" });
-    return drawing;
-}
-function drawSector(group, r, theta0, theta1, n, fill) {
-    const dtheta = (theta1 - theta0) / n;
-    const x0 = r * Math.cos(theta0);
-    const y0 = -r * Math.sin(theta0);
-    const points = [
-        [0, 0],
-        [x0, y0],
-    ];
-    Array.from({ length: n }).forEach(function (_, i) {
-        const x1 = r * Math.cos(theta0 + (i + 1) * dtheta);
-        const y1 = -r * Math.sin(theta0 + (i + 1) * dtheta);
-        points.push([x1, y1]);
-        const dsector = group
-            .polygon(points)
-            .attr({ stroke: "black", "pointer-events": "none", fill });
-    });
-    return group;
-}
-function drawLabel(group, r, theta = 0, label) {
-    const cx = r * Math.cos(theta);
-    const cy = -r * Math.sin(theta);
-    const drawing = group
-        .text(label)
-        .attr({ x: cx, y: cy, "text-anchor": "middle" });
-    return drawing;
-}
-
 function View(model, update) {
     const self = Object.create(null);
     const rootElement = document.createElement("div");
     Object.setPrototypeOf(self, View.prototype);
+    const scale = 100;
+    var d = gcf(model.data.a, model.data.b);
+    function drawBox(group, x, y, l, w, fill = "none") {
+        const drawing = group.rect(l * scale, w * scale).attr({
+            stroke: "black",
+            "fill-opacity": 0,
+            fill,
+            x: x * scale,
+            y: y * scale,
+            cursor: "pointer",
+        });
+        return drawing;
+    }
+    function drawText(group, x, y, text) {
+        const drawing = group
+            .text(text)
+            .attr({ x: x * scale, y: y * scale, "text-anchor": "middle" });
+        return drawing;
+    }
+    function drawTape(group, x, y, l, w, d, fill = "none") {
+        var drawing;
+        for (let i = 0; i < l / d; i++) {
+            drawing = drawBox(group, x + i * d, y, d, w);
+            drawing = drawText(
+                group,
+                x + i * d + d / 2,
+                y + w / 2,
+                model.data.sectorLabel
+            );
+        }
+        return group;
+    }
+    function drawCircle(group, r, fill = "none") {
+        const drawing = group.circle(2 * r).attr({
+            stroke: "black",
+            "fill-opacity": 0,
+            fill,
+            cx: 0,
+            cy: 0,
+            cursor: "pointer",
+        });
+        return drawing;
+    }
+    function drawDivider(group, r, theta = 0) {
+        const dx = r * Math.cos(theta);
+        const dy = -r * Math.sin(theta);
+        const drawing = group.line(0, 0, dx, dy).attr({ stroke: "black" });
+        return drawing;
+    }
+    function drawSector(group, r, theta0, theta1, n, fill) {
+        const dtheta = (theta1 - theta0) / n;
+        const x0 = r * Math.cos(theta0);
+        const y0 = -r * Math.sin(theta0);
+        const points = [
+            [0, 0],
+            [x0, y0],
+        ];
+        Array.from({ length: n }).forEach(function (_, i) {
+            const x1 = r * Math.cos(theta0 + (i + 1) * dtheta);
+            const y1 = -r * Math.sin(theta0 + (i + 1) * dtheta);
+            points.push([x1, y1]);
+            const dsector = group
+                .polygon(points)
+                .attr({ stroke: "black", "pointer-events": "none", fill });
+        });
+        return group;
+    }
+    function drawLabel(group, r, theta = 0, label) {
+        const cx = r * Math.cos(theta);
+        const cy = -r * Math.sin(theta);
+        const drawing = group
+            .text(label)
+            .attr({ x: cx, y: cy, "text-anchor": "middle" });
+        return drawing;
+    }
+
     function render() {
         return new Promise(function (resolve) {
             rootElement.replaceChildren();
@@ -68,23 +111,42 @@ function View(model, update) {
             rootElement.appendChild(viewContainerElmt);
             const maxRating = model.data.maxRating;
             const nSectors = model.data.nSectors;
-            const radius = 250;
-            const width = (2 * radius * (nSectors + 2)) / nSectors;
+            //const width = (2 * radius * (nSectors + 2)) / nSectors;
+            const pixelWidth = 600;
+            const width = Math.max(model.data.a, model.data.b);
             const height = width;
             const boundingRect = {
-                x: -width / 2,
-                y: -height / 2,
-                height,
-                width,
+                x: 0,
+                y: 0,
+                height: height * scale,
+                width: width * scale,
             };
+            const ratioControl = new MathField.View(
+                { input: `\\frac{${model.data.a}}{${model.data.b}}` },
+                function (message) {
+                    const parsedValue = model.ce.box(
+                        JSON.parse(message.value.json)
+                    );
+                    if (
+                        model.setRatio(
+                            parsedValue?._value?.[0],
+                            parsedValue?._value?.[1]
+                        )
+                    ) {
+                        render();
+                    }
+                }
+            ).dom();
+            rootElement.append(ratioControl);
             const draw = SVG()
                 .addTo(rootElement)
-                .size(width, height)
+                .size(pixelWidth, pixelWidth)
                 .viewbox(boundingRect);
             const svg = draw.node;
             svg.style.height = "100%";
             const pt = svg.createSVGPoint();
 
+            /*
             // Draw dividing line segments
             Array.from({ length: nSectors }).forEach(function (_, sector) {
                 drawDivider(draw, radius, (2 * Math.PI * sector) / nSectors);
@@ -114,37 +176,28 @@ function View(model, update) {
                     "lightgrey"
                 );
             });
+            */
             // Draw circles
-            Array.from({ length: maxRating }).forEach(function (_, i) {
-                const rating = maxRating - i;
-                const circle = drawCircle(
-                    draw,
-                    (radius * rating) / maxRating,
-                    "white"
-                );
-                document.addEventListener("click", function (event) {
-                    if (event.target === circle.node) {
-                        pt.x = event.clientX;
-                        pt.y = event.clientY;
-
-                        // The cursor point, translated into svg coordinates
-                        const cursorpt = pt.matrixTransform(
-                            svg.getScreenCTM().inverse()
-                        );
-                        const theta =
-                            cursorpt.y < 0
-                                ? Math.atan(cursorpt.x / cursorpt.y) +
-                                  Math.PI / 2
-                                : Math.atan(cursorpt.x / cursorpt.y) +
-                                  (3 * Math.PI) / 2;
-                        const sector = Math.floor(
-                            (theta / (2 * Math.PI)) * nSectors
-                        );
-                        update({ action: "setRating", sector, rating }, model);
-                    }
-                });
+            const tape1 = drawTape(draw, 0, 1, model.data.a, 0.5, d, "white");
+            drawText(
+                draw,
+                model.data.a / 2,
+                0.5,
+                (Number(model.data.sectorLabel) * model.data.a) / d
+            );
+            const tape2 = drawTape(draw, 0, 2, model.data.b, 0.5, d, "white");
+            drawText(
+                draw,
+                model.data.b / 2,
+                3,
+                (Number(model.data.sectorLabel) * model.data.b) / d
+            );
+            tape1.node.addEventListener("click", function (event) {
+                update({ action: "editSectorLabel" });
+                //modal.render(update);
             });
             // Controls
+            /*
             const menuElmt = document.createElement("ul");
             menuElmt.className = "pure-menu-list pure-menu-horizontal";
             menuElmt.style.position = "fixed";
@@ -189,6 +242,7 @@ function View(model, update) {
             });
             menuElmt.append(submitButtonElmt);
             menuElmt.appendChild(settingsListElmt);
+            */
             resolve(self);
         });
     }
@@ -200,22 +254,21 @@ function View(model, update) {
 }
 function Model(paramsMap) {
     const self = Object.create(null);
+    const ce = new ComputeEngine.ComputeEngine();
+
     Object.setPrototypeOf(self, Model.prototype);
     const data = {
+        a: 4,
+        b: 5,
+        d: 1,
         nSectors: 8,
         maxRating: 10,
-        sectorLabels: [
-            "Finances",
-            "Work",
-            "Romance",
-            "Family",
-            "Community",
-            "Fun",
-            "Health",
-            "Home",
-        ],
+        sectorLabel: "",
         ratings: [0, 0, 0, 0, 0, 0, 0, 0],
     };
+    function setSectorLabel(label) {
+        data.sectorLabel = label;
+    }
     function exportModel() {
         const blob = new Blob([JSON.stringify(data, mapReplacer)], {
             type: "application/json",
@@ -233,125 +286,56 @@ function Model(paramsMap) {
         anchor.addEventListener("click", clickHandler, false);
         anchor.click();
     }
+    function setRatio(a, b) {
+        if (a && b) {
+            self.data.a = a;
+            self.data.b = b;
+            return true;
+        }
+        return false;
+    }
     return new Promise(function (resolve) {
-        getFile(paramsMap.get("file"), {
-            baseURL: paramsMap.get("baseURL"),
-        }).then(function (response) {
-            resolve(
-                Object.assign(self, {
-                    data: JSON.parse(response.data),
-                    exportModel,
-                })
-            );
-        });
+        resolve(
+            Object.assign(self, {
+                data,
+                exportModel,
+                setSectorLabel,
+                ce,
+                setRatio,
+            })
+        );
     });
 }
 
 function init(paramsMap, updateParent) {
     const scriptSourceMap = new Map([
-        ["localhost", ["/node_modules/@svgdotjs/svg.js/dist/svg.js"]],
+        ["localhost", ["../node_modules/@svgdotjs/svg.js/dist/svg.js"]],
         ["other", ["https://unpkg.com/@svgdotjs/svg.js@3.2.0/dist/svg.js"]],
     ]);
     const hostname = window.location.hostname;
     const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
-    return Promise.all(
-        scriptSourceMap.get(scriptSource).map(function (script) {
+    return Promise.all([
+        ...scriptSourceMap.get(scriptSource).map(function (script) {
             return loadScript(script);
-        })
-    ).then(function () {
+        }),
+        loadResource("Mathlive"),
+        loadResource("CortexJS-Compute-Engine"),
+    ]).then(function () {
         return new Model(paramsMap).then(function (model) {
             const view = new View(model, update);
             var modalUpdate;
             function update(message) {
-                if (message.action === "setNumberOfSectors") {
-                    const sectorLabels = [
-                        ...model.data.sectorLabels.slice(
-                            0,
-                            Math.min(model.data.nSectors, message.nSectors)
-                        ),
-                        ...Array.from({
-                            length: message.nSectors - model.data.nSectors,
-                        }).fill("Unnamed"),
-                    ];
-                    model.data.nSectors = message.nSectors;
-                    model.data.sectorLabels = sectorLabels;
+                if (message.action === "setSectorLabel") {
+                    model.setSectorLabel(message.label);
                     view.render();
-                } else if (message.action === "editNumberOfSectors") {
-                    modalUpdate({
-                        action: "updateModal",
-                        modalSpec: {
-                            header: "Set number of sectors",
-                            //nSectors,
-                            body: `<input type='text' id='nSectorsInput', value=${model.data.nSectors}>`,
-                            onSubmit: function () {
-                                const nSectors = Number(
-                                    document.getElementById("nSectorsInput")
-                                        .value
-                                );
-                                update(
-                                    {
-                                        action: "setNumberOfSectors",
-                                        nSectors,
-                                    },
-                                    model
-                                );
-                            },
-                        },
-                    });
-                    modalUpdate({ action: "show" });
-                    //view.render();
-                } else if (message.action === "setMaxRating") {
-                    const maxRating = message.maxRating;
-                    model.data.ratings = model.data.ratings.map(function (
-                        rating
-                    ) {
-                        if (rating > maxRating) {
-                            return maxRating;
-                        } else {
-                            return rating;
-                        }
-                    });
-                    model.data.maxRating = maxRating;
-                    view.render();
-                } else if (message.action === "editMaxRating") {
-                    modalUpdate({
-                        action: "updateModal",
-                        modalSpec: {
-                            header: "Set maximum rating",
-                            //maxRating,
-                            body: `<input type='text' id='maxRatingInput', value=${model.data.maxRating}>`,
-                            onSubmit: function () {
-                                const maxRating = Number(
-                                    document.getElementById("maxRatingInput")
-                                        .value
-                                );
-                                update(
-                                    {
-                                        action: "setMaxRating",
-                                        maxRating,
-                                    },
-                                    model
-                                );
-                            },
-                        },
-                    });
-                    modalUpdate({ action: "show" });
-                    //view.render();
-                } else if (message.action === "setRating") {
-                    model.data.ratings[message.sector] = message.rating;
-                    view.render();
-                } else if (message.action === "setSectorLabel") {
-                    model.data.sectorLabels[message.sector] = message.label;
-                    view.render();
+                    modalUpdate({ action: "hide" });
                 } else if (message.action === "editSectorLabel") {
                     modalUpdate({
                         action: "updateModal",
                         modalSpec: {
                             header: "Set label",
                             //sector,
-                            body: `<input type='text' id='sectorLabelInput', value=${
-                                model.data.sectorLabels[message.sector]
-                            }>`,
+                            body: `<input type='text' id='sectorLabelInput', value=${model.data.sectorLabel}>`,
                             onSubmit: function () {
                                 const label = document.getElementById(
                                     "sectorLabelInput"

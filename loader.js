@@ -31,7 +31,7 @@ function mulberry32(a) {
 }
 function init(paramsMap, updateParent) {
     const moduleUrl = paramsMap.get("moduleUrl") ?? "./Models/FileViewer.js";
-    const rand = mulberry32(cyrb128(paramsMap.get("seed"))[0]);
+    const rand = mulberry32(cyrb128(String(paramsMap.get("seed")))[0]);
     paramsMap.set("rand", rand);
     import(new URL(moduleUrl, paramsMap.get("baseURL"))).then(function (
         module
