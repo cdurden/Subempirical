@@ -274,7 +274,7 @@ function init(
 ) {
     return Promise.all(
         ["Algebrite"].map(function (prereq) {
-            return loadResource(prereq);
+            return loadResource(prereq, { baseURL: paramsMap.get("baseURL") });
         })
     ).then(function ([algebriteModule]) {
         return new Model(paramsMap).then(function (model) {
