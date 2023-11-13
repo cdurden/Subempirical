@@ -42,8 +42,12 @@ function Model(paramsMap) {
 }
 function init(paramsMap, updateParent) {
     return Promise.all([
-        loadResource("MathJax", {}, false),
-        loadResource("MathJax-config", {}, false),
+        loadResource("MathJax", { baseURL: paramsMap.get("baseURL") }, false),
+        loadResource(
+            "MathJax-config",
+            { baseURL: paramsMap.get("baseURL") },
+            false
+        ),
     ]).then(function ([mathJaxModule, mathJaxConfig]) {
         return new Model(paramsMap).then(function (model) {
             const view = new View(model, update);
