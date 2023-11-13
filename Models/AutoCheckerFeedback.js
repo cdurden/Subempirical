@@ -1,5 +1,4 @@
-import { all, loadScript } from "../lib/common.js";
-import { dom } from "../../../lib/common.js";
+import { all, loadScript, dom } from "../lib/common.js";
 
 function Model(paramsMap) {
     const self = Object.create(null);

@@ -109,7 +109,11 @@ function View(model, update, paramsMap) {
             );
         });
         return dom("div", {}, [
-            dom("div", { class: "serial-composite-nav" }, [selectTaskDom]),
+            dom(
+                "div",
+                { class: "serial-composite-nav" },
+                paramsMap.get("printMode") ? [] : [selectTaskDom]
+            ),
             /*
             dom("div", { class: "serial-composite-nav" }, [
                 ...model.tasks.map(function (task, taskIndex) {
@@ -132,10 +136,14 @@ function View(model, update, paramsMap) {
                 }),
             ]),
             */
-            dom("div", { class: "serial-composite-task" }, [
+            dom("div", {}, [
                 ...model.tasks.map(function (task, taskIndex) {
                     //showChildButtonElmt.textContent = label;
-                    const childViewContainer = dom("div", {}, []);
+                    const childViewContainer = dom(
+                        "div",
+                        { class: "serial-composite-task" },
+                        [dom("h2", {}, [model.labels[taskIndex]])]
+                    );
                     childViewContainers.set(taskIndex, childViewContainer);
                     return childViewContainer;
                 }),
@@ -216,7 +224,7 @@ function View(model, update, paramsMap) {
         childViews.set(taskPath, childView);
         childViewContainers.get(taskPath).appendChild(childView.rootElement);
         if (!paramsMap.has("printMode") && taskPath !== activeTaskPath) {
-            childView.rootElement.style.display = "none";
+            childViewContainers.get(taskPath).style.display = "none";
         }
         return childView;
     }
@@ -243,6 +251,17 @@ function View(model, update, paramsMap) {
     }
     function showChild(taskPath) {
         activeTaskPath = taskPath;
+        Array.from(childViewContainers.entries()).forEach(function ([
+            childTaskPath,
+            childViewContainer,
+        ]) {
+            if (childTaskPath === activeTaskPath) {
+                childViewContainer.style.display = "block";
+            } else if (!paramsMap.has("printMode")) {
+                childViewContainer.style.display = "none";
+            }
+        });
+        /*
         Array.from(childViews.entries()).forEach(function ([
             childTaskPath,
             childView,
@@ -253,6 +272,7 @@ function View(model, update, paramsMap) {
                 childView.rootElement.style.display = "none";
             }
         });
+        */
         updateButtonStates();
     }
 
@@ -271,12 +291,12 @@ function Model(paramsMap) {
     const completed = new Map();
     const tasks = [];
     const labels = [];
-    paramsMap.get("tasks").forEach(function (task) {
-        tasks.push(...repeat(task, paramsMap.get("reps") ?? 1));
+    paramsMap.get("tasks").forEach(function (task, taskIndex) {
+        tasks.push(...repeat(task, paramsMap.get("reps")?.[taskIndex] ?? 1));
     });
-    paramsMap.get("labels").forEach(function (label) {
+    paramsMap.get("labels").forEach(function (label, taskIndex) {
         labels.push(
-            ...repeat(label, paramsMap.get("reps") ?? 1).map(function (_, i) {
+            ...repeat(label, paramsMap.get("reps")?.[taskIndex] ?? 1).map(function (_, i) {
                 return `${label} ${i + 1}`;
             })
         );

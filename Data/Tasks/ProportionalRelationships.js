@@ -23,7 +23,7 @@ const taskParamsMap = new Map([
                 ],
             ],
             ["labels", ["Basic", "Intermediate", "Advanced"]],
-            ["reps", 3],
+            ["reps", [4, 3, 2]],
             ["directions", ""],
         ]),
     ],

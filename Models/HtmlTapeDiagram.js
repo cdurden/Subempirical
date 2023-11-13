@@ -32,7 +32,7 @@ function View(model, update) {
         const { a, b, d, sectorLabel, xlab, ylab } = model.data;
         loadStylesheet("./Models/lib/MathModels/styles/math-prompt.css");
         const ratioControl = new MathField.View(
-            { input: b === 1 ? a : `\\frac{${a}}{${b}}` },
+            { ...model, input: b === 1 ? a : `\\frac{${a}}{${b}}` },
             function (message) {
                 const parsedValue = model.ce.box(
                     JSON.parse(message.value.json)
@@ -59,6 +59,7 @@ function View(model, update) {
                 [
                     new MathField.View(
                         {
+                            ...model,
                             input: model.ce.box(JSON.parse(sectorLabel)).latex,
                         },
                         function (message) {
@@ -87,61 +88,67 @@ function View(model, update) {
             JSON.parse(model.data.sectorLabel),
             b,
         ]);
-        const diagram = dom("div", {}, [
+        const fitb = dom("div", {}, [
             dom("b", {}, ["Fill in the blank: "]),
             `The amount of ${ylab} is `,
             ratioControl,
             ` times the amount of ${xlab}.`,
-            dom("table", { class: "tape-diagram" }, [
-                dom("tr", {}, [
-                    dom("th", {}, []),
-                    dom(
+        ]);
+        const diagram = dom("table", { class: "tape-diagram" }, [
+            dom("tr", {}, [
+                dom("th", {}, []),
+                dom(
+                    "td",
+                    {
+                        colspan: a,
+                        style: "text-align: center;",
+                        class: "label",
+                    },
+                    [`$${aTotal.latex}$`]
+                ),
+            ]),
+            dom("tr", {}, [
+                dom("th", {}, [ylab]),
+                ...range(0, a / d).map(function (i) {
+                    return dom(
                         "td",
-                        {
-                            colspan: a,
-                            style: "text-align: center;",
-                            class: "label",
-                        },
-                        [`$${aTotal.latex}$`]
-                    ),
-                ]),
-                dom("tr", {}, [
-                    dom("th", {}, [ylab]),
-                    ...range(0, a / d).map(function (i) {
-                        return dom(
-                            "td",
-                            { class: i < a ? "sector" : "empty" },
-                            i < a ? [sector()] : []
-                        );
-                    }),
-                ]),
-                dom("tr", {}, [dom("td", { style: "height: 0.5em;" }, [])]),
-                dom("tr", {}, [
-                    dom("th", {}, [xlab]),
-                    ...range(0, b / d).map(function (i) {
-                        return dom(
-                            "td",
-                            { class: i < b ? "sector" : "empty" },
-                            i < b ? [sector()] : []
-                        );
-                    }),
-                ]),
-                dom("tr", {}, [
-                    dom("th", {}, []),
-                    dom(
+                        { class: i < a ? "sector" : "empty" },
+                        i < a ? [sector()] : []
+                    );
+                }),
+            ]),
+            dom("tr", {}, [dom("td", { style: "height: 0.5em;" }, [])]),
+            dom("tr", {}, [
+                dom("th", {}, [xlab]),
+                ...range(0, b / d).map(function (i) {
+                    return dom(
                         "td",
-                        {
-                            colspan: b,
-                            style: "text-align: center;",
-                            class: "label",
-                        },
-                        [`$${bTotal.latex}$`]
-                    ),
-                ]),
+                        { class: i < b ? "sector" : "empty" },
+                        i < b ? [sector()] : []
+                    );
+                }),
+            ]),
+            dom("tr", {}, [
+                dom("th", {}, []),
+                dom(
+                    "td",
+                    {
+                        colspan: b,
+                        style: "text-align: center;",
+                        class: "label",
+                    },
+                    [`$${bTotal.latex}$`]
+                ),
             ]),
         ]);
+        const container = dom("div", {}, [
+            fitb,
+            dom("br", {}, []),
+            `Create a tape diagram to represent the ratio of ${ylab} to ${xlab}.`,
+            ...(model.paramsMap.get("printMode") ? [] : [diagram]),
+        ]);
         rootElement.replaceChildren();
-        rootElement.append(diagram);
+        rootElement.append(container);
         update({ action: "typeset", element: rootElement });
         return rootElement;
     }
@@ -162,7 +169,7 @@ function Model(paramsMap) {
 
     Object.setPrototypeOf(self, Model.prototype);
     const data = {
-        a: 1,
+        a: "",
         b: 1,
         d: 1,
         xlab: paramsMap.get("xlab"),
@@ -214,6 +221,7 @@ function Model(paramsMap) {
                 setSectorLabel,
                 ce,
                 setRatio,
+                paramsMap,
             })
         );
     });

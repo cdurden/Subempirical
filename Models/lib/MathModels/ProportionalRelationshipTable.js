@@ -12,6 +12,7 @@ function inputDom(model, updateParent) {
     const tapeDiagramContainer = dom("div", { style: "float: left;" }, []);
     HtmlTapeDiagram.init(
         new Map([
+            ...Array.from(model.paramsMap.entries()),
             ["xlab", xlab],
             ["ylab", ylab],
         ]),
@@ -29,7 +30,10 @@ function inputDom(model, updateParent) {
                             xi
                                 ? xi
                                 : new MathField.View(
-                                      { input: model.input.get(`x_${i}`) },
+                                      {
+                                          ...model,
+                                          input: model.input.get(`x_${i}`),
+                                      },
                                       function (message) {
                                           model.input.set(
                                               `x_${i}`,
@@ -42,7 +46,10 @@ function inputDom(model, updateParent) {
                             yi
                                 ? yi
                                 : new MathField.View(
-                                      { input: model.input.get(`y_${i}`) },
+                                      {
+                                          ...model,
+                                          input: model.input.get(`y_${i}`),
+                                      },
                                       function (message) {
                                           model.input.set(
                                               `y_${i}`,

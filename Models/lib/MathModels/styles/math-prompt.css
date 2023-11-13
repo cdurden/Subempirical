@@ -1,3 +1,7 @@
+div.serial-composite-task {
+    page-break-inside: avoid;
+}
+
 div.math-prompt {
     font-size: 18pt;
     font-family: serif;
@@ -63,6 +67,7 @@ div.feedback-container {
 
 div.math-prompt math-field {
     min-width: 3em;
+    min-height: 1.5em;
 }
 
 math-field.no-toggle-button::part(virtual-keyboard-toggle) {
@@ -98,4 +103,8 @@ div.serial-composite-nav {
 }
 div.serial-composite-nav select {
     font-size: 18pt;
+}
+
+.invisible {
+    display: none;
 }

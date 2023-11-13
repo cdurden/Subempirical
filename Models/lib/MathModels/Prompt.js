@@ -27,7 +27,9 @@ function View(model, update) {
             inputDom,
             new FeedbackMessage.View(model, update).dom(self.children),
             //new MathField.View(model, update).dom(),
-            new SubmitButton.View(model, update).dom(),
+            ...(model.paramsMap.get("printMode")
+                ? []
+                : [new SubmitButton.View(model, update).dom()]),
         ]);
     }
     function setInputDom(newInputDom) {

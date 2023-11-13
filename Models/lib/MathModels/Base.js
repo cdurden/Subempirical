@@ -11,6 +11,7 @@ function Model(paramsMap) {
         }
         return Object.assign(self, {
             input,
+            paramsMap,
             setParams,
             params,
             checkerModule,
