@@ -20,7 +20,9 @@ function View(model, update) {
     var inputDom;
     function myDom() {
         //const { a, b, m, n } = model.params;
-        loadStylesheet("./Models/lib/MathModels/styles/math-prompt.css");
+        loadStylesheet("./Models/lib/MathModels/styles/math-prompt.css", {
+            baseURL: model.paramsMap.get("baseURL"),
+        });
         const h = dom;
         return h("div", { class: "math-prompt" }, [
             h("p", {}, model.prompt),
