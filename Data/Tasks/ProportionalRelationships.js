@@ -109,7 +109,7 @@ const taskParamsMap = new Map([
                         "xlab",
                         {
                             generator: "raw",
-                            options: { value: "flour" },
+                            options: { value: "mix" },
                         },
                     ],
                     [

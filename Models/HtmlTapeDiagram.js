@@ -89,7 +89,7 @@ function View(model, update) {
             b,
         ]);
         const fitb = dom("div", {}, [
-            dom("b", {}, ["Fill in the blank: "]),
+            dom("b", {}, ["Express the ratio of the two quantities: "]),
             `The amount of ${ylab} is `,
             ratioControl,
             ` times the amount of ${xlab}.`,
@@ -165,7 +165,8 @@ function View(model, update) {
 }
 function Model(paramsMap) {
     const self = Object.create(null);
-    const ce = new ComputeEngine.ComputeEngine();
+    const ComputeEngine = paramsMap.get("cortexJsComputeEngine");
+    const ce = new ComputeEngine();
 
     Object.setPrototypeOf(self, Model.prototype);
     const data = {
@@ -228,20 +229,19 @@ function Model(paramsMap) {
 }
 
 function init(paramsMap, updateParent) {
-    const scriptSourceMap = new Map([
-        ["localhost", ["../node_modules/@svgdotjs/svg.js/dist/svg.js"]],
-        ["other", ["https://unpkg.com/@svgdotjs/svg.js@3.2.0/dist/svg.js"]],
-    ]);
-    const hostname = window.location.hostname;
-    const scriptSource = scriptSourceMap.has(hostname) ? hostname : "other";
     return Promise.all([
-        ...scriptSourceMap.get(scriptSource).map(function (script) {
-            return loadScript(script);
-        }),
         loadResource("Mathlive"),
         loadResource("CortexJS-Compute-Engine"),
-    ]).then(function () {
-        return new Model(paramsMap).then(function (model) {
+    ]).then(function ([mathLiveModule, cortexJsComputeEngineModule]) {
+        return new Model(
+            new Map([
+                ...Array.from(paramsMap.entries()),
+                [
+                    "cortexJsComputeEngine",
+                    cortexJsComputeEngineModule.ComputeEngine,
+                ],
+            ])
+        ).then(function (model) {
             const view = new View(model, update);
             var modalUpdate;
             function update(message) {

@@ -1,3 +1,5 @@
+import { loadResource } from "../../../lib/common.js";
+
 function Model(paramsMap) {
     const self = {};
     const input = new Map();
@@ -6,15 +8,28 @@ function Model(paramsMap) {
         "../../CortexJSComputeEngineChecker.js";
     const params = paramsMap.get("params") ?? {};
     return import(checkerModuleUrl).then(function (checkerModule) {
-        function setParams(newParams) {
-            Object.assign(params, newParams);
-        }
-        return Object.assign(self, {
-            input,
-            paramsMap,
-            setParams,
-            params,
-            checkerModule,
+        return loadResource("CortexJS-Compute-Engine").then(function (
+            cortexJsComputeModule
+        ) {
+            checkerModule.init(
+                new Map([
+                    ...Array.from(paramsMap.entries()),
+                    [
+                        "cortexJsComputeEngine",
+                        cortexJsComputeModule.ComputeEngine,
+                    ],
+                ])
+            );
+            function setParams(newParams) {
+                Object.assign(params, newParams);
+            }
+            return Object.assign(self, {
+                input,
+                paramsMap,
+                setParams,
+                params,
+                checkerModule,
+            });
         });
     });
 }

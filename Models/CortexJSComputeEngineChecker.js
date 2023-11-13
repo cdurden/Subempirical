@@ -1,6 +1,6 @@
 import { all } from "../lib/common.js";
 
-const ce = new ComputeEngine.ComputeEngine();
+var ce = [];
 
 function evaluate(expr, params) {
     ce.pushScope();
@@ -32,4 +32,8 @@ function isZero(expr) {
 function evalsToZero(expr, params) {
     return isZero(evaluate(ce.parse(expr), params));
 }
-export { isEqual, isZero, evaluate, evalsToZero };
+function init(paramsMap) {
+    const ComputeEngine = paramsMap.get("cortexJsComputeEngine");
+    ce = new ComputeEngine();
+}
+export { isEqual, isZero, evaluate, evalsToZero, init };
