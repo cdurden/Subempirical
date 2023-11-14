@@ -23,7 +23,7 @@ const taskParamsMap = new Map([
                 ],
             ],
             ["labels", ["Basic", "Intermediate", "Advanced"]],
-            ["reps", [4, 3, 2]],
+            ["reps", [1, 3, 3]],
             ["directions", ""],
         ]),
     ],
@@ -290,6 +290,13 @@ const taskParamsMap = new Map([
                         },
                     ],
                     [
+                        "d",
+                        {
+                            generator: "dynamicRandInt",
+                            options: { min: 2, max: "b-1" },
+                        },
+                    ],
+                    [
                         "range",
                         {
                             generator: "dynamicRange",
@@ -307,6 +314,16 @@ const taskParamsMap = new Map([
                             options: {
                                 from: "range",
                                 n: 3,
+                            },
+                        },
+                    ],
+                    [
+                        "z",
+                        {
+                            generator: "map",
+                            options: {
+                                vector: "x",
+                                expr: "d*x_i",
                             },
                         },
                     ],

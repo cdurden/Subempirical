@@ -65,7 +65,9 @@ function View(model, update) {
                         function (message) {
                             model.setSectorLabel(message.value.json);
                             mathViewFields.forEach(function (mathViewField) {
-                                mathViewField.setValue(message.value.tex);
+                                mathViewField.setValue(message.value.tex, {
+                                    suppressChangeNotifications: true,
+                                });
                             });
                         }
                     ).dom(),

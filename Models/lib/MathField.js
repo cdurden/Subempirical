@@ -16,6 +16,9 @@ function View(model, update) {
                 },
             });
         });
+        mathField.setValue(model.input ?? "", {
+            suppressChangeNotifications: true,
+        });
         return mathField;
     }
     return { dom: myDom };
