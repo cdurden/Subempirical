@@ -2,13 +2,23 @@ import * as MathField from "../MathField.js";
 import * as HtmlTapeDiagram from "../../HtmlTapeDiagram.js";
 import { dom, zip, loadStylesheet } from "../../../lib/common.js";
 
-function prompt(model) {
-    const { a, b, x, y } = model.params;
-    return `Fill in the empty cells of the table to make equivalent ratios.`;
+function prompt(model, { abbreviate }) {
+    const { a, b, x, y, xlab, ylab, name, gender, recipe } = model.params;
+    const shortPrompt = `Fill in the empty cells of the table to make equivalent ratios of ${xlab} to ${ylab}.`;
+    if (abbreviate) {
+        return shortPrompt;
+    }
+    return `${name ?? "Kobe"} has a recipe for ${recipe ?? "cake"} which uses ${
+        x?.[0]
+    } cups of ${xlab} and ${
+        y?.[0]
+    } cups of ${ylab}. To make different size cakes, ${
+        gender !== "female" ? "he" : "she"
+    } uses different amounts of the ingredients but he keeps their ratio the same. ${shortPrompt}`;
 }
 
 function inputDom(model, updateParent) {
-    const { a, b, x, y, xlab, ylab } = model.params;
+    const { a, b, x, y, xlab, ylab, showTape } = model.params;
     const tapeDiagramContainer = dom("div", { style: "float: left;" }, []);
     HtmlTapeDiagram.init(
         new Map([
@@ -44,7 +54,7 @@ function inputDom(model, updateParent) {
                         ]),
                         dom("td", {}, [
                             yi
-                                ? yi
+                                ? `$${model.ce.parse(yi).latex}$`
                                 : new MathField.View(
                                       {
                                           ...model,
@@ -62,7 +72,11 @@ function inputDom(model, updateParent) {
                 }),
             ]),
         ]),
-        dom("div", { style: "padding: 15px;" }, [tapeDiagramContainer]),
+        dom(
+            "div",
+            { style: "padding: 15px;" },
+            showTape ? [tapeDiagramContainer] : []
+        ),
     ]);
 }
 
@@ -76,7 +90,8 @@ function check(model) {
             model.checkerModule["evalsToZero"]("a/b-y_i/x_i", {
                 x_i: x[i] ?? model.input.get(`x_${i}`),
                 y_i: y[i] ?? model.input.get(`y_${i}`),
-                ...model.params,
+                a,
+                b,
             });
     }
     return correct;

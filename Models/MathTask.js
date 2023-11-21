@@ -104,38 +104,65 @@ function init(paramsMap, updateParent) {
             .init(paramsMap, updateParent)
             .then(function (mathJaxWrapperMVU) {
                 return new Model(paramsMap).then(function (model) {
-                    const view = new View(model, update);
-                    function update(message) {
+                    function updateMathTask(message) {
                         if (message.action === "submit") {
                             //updateFeedback(promptMVU.model.generateFeedbackMessage());
                             //promptMVU.view.render();
                             feedbackMVUs.forEach(function (feedbackMVU) {
                                 feedbackMVU.update({
                                     action: "getFeedback",
+                                    submitMessage: message,
                                     data: message.data,
                                     model: message.model,
                                 });
                             });
-                            view.render();
-                            updateParent({ ...message, model });
-                        } else if (message.action === "renderTask") {
-                            view.render();
+                            //updateParent({ ...message, model });
+                            // submit to parent post feedback
                         }
                         if (message.action === "typeset") {
                             mathJaxWrapperMVU.update(message);
                         }
-                        updateParent(message);
                     }
-                    promptModule
-                        .init(paramsMap, update)
+                    return promptModule
+                        .init(paramsMap, updateMathTask)
                         .then(function (promptMVU) {
+                            const view = new View(model, update);
+                            function update(message) {
+                                if (message.action === "submit") {
+                                    /*
+                                    feedbackMVUs.forEach(function (
+                                        feedbackMVU
+                                    ) {
+                                        feedbackMVU.update({
+                                            action: "getFeedback",
+                                            data: message.data,
+                                            model: message.model,
+                                        });
+                                    });
+                                    view.render();
+                                    updateParent({ ...message, model });
+                                    */
+                                } else if (message.action === "postFeedback") {
+                                    updateParent({
+                                        ...message.submitMessage,
+                                        correct: message.correct,
+                                        model,
+                                    });
+                                    promptMVU.update(message);
+                                } else if (message.action === "setLabel") {
+                                    promptMVU.update(message);
+                                } else if (message.action === "renderTask") {
+                                    view.render();
+                                }
+                                updateParent(message);
+                            }
                             feedbackModule
                                 .init(paramsMap, update)
                                 .then(function (feedbackMVU) {
                                     feedbackMVUs.push(feedbackMVU);
                                     promptMVU.update({
-                                        action: "addChild",
-                                        child: feedbackMVU,
+                                        action: "addFeedback",
+                                        feedback: feedbackMVU,
                                     });
                                 });
                             paramGeneratorModule
@@ -148,12 +175,12 @@ function init(paramsMap, updateParent) {
                                 });
                             view.addPrompt(promptMVU.view);
                             promptMVU.update({ action: "render" });
+                            return {
+                                model,
+                                view,
+                                update,
+                            };
                         });
-                    return {
-                        model,
-                        view,
-                        update,
-                    };
                 });
             });
     });

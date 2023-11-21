@@ -8,10 +8,11 @@ function evaluate(expr, params) {
         var parsedValue;
         if (v instanceof Object && "json" in v) {
             parsedValue = ce.box(JSON.parse(v.json));
-        } else if (typeof v === "string") {
-            parsedValue = ce.parse(v) ?? Number(v);
+            //} else if (typeof v === "string") {
+            //    parsedValue = ce.parse(v) ?? Number(v);
         } else {
-            parsedValue = Number(v);
+            //            ce.declare(k, "RealNumbers");
+            parsedValue = ce.parse(`${v}`);
         }
         ce.assign(k, parsedValue);
     });

@@ -1,11 +1,12 @@
 import { dom } from "../../lib/common.js";
 
 function View(model, update) {
-    function myDom() {
+    function myDom(attrs) {
         const mathField = dom("math-field", {
             class: model.paramsMap.has("printMode") ? "no-toggle-button" : "",
-            value: model.input ?? "",
+            value: model?.input?.tex ?? "",
             "math-virtual-keyboard-policy": "sandboxed",
+            ...attrs,
         });
         mathField.addEventListener("input", function (e) {
             update({
@@ -16,7 +17,7 @@ function View(model, update) {
                 },
             });
         });
-        mathField.setValue(model.input ?? "", {
+        mathField.setValue(model?.input?.tex ?? "", {
             suppressChangeNotifications: true,
         });
         return mathField;

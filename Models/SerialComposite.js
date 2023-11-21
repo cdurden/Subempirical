@@ -87,8 +87,17 @@ function View(model, update, paramsMap) {
         })
         */
     function myDom() {
+        const headingDom = dom("div", {}, [
+            dom("div", { style: "font-size: 18pt; float: right" }, [
+                "Name: _________________________________",
+            ]),
+            dom("h2", {}, ["Proportional relationships quiz"]),
+        ]);
         const selectTaskDom = dom("select", {}, [
-            ...model.tasks.map(function (task, taskIndex) {
+            ...Array.from(model.tasks).map(function (
+                [taskPath, task],
+                taskIndex
+            ) {
                 const label = model.labels?.[taskIndex] ?? taskIndex;
                 const showChildButtonElmt = dom(
                     "option",
@@ -114,6 +123,7 @@ function View(model, update, paramsMap) {
                 { class: "serial-composite-nav" },
                 paramsMap.get("printMode") ? [] : [selectTaskDom]
             ),
+            headingDom,
             /*
             dom("div", { class: "serial-composite-nav" }, [
                 ...model.tasks.map(function (task, taskIndex) {
@@ -137,12 +147,14 @@ function View(model, update, paramsMap) {
             ]),
             */
             dom("div", {}, [
-                ...model.tasks.map(function (task, taskIndex) {
-                    //showChildButtonElmt.textContent = label;
+                ...Array.from(model.tasks).map(function (
+                    [taskPath, task],
+                    taskIndex
+                ) {
                     const childViewContainer = dom(
                         "div",
-                        { class: "serial-composite-task" },
-                        [dom("h2", {}, [model.labels[taskIndex]])]
+                        { class: "serial-composite-task" }
+                        //[dom("h2", {}, [model.labels[taskIndex]])]
                     );
                     childViewContainers.set(taskIndex, childViewContainer);
                     return childViewContainer;
@@ -217,7 +229,7 @@ function View(model, update, paramsMap) {
         });
         navElmt.appendChild(nextButtonElmt);
         */
-        updateButtonStates();
+        //updateButtonStates();
         return Promise.resolve(self);
     }
     function addChild(taskPath, childView) {
@@ -229,7 +241,7 @@ function View(model, update, paramsMap) {
         return childView;
     }
     function updateButtonStates() {
-        model.tasks.forEach(function (task, taskPath) {
+        Array.from(model.tasks).forEach(function ([taskPath, task]) {
             const showChildButtonElmt = showChildButtons.get(taskPath);
             if (taskPath === activeTaskPath) {
                 showChildButtonElmt.className =
@@ -273,7 +285,7 @@ function View(model, update, paramsMap) {
             }
         });
         */
-        updateButtonStates();
+        //updateButtonStates();
     }
 
     return Object.assign(self, {
@@ -296,9 +308,11 @@ function Model(paramsMap) {
     });
     paramsMap.get("labels").forEach(function (label, taskIndex) {
         labels.push(
-            ...repeat(label, paramsMap.get("reps")?.[taskIndex] ?? 1).map(function (_, i) {
-                return `${label} ${i + 1}`;
-            })
+            ...repeat(label, paramsMap.get("reps")?.[taskIndex] ?? 1).map(
+                function (_, i) {
+                    return `${label} ${i + 1}`;
+                }
+            )
         );
     });
     const data = {
@@ -390,12 +404,10 @@ function init(paramsMap, updateParent) {
                 } else if (message.action === "addChild") {
                     model.addChild(message.taskPath, message.childModel);
                     view.addChild(message.taskPath, message.childView);
-                    if (paramsMap.has("printMode")) {
-                        message.childUpdate({
-                            action: "setLabel",
-                            label: message.taskPath,
-                        });
-                    }
+                    message.childUpdate({
+                        action: "setLabel",
+                        label: message.taskPath + 1,
+                    });
                     /*
                     childUpdateQueues
                         .get(message.childModel)
@@ -408,11 +420,13 @@ function init(paramsMap, updateParent) {
                 } else if (message.action === "setCompleted") {
                     model.setCompleted(message.taskPath, message.value);
                     view.render();
+                    /*
                 } else if (message.action === "submit") {
                     updateParent({
                         ...message,
                         taskPath: model.childModels.get(message.model),
                     });
+                    */
                 } else if (message.action === "loadTask") {
                     const childParamsMap = message.paramsMap;
                     const moduleUrl = childParamsMap.get("moduleUrl");

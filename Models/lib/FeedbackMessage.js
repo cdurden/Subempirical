@@ -1,14 +1,24 @@
 import { dom } from "../../lib/common.js";
 
 function View(model, update) {
-    function myDom(children) {
-        return dom("div", { class: "feedback-container" }, [
-            ...children.map(function (child) {
-                return child.view.dom();
-            }),
-        ]);
+    var visible = true;
+    //const children = [];
+    const rootElement = document.createElement("div");
+    var visible = false;
+    function myDom(child) {
+        return dom(
+            "div",
+            {
+                class: "tooltip",
+                style: `display: ${visible ? "block" : "none"}`,
+            },
+            [dom("div", {}, `${model.correct ? "Correct" : "Incorrect"}`)]
+        );
     }
-    return { dom: myDom };
+    function setVisible(value) {
+        visible = value;
+    }
+    return { dom: myDom, setVisible };
 }
 
 export { View };

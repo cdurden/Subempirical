@@ -11,6 +11,7 @@ function Model(paramsMap) {
         return loadResource("CortexJS-Compute-Engine").then(function (
             cortexJsComputeModule
         ) {
+            const ce = new cortexJsComputeModule.ComputeEngine();
             checkerModule.init(
                 new Map([
                     ...Array.from(paramsMap.entries()),
@@ -24,6 +25,7 @@ function Model(paramsMap) {
                 Object.assign(params, newParams);
             }
             return Object.assign(self, {
+                ce,
                 input,
                 paramsMap,
                 setParams,
@@ -36,7 +38,7 @@ function Model(paramsMap) {
 
 function View(model, update) {
     const self = {};
-    const children = [];
+    const children = new Map();
     const rootElement = document.createElement("div");
     function render() {
         //preact.render(myDom(preact), rootElement);
@@ -44,8 +46,8 @@ function View(model, update) {
         rootElement.replaceChildren();
         rootElement.appendChild(self.dom());
     }
-    function addChild(child) {
-        children.push(child);
+    function addChild(childId, child) {
+        children.set(childId, child);
     }
     return Object.assign(self, { rootElement, render, addChild, children });
 }

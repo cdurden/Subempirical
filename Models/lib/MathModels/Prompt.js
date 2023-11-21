@@ -11,7 +11,10 @@ function Model(paramsMap) {
         function setChecker(check) {
             model.check = check;
         }
-        return Object.assign(model, { setPrompt, setChecker });
+        function setLabel(label) {
+            model.label = label;
+        }
+        return Object.assign(model, { setPrompt, setChecker, setLabel });
     });
 }
 
@@ -27,11 +30,13 @@ function View(model, update) {
         return h("div", { class: "math-prompt" }, [
             h("p", {}, model.prompt),
             inputDom,
-            new FeedbackMessage.View(model, update).dom(self.children),
+            //new FeedbackMessage.View(model, update).dom(self.children),
             //new MathField.View(model, update).dom(),
+            /*
             ...(model.paramsMap.get("printMode")
                 ? []
                 : [new SubmitButton.View(model, update).dom()]),
+                */
         ]);
     }
     function setInputDom(newInputDom) {
@@ -49,15 +54,27 @@ function init(paramsMap, updateParent) {
         return new Model(paramsMap).then(function (model) {
             model.setChecker(promptModel.check);
             const view = new View(model, update);
-            view.setInputDom(promptModel.inputDom(model, update));
+            view.setInputDom(
+                promptModel.inputDom(model, update, view.children)
+            );
             function update(message) {
                 if (message.action === "addChild") {
-                    view.addChild(message.child);
+                    view.addChild(message.childId, message.child);
+                } else if (message.action === "setLabel") {
+                    model.setLabel(message.label);
+                } else if (message.action === "postFeedback") {
+                    view.setInputDom(
+                        promptModel.inputDom(model, update, view.children)
+                    );
+                    view.render();
                 } else if (message.action === "setParams") {
                     model.setParams(message.params);
-                    model.setPrompt(promptModel.prompt(model));
-                    view.setInputDom(promptModel.inputDom(model, update));
+                    model.setPrompt(promptModel.prompt(model, {}));
+                    view.setInputDom(
+                        promptModel.inputDom(model, update, view.children)
+                    );
                     view.render();
+                    update({ action: "typeset", element: view.rootElement });
                     //} else if (message.action === "setPrompt") {
                     //    model.setPrompt(message.prompt);
                 } else {
