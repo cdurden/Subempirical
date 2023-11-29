@@ -464,13 +464,17 @@ function init(paramsMap, updateParent) {
                 if (model.childModels.has(message.model)) {
                     updateParent({
                         ...message,
-                        taskPath: model.childModels.get(message.model),
+                        taskPath: `${paramsMap.get(
+                            "taskPath"
+                        )}.${model.childModels.get(message.model)}`,
                     });
                 } else {
                     childUpdateQueues.get(message.model).push(function () {
                         updateParent({
                             ...message,
-                            taskPath: model.childModels.get(message.model),
+                            taskPath: `${paramsMap.get(
+                                "taskPath"
+                            )}.${model.childModels.get(message.model)}`,
                         });
                     });
                 }

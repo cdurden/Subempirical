@@ -206,8 +206,9 @@ function init(paramsMap, updateParent) {
                     model.updatePrompt();
                     updatePrompt({ action: "render" });
                 });
+            } else if (message.action === "typeset") {
+                updatePrompt(message);
             }
-            updatePrompt(message);
         }
         return { model, view, update };
     });
