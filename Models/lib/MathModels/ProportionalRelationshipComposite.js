@@ -83,7 +83,8 @@ function View(model, update) {
         areaModelContainer.append(areaModelMVU.view.dom());
     });
     */
-    function renderFeedback() {
+    function renderFeedback(correct) {
+        model.correct = correct;
         feedbackView.setVisible(true);
         feedbackDom.replaceChildren(feedbackView.dom());
     }
@@ -193,7 +194,7 @@ function init(paramsMap, updateParent) {
                 });
                 updateParent(message);
             } else if (message.action === "postFeedback") {
-                view.renderFeedback();
+                view.renderFeedback(message.correct);
             } else if (message.action === "setInput") {
                 updateScatterCharts.forEach(function (updateScatterChart) {
                     updateScatterChart({
@@ -207,6 +208,8 @@ function init(paramsMap, updateParent) {
                     updatePrompt({ action: "render" });
                 });
             } else if (message.action === "typeset") {
+                updatePrompt(message);
+            } else if (message.action === "renderTask") {
                 updatePrompt(message);
             }
         }
