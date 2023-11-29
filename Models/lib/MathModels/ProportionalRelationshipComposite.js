@@ -101,7 +101,7 @@ function View(model, update) {
                         ProportionalRelationshipTable.inputDom(model, update),
                     ]),
                     dom("div", {}, [
-                        dom("div", { style: "margin-bottom: 2em;" }, [
+                        dom("div", {}, [
                             "b. ",
                             WriteEquationOfProportionalRelationship.prompt(
                                 model,

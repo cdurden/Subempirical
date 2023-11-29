@@ -4,7 +4,7 @@ import { dom, zip, loadStylesheet } from "../../../lib/common.js";
 
 function prompt(model, { abbreviate }) {
     const { a, b, x, y, xlab, ylab, name, gender, recipe } = model.params;
-    const shortPrompt = `Fill in the empty cells of the table to make equivalent ratios of ${xlab} to ${ylab}.`;
+    const shortPrompt = `Fill in the empty cells of the table to represent the proportional relationship between ${xlab} to ${ylab}.`;
     if (abbreviate) {
         return shortPrompt;
     }
