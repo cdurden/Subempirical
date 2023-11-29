@@ -32,7 +32,7 @@ const taskParamsMap = new Map([
         new Map([
             ["moduleUrl", "./Models/HtmlTapeDiagram.js"],
             [
-                "promptModel",
+                "promptModule",
                 "./Models/lib/MathModels/ProportionalRelationshipTable.js",
             ],
             [
@@ -99,7 +99,7 @@ const taskParamsMap = new Map([
         new Map([
             ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModel",
+                "promptModule",
                 "./Models/lib/MathModels/ProportionalRelationshipTable.js",
             ],
             [
@@ -177,7 +177,7 @@ const taskParamsMap = new Map([
         new Map([
             ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModel",
+                "promptModule",
                 "./Models/lib/MathModels/ProportionalRelationshipTable.js",
             ],
             [
@@ -255,7 +255,7 @@ const taskParamsMap = new Map([
         new Map([
             ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModel",
+                "promptModule",
                 "./Models/lib/MathModels/ProportionalRelationshipTable.js",
             ],
             [
@@ -350,7 +350,7 @@ const taskParamsMap = new Map([
         new Map([
             ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModel",
+                "promptModule",
                 "./Models/lib/MathModels/DescribeProportionalRelationship.js",
             ],
             [
@@ -445,17 +445,24 @@ const taskParamsMap = new Map([
         new Map([
             ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModel",
+                "promptModule",
                 "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
             ],
             [
                 "promptParamsSpec",
                 new Map([
                     [
-                        "name",
+                        "person",
                         {
                             generator: "raw",
                             options: { value: "Emma" },
+                        },
+                    ],
+                    [
+                        "gender",
+                        {
+                            generator: "raw",
+                            options: { value: "f" },
                         },
                     ],
                     [
@@ -551,14 +558,14 @@ const taskParamsMap = new Map([
         new Map([
             ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModel",
+                "promptModule",
                 "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
             ],
             [
                 "promptParamsSpec",
                 new Map([
                     [
-                        "name",
+                        "person",
                         {
                             generator: "raw",
                             options: { value: "Sean" },
@@ -643,14 +650,14 @@ const taskParamsMap = new Map([
         new Map([
             ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModel",
+                "promptModule",
                 "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
             ],
             [
                 "promptParamsSpec",
                 new Map([
                     [
-                        "name",
+                        "person",
                         {
                             generator: "raw",
                             options: { value: "Aiden" },
@@ -735,14 +742,14 @@ const taskParamsMap = new Map([
         new Map([
             ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModel",
+                "promptModule",
                 "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
             ],
             [
                 "promptParamsSpec",
                 new Map([
                     [
-                        "name",
+                        "person",
                         {
                             generator: "raw",
                             options: { value: "Michael" },
@@ -827,14 +834,14 @@ const taskParamsMap = new Map([
         new Map([
             ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModel",
+                "promptModule",
                 "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
             ],
             [
                 "promptParamsSpec",
                 new Map([
                     [
-                        "name",
+                        "person",
                         {
                             generator: "raw",
                             options: { value: "Kobe" },
@@ -942,7 +949,7 @@ const taskParamsMap = new Map([
         "DoubleNumberLineBasic",
         new Map([
             ["moduleUrl", "./Models/MathTask.js"],
-            ["promptModel", "./Models/lib/MathModels/DoubleNumberLine.js"],
+            ["promptModule", "./Models/lib/MathModels/DoubleNumberLine.js"],
             [
                 "promptParamsSpec",
                 new Map([
@@ -1080,6 +1087,33 @@ const taskParamsMap = new Map([
             ["labels", ["1", "2", "3", "4", "5"]],
             ["reps", [1, 1, 1]],
             ["directions", ""],
+        ]),
+    ],
+    [
+        "ProportionalRelationshipPractice",
+        new Map([
+            ["moduleUrl", "./Models/SerialComposite.js"],
+            [
+                "tasks",
+                [
+                    //"ProportionalRelationshipCompositeBasicA",
+                    "ProportionalRelationshipCompositeBasicB",
+                    "ProportionalRelationshipCompositeIntermediateA",
+                    //"ProportionalRelationshipCompositeIntermediateB",
+                    "ProportionalRelationshipCompositeAdvanced",
+                    /*
+                    "DescribeProportionalRelationshipBasic",
+                    "DoubleNumberLineBasic",
+                    "ProportionalRelationshipTableBasic",
+                    "ProportionalRelationshipTableIntermediate",
+                    "ProportionalRelationshipTableAdvanced",
+                    */
+                ],
+            ],
+            ["labels", ["Basic", "Intermediate", "Advanced"]],
+            ["reps", [5, 5, 5]],
+            ["directions", ""],
+            ["title", "Proportional relationships practice"],
         ]),
     ],
 ]);

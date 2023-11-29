@@ -98,38 +98,45 @@ function View(model, update) {
                 return [
                     ...acc,
                     dom("tr", {}, [
+                        dom("td", { colspan: 2 }),
                         dom(
                             "th",
                             {
-                                //colspan: a,
+                                colspan: (N / d / (D / lcd)) * divs,
+                                style: "text-align: center;",
+                                class: "label",
+                            },
+                            [(N / d / (D / lcd)) * divs]
+                        ),
+                    ]),
+                    dom("tr", {}, [
+                        dom(
+                            "th",
+                            {
+                                //rowspan: d / lcd / divs,
                                 style: "text-align: center;",
                                 class: "label",
                             },
                             [mathFields.get(name).dom()]
                         ),
+                        dom("td", {}, [
+                            `$${
+                                model.ce.box([
+                                    "Divide",
+                                    ["Divide", d, lcd],
+                                    divs,
+                                ]).latex
+                            }$`,
+                        ]),
                         ...range(0, (N / d / (D / lcd)) * divs).map(function (
                             i
                         ) {
-                            return dom(
-                                "td",
-                                {
-                                    class:
-                                        i < (N / d / (D / lcd)) * divs
-                                            ? "sector"
-                                            : "empty",
-                                },
-                                i < (N / d / (D / lcd)) * divs
-                                    ? [
-                                          `$${
-                                              model.ce.box([
-                                                  "Divide",
-                                                  ["Divide", d, lcd],
-                                                  divs,
-                                              ]).latex
-                                          }$`,
-                                      ]
-                                    : []
-                            );
+                            return dom("td", {
+                                class:
+                                    i < (N / d / (D / lcd)) * divs
+                                        ? "sector"
+                                        : "empty",
+                            });
                         }),
                     ]),
                 ];

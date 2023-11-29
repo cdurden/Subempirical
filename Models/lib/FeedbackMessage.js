@@ -1,4 +1,7 @@
 import { dom } from "../../lib/common.js";
+function Model(paramsMap) {
+    return { correct: false };
+}
 
 function View(model, update) {
     var visible = true;
@@ -12,7 +15,12 @@ function View(model, update) {
                 class: "tooltip",
                 style: `display: ${visible ? "block" : "none"}`,
             },
-            [dom("div", {}, `${model.correct ? "Correct" : "Incorrect"}`)]
+            [
+                ...model.history.map(function (correct) {
+                    return correct ? "✓" : "X";
+                }),
+                dom("div", {}, `${model.correct ? "Correct" : "Incorrect"}`),
+            ]
         );
     }
     function setVisible(value) {
@@ -21,4 +29,13 @@ function View(model, update) {
     return { dom: myDom, setVisible };
 }
 
-export { View };
+function init(paramsMap, updateParent) {
+    const model = new Model(paramsMap);
+    const view = new View(model, update);
+    function update(message) {
+        updateParent(message);
+    }
+    return Promise.resolve({ model, view, update });
+}
+
+export { init, View };

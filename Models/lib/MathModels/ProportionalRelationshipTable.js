@@ -20,6 +20,7 @@ function prompt(model, { abbreviate }) {
 function inputDom(model, updateParent) {
     const { a, b, x, y, xlab, ylab, showTape } = model.params;
     const tapeDiagramContainer = dom("div", { style: "float: left;" }, []);
+    /*
     HtmlTapeDiagram.init(
         new Map([
             ...Array.from(model.paramsMap.entries()),
@@ -30,6 +31,7 @@ function inputDom(model, updateParent) {
     ).then(function (tapeDiagramMVU) {
         tapeDiagramContainer.append(tapeDiagramMVU.view.dom());
     });
+    */
     return dom("div", { style: "display: flex;" }, [
         dom("div", { style: "float: left;" }, [
             dom("table", { class: "table-of-values" }, [
@@ -49,6 +51,7 @@ function inputDom(model, updateParent) {
                                               `x_${i}`,
                                               message.value
                                           );
+                                          updateParent(message);
                                       }
                                   ).dom(),
                         ]),
@@ -65,6 +68,7 @@ function inputDom(model, updateParent) {
                                               `y_${i}`,
                                               message.value
                                           );
+                                          updateParent(message);
                                       }
                                   ).dom(),
                         ]),

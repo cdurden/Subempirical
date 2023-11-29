@@ -5,6 +5,7 @@ import * as Base from "./Base.js";
 
 function Model(paramsMap) {
     return new Base.Model(paramsMap).then(function (model) {
+        model.history = [];
         function setPrompt(prompt) {
             model.prompt = prompt;
         }
@@ -21,69 +22,53 @@ function Model(paramsMap) {
 function View(model, update) {
     const self = new Base.View(model, update);
     var inputDom;
-    function myDom() {
+    function myDom(children) {
         //const { a, b, m, n } = model.params;
         loadStylesheet("./Models/lib/MathModels/styles/math-prompt.css", {
             baseURL: model.paramsMap.get("baseURL"),
         });
-        const h = dom;
-        return h("div", { class: "math-prompt" }, [
-            h("p", {}, model.prompt),
-            inputDom,
-            //new FeedbackMessage.View(model, update).dom(self.children),
-            //new MathField.View(model, update).dom(),
-            /*
-            ...(model.paramsMap.get("printMode")
-                ? []
-                : [new SubmitButton.View(model, update).dom()]),
-                */
-        ]);
+        return dom("div", { class: "math-prompt" }, children);
     }
-    function setInputDom(newInputDom) {
-        inputDom = newInputDom;
-    }
-    return Object.assign(self, { dom: myDom, setInputDom });
+    return Object.assign(self, { wrap: myDom });
 }
 
 function init(paramsMap, updateParent) {
-    const promptModelModuleUrl = new URL(
-        paramsMap.get("promptModel"),
-        paramsMap.get("baseURL") ?? window.location.href
-    );
-    return import(promptModelModuleUrl).then(function (promptModel) {
-        return new Model(paramsMap).then(function (model) {
-            model.setChecker(promptModel.check);
-            const view = new View(model, update);
-            view.setInputDom(
-                promptModel.inputDom(model, update, view.children)
-            );
-            function update(message) {
-                if (message.action === "addChild") {
-                    view.addChild(message.childId, message.child);
-                } else if (message.action === "setLabel") {
-                    model.setLabel(message.label);
-                } else if (message.action === "postFeedback") {
-                    view.setInputDom(
-                        promptModel.inputDom(model, update, view.children)
-                    );
-                    view.render();
-                } else if (message.action === "setParams") {
-                    model.setParams(message.params);
-                    model.setPrompt(promptModel.prompt(model, {}));
-                    view.setInputDom(
-                        promptModel.inputDom(model, update, view.children)
-                    );
-                    view.render();
-                    update({ action: "typeset", element: view.rootElement });
-                    //} else if (message.action === "setPrompt") {
-                    //    model.setPrompt(message.prompt);
-                } else {
-                    updateParent(message);
-                }
-            }
-            return { model, view, update };
-        });
+    return new Model(paramsMap).then(function (model) {
+        const view = new View(model, update);
+        const update = updateFactory(model, view, updateParent);
+        //view.setInputDom(model.inputDom(model, update, view.children));
+        return { model, view, update };
     });
 }
 
-export { Model, View, init };
+function updateFactory(model, view, updateParent) {
+    function update(message) {
+        if (message.action === "addChild") {
+            view.addChild(message.childId, message.child);
+        } else if (message.action === "setLabel") {
+            model.setLabel(message.label);
+        } else if (message.action === "postFeedback") {
+            model.correct = message.correct;
+            /*view.setInputDom(
+                        promptModel.inputDom(model, update, view.children)
+                    );
+                    view.render();
+                    */
+        } else if (message.action === "setParams") {
+            model.setParams(message.params);
+            //model.setPrompt(model.prompt({}));
+            //view.setInputDom(view.inputDom(update, view.children));
+            //view.render();
+            update({ action: "typeset", element: view.rootElement });
+            //} else if (message.action === "setPrompt") {
+            //    model.setPrompt(message.prompt);
+            return Promise.resolve();
+        } else if (message.action === "render") {
+            view.render();
+        } else {
+            updateParent(message);
+        }
+    }
+    return update;
+}
+export { Model, View, init, updateFactory };

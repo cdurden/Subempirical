@@ -7,6 +7,7 @@ function Model(paramsMap) {
 }
 function init(paramsMap, updateParent) {
     const model = Model(paramsMap);
+    model.history = [];
     const view = new FeedbackMessage.View(model, update);
     function update(message) {
         if (message.action === "addChild") {
@@ -14,6 +15,7 @@ function init(paramsMap, updateParent) {
         }
         if (message.action === "getFeedback") {
             model.correct = message.model.check(message.model, message.data);
+            model.history.push(model.correct);
             view.setVisible(true);
             updateParent({ action: "renderTask" });
             updateParent({

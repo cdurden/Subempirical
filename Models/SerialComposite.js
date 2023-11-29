@@ -91,7 +91,7 @@ function View(model, update, paramsMap) {
             dom("div", { style: "font-size: 18pt; float: right" }, [
                 "Name: _________________________________",
             ]),
-            dom("h2", {}, ["Proportional relationships quiz"]),
+            dom("h2", {}, [paramsMap.get("title")]),
         ]);
         const selectTaskDom = dom("select", {}, [
             ...Array.from(model.tasks).map(function (

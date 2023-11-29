@@ -9,6 +9,7 @@ function View(model, update) {
             ...attrs,
         });
         mathField.addEventListener("input", function (e) {
+            //model.input.tex = e.target.getValue();
             update({
                 action: "setInput",
                 value: {

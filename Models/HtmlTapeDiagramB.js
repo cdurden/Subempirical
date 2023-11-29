@@ -1,3 +1,4 @@
+
 import {
     any,
     range,
@@ -28,24 +29,29 @@ function View(model, update) {
     const rootElement = document.createElement("div");
     Object.setPrototypeOf(self, View.prototype);
     //var d = gcf(a, b);
-    const mathFields = new Map(
-        Array.from(model.quantities.entries()).map(function ([name, value]) {
-            return [
-                name,
-                new MathField.View(
-                    { ...model, input: value },
-                    function (message) {
-                        model.setQuantity(name, message.value);
-                        render();
-                    }
-                ),
-            ];
-        })
-    );
     function myDom() {
-        const { a, b, d, divs, lcd, sectorLabel, xlab, ylab } = model.data;
+        const { a, b, d, sectorLabel, xlab, ylab } = model.data;
         loadStylesheet("./Models/lib/MathModels/styles/math-prompt.css");
+        const ratioControl = new MathField.View(
+            { ...model, input: b === 1 ? a : `\\frac{${a}}{${b}}` },
+            function (message) {
+                const parsedValue = model.ce.box(
+                    JSON.parse(message.value.json)
+                );
+                if (
+                    model.setRatio(parsedValue?._value) &&
+                    (parsedValue?._value instanceof Array ||
+                        message.value.tex.match("frac") === null)
+                ) {
+                    render();
+                    //update({ message: "render" });
+                }
+            }
+        ).dom();
+        ratioControl.setAttribute("default-mode", "inline-math");
+        ratioControl.setAttribute("style", 'display: "inline-block"');
         //rootElement.append(ratioControl);
+        const mathViewFields = [];
         // Draw circles
         const sector = function () {
             return dom(
@@ -85,74 +91,64 @@ function View(model, update) {
             JSON.parse(model.data.sectorLabel),
             b,
         ]);
-        const diagram = dom("table", { class: "tape-diagram" }, [
-            ...Array.from(model.quantities.entries()).reduce(function (
-                acc,
-                [name, value]
-            ) {
-                const N = model.ce.box(["Numerator", JSON.parse(value.json)])
-                    ._value;
-                const D = model.ce.box(["Denominator", JSON.parse(value.json)])
-                    ._value;
-                const a = N / D;
-                return [
-                    ...acc,
-                    dom("tr", {}, [
-                        dom(
-                            "th",
-                            {
-                                //colspan: a,
-                                style: "text-align: center;",
-                                class: "label",
-                            },
-                            [mathFields.get(name).dom()]
-                        ),
-                        ...range(0, (N / d / (D / lcd)) * divs).map(function (
-                            i
-                        ) {
-                            return dom(
-                                "td",
-                                {
-                                    class:
-                                        i < (N / d / (D / lcd)) * divs
-                                            ? "sector"
-                                            : "empty",
-                                },
-                                i < (N / d / (D / lcd)) * divs
-                                    ? [
-                                          `$${
-                                              model.ce.box([
-                                                  "Divide",
-                                                  ["Divide", d, lcd],
-                                                  divs,
-                                              ]).latex
-                                          }$`,
-                                      ]
-                                    : []
-                            );
-                        }),
-                    ]),
-                ];
-            },
-            []),
+        const fitb = dom("div", {}, [
+            dom("b", {}, ["Express the ratio of the two quantities: "]),
+            `The amount of ${ylab} is `,
+            ratioControl,
+            ` times the amount of ${xlab}.`,
         ]);
-        const increaseDivisionsButton = dom("button", {}, "+");
-        increaseDivisionsButton.addEventListener("click", function (e) {
-            model.increaseDivisions();
-            render();
-        });
-        const decreaseDivisionsButton = dom("button", {}, "-");
-        decreaseDivisionsButton.addEventListener("click", function (e) {
-            model.decreaseDivisions();
-            render();
-        });
-        const container = dom("div", {}, [
-            dom("div", {}, [
-                //...mathFieldsDom,
-                dom("br", {}, []),
-                ...(model.paramsMap.get("printMode") ? [] : [diagram]),
+        const diagram = dom("table", { class: "tape-diagram" }, [
+            dom("tr", {}, [
+                dom("th", {}, []),
+                dom(
+                    "td",
+                    {
+                        colspan: a,
+                        style: "text-align: center;",
+                        class: "label",
+                    },
+                    [`$${aTotal.latex}$`]
+                ),
             ]),
-            dom("div", {}, [increaseDivisionsButton, decreaseDivisionsButton]),
+            dom("tr", {}, [
+                dom("th", {}, [ylab]),
+                ...range(0, a / d).map(function (i) {
+                    return dom(
+                        "td",
+                        { class: i < a ? "sector" : "empty" },
+                        i < a ? [sector()] : []
+                    );
+                }),
+            ]),
+            dom("tr", {}, [dom("td", { style: "height: 0.5em;" }, [])]),
+            dom("tr", {}, [
+                dom("th", {}, [xlab]),
+                ...range(0, b / d).map(function (i) {
+                    return dom(
+                        "td",
+                        { class: i < b ? "sector" : "empty" },
+                        i < b ? [sector()] : []
+                    );
+                }),
+            ]),
+            dom("tr", {}, [
+                dom("th", {}, []),
+                dom(
+                    "td",
+                    {
+                        colspan: b,
+                        style: "text-align: center;",
+                        class: "label",
+                    },
+                    [`$${bTotal.latex}$`]
+                ),
+            ]),
+        ]);
+        const container = dom("div", {}, [
+            fitb,
+            dom("br", {}, []),
+            `Create a tape diagram to represent the ratio of ${ylab} to ${xlab}.`,
+            ...(model.paramsMap.get("printMode") ? [] : [diagram]),
         ]);
         rootElement.replaceChildren();
         rootElement.append(container);
@@ -174,32 +170,12 @@ function Model(paramsMap) {
     const self = Object.create(null);
     const ComputeEngine = paramsMap.get("cortexJsComputeEngine");
     const ce = new ComputeEngine();
-    const quantities = new Map([
-        ["a", { json: "1", tex: 1 }],
-        ["b", { json: "1", tex: 1 }],
-    ]);
-    function setQuantity(name, value) {
-        quantities.set(name, value);
-        const [d, lcd] = Array.from(quantities.entries()).reduce(function (
-            [nameA, valueA],
-            [nameB, valueB]
-        ) {
-            const a = ce.box(["Numerator", JSON.parse(valueA.json)])._value;
-            const b = ce.box(["Numerator", JSON.parse(valueB.json)])._value;
-            const d = gcf(a, b);
-            const Da = ce.box(["Denominator", JSON.parse(valueA.json)])._value;
-            const Db = ce.box(["Denominator", JSON.parse(valueB.json)])._value;
-            return [gcf(a, b), (Da * Db) / gcf(Da, Db)];
-        });
-        data.d = d;
-        data.lcd = lcd;
-    }
 
     Object.setPrototypeOf(self, Model.prototype);
     const data = {
+        a: "",
+        b: 1,
         d: 1,
-        lcd: 1,
-        divs: 1,
         xlab: paramsMap.get("xlab"),
         ylab: paramsMap.get("ylab"),
         nSectors: 8,
@@ -207,12 +183,6 @@ function Model(paramsMap) {
         sectorLabel: "1",
         ratings: [0, 0, 0, 0, 0, 0, 0, 0],
     };
-    function increaseDivisions() {
-        data.divs = data.divs + 1;
-    }
-    function decreaseDivisions() {
-        data.divs = Math.max(1, data.divs - 1);
-    }
     function setSectorLabel(label) {
         data.sectorLabel = label;
     }
@@ -233,6 +203,20 @@ function Model(paramsMap) {
         anchor.addEventListener("click", clickHandler, false);
         anchor.click();
     }
+    function setRatio(value) {
+        if (value instanceof Array) {
+            self.data.a = value[0];
+            self.data.b = value[1];
+            self.data.d = gcf(self.data.a, self.data.b);
+            return true;
+        } else if (value !== undefined) {
+            self.data.a = value;
+            self.data.b = 1;
+            self.data.d = 1;
+            return true;
+        }
+        return false;
+    }
     return new Promise(function (resolve) {
         resolve(
             Object.assign(self, {
@@ -240,11 +224,8 @@ function Model(paramsMap) {
                 exportModel,
                 setSectorLabel,
                 ce,
-                setQuantity,
-                quantities,
+                setRatio,
                 paramsMap,
-                increaseDivisions,
-                decreaseDivisions,
             })
         );
     });

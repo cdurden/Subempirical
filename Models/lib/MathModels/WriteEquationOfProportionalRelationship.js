@@ -43,6 +43,7 @@ function inputDom(model, updateParent) {
             },
             function (message) {
                 model.input.set(`eqn_rhs`, message.value);
+                updateParent(message);
             }
         ).dom(),
     ]);

@@ -94,7 +94,7 @@ function View(model, update) {
                     ._value;
                 const D = model.ce.box(["Denominator", JSON.parse(value.json)])
                     ._value;
-                const a = N / D;
+                const a = model.ce.box(JSON.parse(value.json));
                 return [
                     ...acc,
                     dom("tr", {}, [
@@ -107,25 +107,22 @@ function View(model, update) {
                             },
                             [mathFields.get(name).dom()]
                         ),
-                        ...range(0, (N / d / (D / lcd)) * divs).map(function (
-                            i
-                        ) {
+                        ...range(0, divs).map(function (i) {
                             return dom(
                                 "td",
                                 {
-                                    class:
-                                        i < (N / d / (D / lcd)) * divs
-                                            ? "sector"
-                                            : "empty",
+                                    class: i < divs ? "sector" : "empty",
                                 },
-                                i < (N / d / (D / lcd)) * divs
+                                i < divs
                                     ? [
                                           `$${
-                                              model.ce.box([
-                                                  "Divide",
-                                                  ["Divide", d, lcd],
-                                                  divs,
-                                              ]).latex
+                                              model.ce
+                                                  .box([
+                                                      "Divide",
+                                                      JSON.parse(value.json),
+                                                      divs,
+                                                  ])
+                                                  .simplify().latex
                                           }$`,
                                       ]
                                     : []
@@ -180,19 +177,6 @@ function Model(paramsMap) {
     ]);
     function setQuantity(name, value) {
         quantities.set(name, value);
-        const [d, lcd] = Array.from(quantities.entries()).reduce(function (
-            [nameA, valueA],
-            [nameB, valueB]
-        ) {
-            const a = ce.box(["Numerator", JSON.parse(valueA.json)])._value;
-            const b = ce.box(["Numerator", JSON.parse(valueB.json)])._value;
-            const d = gcf(a, b);
-            const Da = ce.box(["Denominator", JSON.parse(valueA.json)])._value;
-            const Db = ce.box(["Denominator", JSON.parse(valueB.json)])._value;
-            return [gcf(a, b), (Da * Db) / gcf(Da, Db)];
-        });
-        data.d = d;
-        data.lcd = lcd;
     }
 
     Object.setPrototypeOf(self, Model.prototype);
