@@ -7,11 +7,16 @@ div.math-prompt {
     font-family: serif;
 }
 
+div.math-prompt div {
+    padding: 10px;
+}
+
 div.math-prompt button {
     font-size: 18pt;
 }
 
 table.table-of-values {
+    margin: 2em;
     border: 1px solid black;
     font-size: 18pt;
     border-collapse: collapse;
@@ -66,7 +71,7 @@ div.feedback-container {
 }
 
 div.math-prompt math-field {
-    min-width: 3em;
+    min-width: 6em;
     min-height: 1.5em;
 }
 
