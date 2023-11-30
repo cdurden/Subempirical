@@ -29,7 +29,8 @@ function mulberry32(a) {
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
 }
-function init(paramsMap, updateParentServices) {
+function init(paramsMap, updateParent) {
+    const updateParentServices = new Map([["parent", updateParent]]);
     const moduleUrl = paramsMap.get("moduleUrl") ?? "./Models/FileViewer.js";
     const serviceLoaderUrl = "./ServiceLoader.js";
     const rand = mulberry32(cyrb128(String(paramsMap.get("seed")))[0]);
