@@ -34,7 +34,9 @@ function init(paramsMap, updateParentServices) {
     const serviceLoaderUrl = "./ServiceLoader.js";
     const rand = mulberry32(cyrb128(String(paramsMap.get("seed")))[0]);
     paramsMap.set("rand", rand);
-    import(serviceLoaderUrl).then(function (serviceLoaderModule) {
+    import(new URL(serviceLoaderUrl, paramsMap.get("baseURL"))).then(function (
+        serviceLoaderModule
+    ) {
         serviceLoaderModule
             .init(paramsMap, updateParentServices)
             .then(function (updateNewServices) {
