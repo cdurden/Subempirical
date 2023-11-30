@@ -263,6 +263,7 @@ function init(paramsMap, updateParentServices) {
             ) {
                 view.addScatterChartView(scatterChartMVU.view);
                 updateScatterCharts.push(scatterChartMVU.update);
+                view.render();
             });
             return { model, view, update };
         });

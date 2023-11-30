@@ -66,6 +66,7 @@ function init(paramsMap, updateParent) {
     return loadResource("ChartJS").then(function (chartJsModule) {
         const model = new Model(paramsMap);
         const view = new View(model, update);
+        view.render();
         function update(message) {
             if (message.action === "setData") {
                 model.setData(message.data);

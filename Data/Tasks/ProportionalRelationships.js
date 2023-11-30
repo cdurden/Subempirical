@@ -1182,6 +1182,55 @@ const taskParamsMap = new Map([
         ]),
     ],
     [
+        "ExpressQuantityAsFractionOfAnother",
+        new Map([
+            [
+                "moduleUrl",
+                "./Models/lib/MathModels/ExpressQuantityAsFractionOfAnother.js",
+            ],
+            [
+                "promptParamsSpec",
+                new Map([
+                    [
+                        "d",
+                        {
+                            generator: "randPrime",
+                            options: { min: 3, max: 7 },
+                        },
+                    ],
+                    [
+                        "p",
+                        {
+                            generator: "randPrime",
+                            options: { min: 3, max: 7 },
+                        },
+                    ],
+                    [
+                        "q",
+                        {
+                            generator: "dynamicRandInt",
+                            options: { min: 2, max: "p-1" },
+                        },
+                    ],
+                    [
+                        "a",
+                        {
+                            generator: "eval",
+                            options: { expr: "p*d" },
+                        },
+                    ],
+                    [
+                        "b",
+                        {
+                            generator: "eval",
+                            options: { expr: "q*d" },
+                        },
+                    ],
+                ]),
+            ],
+        ]),
+    ],
+    [
         "ProportionalRelationshipPractice",
         new Map([
             ["moduleUrl", "./Models/SerialComposite.js"],
@@ -1189,6 +1238,14 @@ const taskParamsMap = new Map([
             [
                 "tasks",
                 new Map([
+                    [
+                        "Compare",
+                        {
+                            taskPath: "ExpressQuantityAsFractionOfAnother",
+                            label: "Comparing Quantities",
+                            reps: 3,
+                        },
+                    ],
                     [
                         "Basic",
                         {
