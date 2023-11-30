@@ -7,7 +7,7 @@ div.math-prompt {
     font-family: serif;
 }
 
-div.math-prompt div {
+div.math-prompt div.container {
     padding: 10px;
 }
 
@@ -15,8 +15,13 @@ div.math-prompt button {
     font-size: 18pt;
 }
 
+div.hint-container {
+    border: 1px solid black;
+    padding: 5px;
+    margin: 5px;
+}
+
 table.table-of-values {
-    margin: 2em;
     border: 1px solid black;
     font-size: 18pt;
     border-collapse: collapse;

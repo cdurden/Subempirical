@@ -257,7 +257,8 @@ function Model(paramsMap) {
     });
 }
 
-function init(paramsMap, updateParent) {
+function init(paramsMap, updateParentServices) {
+    const updateParent = updateParentServices.get("parent");
     return Promise.all([
         loadResource("Mathlive"),
         loadResource("CortexJS-Compute-Engine"),

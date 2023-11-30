@@ -33,18 +33,58 @@ function View(model, update) {
 }
 
 function init(paramsMap, updateParent) {
-    return new Model(paramsMap).then(function (model) {
-        const view = new View(model, update);
+    const paramGeneratorModuleUrl = new URL(
+        paramsMap.get("paramGeneratorModel") ??
+            "./Models/AlgebriteParamGenerator.js",
+        paramsMap.get("baseURL") ?? window.location.href
+    );
+    Promise.all([
+        loadResource("Mathlive"),
+        import(paramGeneratorModuleUrl),
+    ]).then(function ([mathliveModule, paramGeneratorModule]) {
+        paramGeneratorModule
+            .init(paramsMap, update)
+            .then(function (paramGeneratorMVU) {
+                updateParent({
+                    action: "setParams",
+                    params: paramGeneratorMVU.model.params,
+                });
+            });
         const update = updateFactory(model, view, updateParent);
         //view.setInputDom(model.inputDom(model, update, view.children));
-        return { model, view, update };
+        return { model: undefined, view: undefined, update };
     });
 }
 
-function updateFactory(model, view, updateParent) {
+function updateFactory(model, view, updateParentServices) {
+    const updateChildren = new Map([]);
     function update(message) {
-        if (message.action === "addChild") {
-            view.addChild(message.childId, message.child);
+        if (message.action === "addChildren") {
+            return Promise.all(
+                Array.from(message.children.entries()).map(function ([
+                    childId,
+                    init,
+                ]) {
+                    return init(
+                        model.paramsMap,
+                        new Map([
+                            ...updateParentServices,
+                            ["parent", function () {}],
+                        ])
+                    ).then(function (childMVU) {
+                        view.addChild(childId, childMVU.view);
+                        updateChildren.set(childId, childMVU.update);
+                        return childMVU;
+                    });
+                })
+            );
+        } else if (message.action === "updateChildren") {
+            Array.from(updateChildren.entries()).forEach(function ([
+                childName,
+                updateChild,
+            ]) {
+                updateChild(message.message);
+            });
         } else if (message.action === "setLabel") {
             model.setLabel(message.label);
         } else if (message.action === "postFeedback") {
@@ -58,7 +98,7 @@ function updateFactory(model, view, updateParent) {
             model.setParams(message.params);
             //model.setPrompt(model.prompt({}));
             //view.setInputDom(view.inputDom(update, view.children));
-            //view.render();
+            view.render();
             update({ action: "typeset", element: view.rootElement });
             //} else if (message.action === "setPrompt") {
             //    model.setPrompt(message.prompt);

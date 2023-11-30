@@ -8,7 +8,7 @@ function View(model, update) {
     //const children = [];
     const rootElement = document.createElement("div");
     var visible = false;
-    function myDom(child) {
+    function myDom() {
         return dom(
             "div",
             {
@@ -16,17 +16,23 @@ function View(model, update) {
                 style: `display: ${visible ? "block" : "none"}`,
             },
             [
+                /*
                 ...model.history.map(function (correct) {
                     return correct ? "✓" : "X";
                 }),
+                */
                 dom("div", {}, `${model.correct ? "Correct" : "Incorrect"}`),
             ]
         );
     }
+    function render() {
+        rootElement.replaceChildren();
+        rootElement.appendChild(myDom());
+    }
     function setVisible(value) {
         visible = value;
     }
-    return { dom: myDom, setVisible };
+    return { dom: myDom, setVisible, rootElement, render };
 }
 
 function init(paramsMap, updateParent) {

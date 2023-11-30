@@ -556,9 +556,8 @@ const taskParamsMap = new Map([
     [
         "ProportionalRelationshipCompositeBasicB",
         new Map([
-            ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModule",
+                "moduleUrl",
                 "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
             ],
             [
@@ -648,9 +647,8 @@ const taskParamsMap = new Map([
     [
         "ProportionalRelationshipCompositeIntermediateA",
         new Map([
-            ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModule",
+                "moduleUrl",
                 "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
             ],
             [
@@ -740,9 +738,8 @@ const taskParamsMap = new Map([
     [
         "ProportionalRelationshipCompositeIntermediateB",
         new Map([
-            ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModule",
+                "moduleUrl",
                 "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
             ],
             [
@@ -757,6 +754,13 @@ const taskParamsMap = new Map([
                     ],
                     [
                         "fractionof",
+                        {
+                            generator: "raw",
+                            options: { value: true },
+                        },
+                    ],
+                    [
+                        "showHint",
                         {
                             generator: "raw",
                             options: { value: true },
@@ -832,9 +836,8 @@ const taskParamsMap = new Map([
     [
         "ProportionalRelationshipCompositeAdvanced",
         new Map([
-            ["moduleUrl", "./Models/MathTask.js"],
             [
-                "promptModule",
+                "moduleUrl",
                 "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
             ],
             [
@@ -1067,6 +1070,7 @@ const taskParamsMap = new Map([
         "ProportionalRelationshipPracticeQuiz2",
         new Map([
             ["moduleUrl", "./Models/SerialComposite.js"],
+            ["services", ["Mathlive"]],
             [
                 "tasks",
                 [
@@ -1090,17 +1094,121 @@ const taskParamsMap = new Map([
         ]),
     ],
     [
+        "AreaModelB",
+        new Map([
+            ["moduleUrl", "./Models/AreaModelSvg.js"],
+            [
+                "promptParamsSpec",
+                new Map([
+                    [
+                        "person",
+                        {
+                            generator: "raw",
+                            options: { value: "Michael" },
+                        },
+                    ],
+                    [
+                        "fractionof",
+                        {
+                            generator: "raw",
+                            options: { value: true },
+                        },
+                    ],
+                    [
+                        "xlab",
+                        {
+                            generator: "raw",
+                            options: { value: "flour" },
+                        },
+                    ],
+                    [
+                        "ylab",
+                        {
+                            generator: "raw",
+                            options: { value: "water" },
+                        },
+                    ],
+                    [
+                        "b",
+                        {
+                            generator: "randPrime",
+                            options: { min: 3, max: 7 },
+                        },
+                    ],
+                    [
+                        "a",
+                        {
+                            generator: "dynamicRandInt",
+                            options: { min: 2, max: "b-1" },
+                        },
+                    ],
+                    [
+                        "range",
+                        {
+                            generator: "dynamicRange",
+                            options: {
+                                min: "b",
+                                max: 20,
+                                step: "b",
+                            },
+                        },
+                    ],
+                    [
+                        "x",
+                        {
+                            generator: "dynamicSample",
+                            options: {
+                                from: "range",
+                                n: 3,
+                            },
+                        },
+                    ],
+                    [
+                        "y",
+                        {
+                            generator: "truncate",
+                            options: {
+                                n: 1,
+                                generator: "map",
+                                options: {
+                                    vector: "x",
+                                    expr: "a/b*x_i",
+                                },
+                            },
+                        },
+                    ],
+                ]),
+            ],
+        ]),
+    ],
+    [
         "ProportionalRelationshipPractice",
         new Map([
             ["moduleUrl", "./Models/SerialComposite.js"],
+            ["services", ["Mathlive", "MathJax", "ParamGenerator"]],
             [
                 "tasks",
-                [
-                    //"ProportionalRelationshipCompositeBasicA",
-                    "ProportionalRelationshipCompositeBasicB",
-                    "ProportionalRelationshipCompositeIntermediateA",
+                new Map([
+                    [
+                        "Basic",
+                        {
+                            taskPath: "ProportionalRelationshipCompositeBasicB",
+                            label: "Basic",
+                            reps: 2,
+                        },
+                    ],
+                    [
+                        "Intermediate",
+                        {
+                            taskPath:
+                                "ProportionalRelationshipCompositeIntermediateB",
+                            label: "Intermediate",
+                            reps: 2,
+                        },
+                    ],
+                    //"ProportionalRelationshipCompositeIntermediateA",
                     //"ProportionalRelationshipCompositeIntermediateB",
-                    "ProportionalRelationshipCompositeAdvanced",
+                    //"ProportionalRelationshipCompositeAdvanced",
                     /*
                     "DescribeProportionalRelationshipBasic",
                     "DoubleNumberLineBasic",
@@ -1108,10 +1216,8 @@ const taskParamsMap = new Map([
                     "ProportionalRelationshipTableIntermediate",
                     "ProportionalRelationshipTableAdvanced",
                     */
-                ],
+                ]),
             ],
-            ["labels", ["Basic", "Intermediate", "Advanced"]],
-            ["reps", [5, 5, 5]],
             ["directions", ""],
             ["title", "Proportional relationships practice"],
         ]),

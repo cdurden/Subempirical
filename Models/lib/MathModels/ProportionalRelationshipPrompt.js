@@ -2,76 +2,97 @@ function randInt(rand, { min, max }) {
     return Math.floor(rand() * (max - (min ?? 0))) + (min ?? 0);
 }
 
-function randPrompt(rand, { a, b, xunit, yunit, person, food, gender }) {
-    const prompts = [
+function randPrompt(rand, params) {
+    const {
+        a,
+        b,
+        xunit,
+        yunit,
+        x,
+        y,
+        xlab,
+        ylab,
+        person,
+        food,
+        gender,
+    } = params;
+    const paramSets = [
         {
             situation: `${person ?? "Kobe"} has a recipe for ${
                 food ?? "cake"
-            } which uses ${a} ${xunit ?? "cups"} and ${b} ${
+            } which uses ${x[0]} ${xunit ?? "cups"} ${xlab} and ${y[0]} ${
                 yunit ?? "cups"
-            } for one batch.`,
+            } ${ylab} for one batch.`,
             detail: `To make different amounts of ${food ?? "cake"}, ${
                 gender !== "female" ? "he" : "she"
             } uses different amounts of the ingredients but he keeps their ratio the same.`,
         },
         {
-            situation: `The strength of the incredible Hulk is proportional to his level of rage. He can lift ${b} tons when his rage level is ${a}.`,
+            situation: `The strength of the incredible Hulk is proportional to his level of rage. He can lift ${y[0]} tons when his rage level is ${x[0]}.`,
             xlab: "rage level",
             ylab: "lifting strength",
             yunit: "tons",
             xunit: "",
         },
         {
-            situation: `When Giant-Man is ${a} feet tall he is able to lift ${b} tons. As his size increases, his strength increases proportionally.`,
+            situation: `When Giant-Man is ${x[0]} feet tall he is able to lift ${y[0]} tons. As his size increases, his strength increases proportionally.`,
             yunit: "tons",
             xunit: "feet",
             xlab: "height",
             ylab: "lifting strength",
         },
         {
-            situation: `If Rogue touches someone for ${a} seconds, she absorbs ${b} percent of their power.`,
+            situation: `If Rogue touches someone for ${x[0]} seconds, she absorbs ${y[0]} percent of their power.`,
             yunit: "%",
             xunit: "seconds",
             xlab: "contact time",
             ylab: "power absorbed",
         },
         {
-            situation: `The Flash's speed is proportional to the vibrational frequency of the molecules in his body. By vibrating his molecules at ${a} terahertz, he can move ${b} miles per hour.`,
+            situation: `The Flash's speed is proportional to the vibrational frequency of the molecules in his body. By vibrating his molecules at ${x[0]} terahertz, he can move ${y[0]} miles per hour.`,
             yunit: "miles per hour",
             xunit: "terahertz",
             xlab: "frequency",
             ylab: "speed",
         },
         {
-            situation: `A student can read ${a} pages in ${b} minutes.`,
+            situation: `A student can read ${x[0]} pages in ${y[0]} minutes.`,
             yunit: "",
             xunit: "minutes",
             xlab: "pages read",
             ylab: "time",
         },
         {
-            situation: `A runner can run ${a} miles in ${b} minutes.`,
+            situation: `A runner can run ${x[0]} miles in ${y[0]} minutes.`,
             yunit: "miles",
             xunit: "minutes",
             xlab: "distance",
             ylab: "time",
         },
         {
-            situation: `A bicyclist burns ${a} calories every ${b} minutes, while cycling`,
+            situation: `A bicyclist burns ${x[0]} calories every ${y[0]} minutes, while cycling`,
             xunit: "minutes",
             yunit: "calories",
             xlab: "time",
             ylab: "energy burned",
         },
         {
-            situation: `A car can travel ${a} miles on ${b} gallons of gasoline`,
+            situation: `A car can travel ${x[0]} miles on ${y[0]} gallons of gasoline`,
             xunit: "gallons",
             yunit: "miles",
             xlab: "gas",
             ylab: "distance",
         },
     ];
-    return prompts[randInt(rand, { min: 0, max: prompts.length - 1 })];
+    const paramSet =
+        paramSets[randInt(rand, { min: 0, max: paramSets.length - 1 })];
+    const xvar = paramSet.xlab?.[0] ?? "x";
+    const yvar = paramSet.ylab?.[0] ?? "y";
+    return {
+        xvar,
+        yvar,
+        ...paramSet,
+    };
 }
 
 export { randPrompt };

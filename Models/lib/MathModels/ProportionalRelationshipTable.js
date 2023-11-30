@@ -4,7 +4,7 @@ import { dom, zip, loadStylesheet } from "../../../lib/common.js";
 
 function prompt(model, { abbreviate }) {
     const { a, b, x, y, xlab, ylab, name, gender, recipe } = model.params;
-    const shortPrompt = `Fill in the empty cells of the table to represent the proportional relationship between ${xlab} to ${ylab}.`;
+    const shortPrompt = `Fill in the table to represent the proportional relationship between ${xlab} and ${ylab}.`;
     if (abbreviate) {
         return shortPrompt;
     }
@@ -18,7 +18,7 @@ function prompt(model, { abbreviate }) {
 }
 
 function inputDom(model, updateParent) {
-    const { a, b, x, y, xlab, ylab, showTape } = model.params;
+    const { a, b, x, y, xlab, ylab, xvar, yvar, showTape } = model.params;
     const tapeDiagramContainer = dom("div", { style: "float: left;" }, []);
     /*
     HtmlTapeDiagram.init(
@@ -35,7 +35,10 @@ function inputDom(model, updateParent) {
     return dom("div", { style: "display: flex;" }, [
         dom("div", { style: "float: left;" }, [
             dom("table", { class: "table-of-values" }, [
-                dom("tr", {}, [dom("th", {}, xlab), dom("th", {}, ylab)]),
+                dom("tr", {}, [
+                    dom("th", {}, [xlab, dom("br", {}, []), `$${xvar}$`]),
+                    dom("th", {}, [ylab, dom("br", {}, []), `$${yvar}$`]),
+                ]),
                 ...zip(x ?? [], y ?? []).map(function ([xi, yi], i) {
                     return dom("tr", {}, [
                         dom("td", {}, [

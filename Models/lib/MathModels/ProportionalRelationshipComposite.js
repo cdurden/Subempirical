@@ -3,7 +3,7 @@ import * as SubmitButton from "../SubmitButton.js";
 import * as FeedbackMessage from "../FeedbackMessage.js";
 import { init as initFeedback } from "../../AutoCheckerFeedback.js";
 import * as HtmlTapeDiagram from "../../HtmlTapeDiagramEquation.js";
-import * as AreaModel from "../../AreaModelB.js";
+import { init as initAreaModel } from "../../AreaModelSvg.js";
 import { dom, zip, loadStylesheet } from "../../../lib/common.js";
 import * as ProportionalRelationshipTable from "./ProportionalRelationshipTable.js";
 import * as WriteEquationOfProportionalRelationship from "./WriteEquationOfProportionalRelationship.js";
@@ -16,26 +16,10 @@ function Model(paramsMap) {
     const rand = paramsMap.get("rand");
     return new Prompt.Model(paramsMap).then(function (model) {
         function prompt() {
-            const {
-                a,
-                b,
-                x,
-                y,
-                xlab,
-                xunit,
-                ylab,
-                yunit,
-                situation,
-                conjunction,
-                condition,
-                person,
-                gender,
-                food,
-                detail,
-            } = {
+            const { situation, detail } = {
                 ...model.params,
             };
-            return `${model.label}. ${situation} ${detail ?? ""}`;
+            return `${situation} ${detail ?? ""}`;
         }
         function check(model) {
             return (
@@ -43,12 +27,7 @@ function Model(paramsMap) {
                 ProportionalRelationshipTable.check(model)
             );
         }
-        function updatePrompt() {
-            model.setParams(
-                ProportionalRelationshipPrompt.randPrompt(rand, model.params)
-            );
-        }
-        return Object.assign(model, { check, prompt, updatePrompt });
+        return Object.assign(model, { check, prompt });
     });
 }
 
@@ -56,9 +35,11 @@ function View(model, update) {
     const view = new Prompt.View(model, update);
     const feedbackView = new FeedbackMessage.View(model, update);
     var scatterChartView;
+    /*
     const feedbackDom = dom("div", { class: "feedback-container" }, [
         feedbackView.dom(),
     ]);
+    */
     const tapeDiagramContainer = dom("div", { style: "float: left;" }, []);
     /*
     HtmlTapeDiagram.init(
@@ -71,30 +52,37 @@ function View(model, update) {
     ).then(function (tapeDiagramMVU) {
         tapeDiagramContainer.append(tapeDiagramMVU.view.dom());
     });
-    const areaModelContainer = dom("div", { style: "float: left;" }, []);
-    AreaModel.init(
-        new Map([
-            ...Array.from(model.paramsMap.entries()),
-            ["xlab", model.params.xlab],
-            ["ylab", model.params.ylab],
-        ]),
-        update
-    ).then(function (areaModelMVU) {
-        areaModelContainer.append(areaModelMVU.view.dom());
-    });
     */
+    const areaModelContainer = dom("div", { style: "float: left;" }, []);
+    /*
     function renderFeedback(correct) {
         model.correct = correct;
         feedbackView.setVisible(true);
         feedbackDom.replaceChildren(feedbackView.dom());
     }
+    */
     function myDom() {
-        const { a, b, x, y, xlab, ylab } = model.params;
+        const { a, b, x, y, xlab, ylab, showHint } = model.params;
         return view.wrap([
-            dom("div", {}, [
+            dom("div", { class: "container" }, [
                 model.prompt(),
+                showHint
+                    ? dom(
+                          "div",
+                          {
+                              class: "hint-container",
+                          },
+                          [
+                              dom("b", {}, "Hint: "),
+                              `What is the GCF of ${x[0]} and ${y[0]}? Set the height of the area model to the GCF and use it express one number as a fraction of the other.`,
+                              dom("div", { class: "area-model-container" }, [
+                                  view.children.get("areaModel").rootElement,
+                              ]),
+                          ]
+                      )
+                    : [],
                 dom("div", { style: "display: flex;" }, [
-                    dom("div", {}, [
+                    dom("div", { class: "container" }, [
                         "a. ",
                         ProportionalRelationshipTable.prompt(model, {
                             abbreviate: true,
@@ -102,7 +90,7 @@ function View(model, update) {
                         ProportionalRelationshipTable.inputDom(model, update),
                     ]),
                     dom("div", {}, [
-                        dom("div", {}, [
+                        dom("div", { class: "container" }, [
                             "b. ",
                             WriteEquationOfProportionalRelationship.prompt(
                                 model,
@@ -115,7 +103,10 @@ function View(model, update) {
                                 update
                             ),
                         ]),
-                        dom("div", {}, ["c. ", scatterChartView?.dom()]),
+                        dom("div", { class: "container" }, [
+                            "c. ",
+                            scatterChartView?.dom(),
+                        ]),
                         /*
                 dom("div", {}, [
                     "b. ",
@@ -125,8 +116,10 @@ function View(model, update) {
                     ]),
                 ]),
                 //tapeDiagramContainer,
-                //areaModelContainer,
-                feedbackDom,
+                //feedbackDom,
+                dom("div", { class: "feedback-container" }, [
+                    view.children.get("feedback").rootElement,
+                ]),
                 ...(model.paramsMap.get("printMode")
                     ? []
                     : [new SubmitButton.View(model, update).dom()]),
@@ -138,7 +131,7 @@ function View(model, update) {
     }
     return Object.assign(view, {
         dom: myDom,
-        renderFeedback,
+        //renderFeedback,
         addScatterChartView,
     });
 }
@@ -175,26 +168,64 @@ function scatterData(model) {
     return data;
 }
 
-function init(paramsMap, updateParent) {
+function init(paramsMap, updateParentServices) {
+    const rand = paramsMap.get("rand");
+    const updateParent = updateParentServices.get("parent");
     return Promise.resolve(new Model(paramsMap)).then(function (model) {
         const view = new View(model, update);
-        const updatePrompt = Prompt.updateFactory(model, view, updateParent);
-        const updateScatterCharts = [];
-        ScatterChart.init(paramsMap, update).then(function (scatterChartMVU) {
-            view.addScatterChartView(scatterChartMVU.view);
-            updateScatterCharts.push(scatterChartMVU.update);
+        const updatePrompt = Prompt.updateFactory(
+            model,
+            view,
+            updateParentServices
+        );
+        updateParentServices
+            .get("ParamGenerator")({
+                action: "generateParams",
+                paramsSpec: paramsMap.get("promptParamsSpec"),
+            })
+            .then(function (params) {
+                model.setParams({
+                    ...params,
+                    ...ProportionalRelationshipPrompt.randPrompt(rand, params),
+                });
+            });
+
+        /*
+            init(
+                paramsMap,
+                new Map([...updateParentServices, ["parent", function () {}]])
+            ).then(function (feedbackMVU) {
+                updatePrompt({
+                    action: "addChild",
+                    childId: "feedback",
+                    child: feedbackMVU,
+                });
+            });
+        AreaModel.init(
+            paramsMap,
+            new Map([...updateParentServices, ["parent", function () {}]])
+        ).then(function (areaModelMVU) {
+            updatePrompt({
+                action: "addChild",
+                childId: "areaModel",
+                child: areaModelMVU,
+            });
         });
+        */
+        const updateScatterCharts = [];
         function update(message) {
             if (message.action === "submit") {
                 updatePrompt({
-                    action: "getFeedback",
-                    submitMessage: message,
-                    data: message.data,
-                    model: message.model,
+                    action: "updateChildren",
+                    message: {
+                        action: "getFeedback",
+                        submitMessage: message,
+                        data: message.data,
+                        model: message.model,
+                        update: updateParent,
+                    },
                 });
                 updateParent(message);
-            } else if (message.action === "postFeedback") {
-                view.renderFeedback(message.correct);
             } else if (message.action === "setInput") {
                 updateScatterCharts.forEach(function (updateScatterChart) {
                     updateScatterChart({
@@ -202,18 +233,39 @@ function init(paramsMap, updateParent) {
                         data: scatterData(model),
                     });
                 });
+            } else if (message.action === "typeset") {
+                updateParentServices.get("MathJax")(message);
+                /*
             } else if (message.action === "setParams") {
                 updatePrompt(message).then(function () {
                     model.updatePrompt();
                     updatePrompt({ action: "render" });
                 });
-            } else if (message.action === "typeset") {
-                updatePrompt(message);
             } else if (message.action === "renderTask") {
                 updatePrompt(message);
+                */
             }
         }
-        return { model, view, update };
+        return updatePrompt({
+            action: "addChildren",
+            children: new Map([
+                ["feedback", initFeedback],
+                ["areaModel", initAreaModel],
+            ]),
+        }).then(function ([feedbackMVU, areaModelMVU]) {
+            areaModelMVU.update({
+                action: "setData",
+                data: { a: model.params.x[0], b: model.params.y[0] },
+            });
+            areaModelMVU.view.render();
+            ScatterChart.init(paramsMap, update).then(function (
+                scatterChartMVU
+            ) {
+                view.addScatterChartView(scatterChartMVU.view);
+                updateScatterCharts.push(scatterChartMVU.update);
+            });
+            return { model, view, update };
+        });
     });
 }
 

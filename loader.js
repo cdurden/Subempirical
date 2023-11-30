@@ -29,41 +29,58 @@ function mulberry32(a) {
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
 }
-function init(paramsMap, updateParent) {
+function init(paramsMap, updateParentServices) {
     const moduleUrl = paramsMap.get("moduleUrl") ?? "./Models/FileViewer.js";
+    const serviceLoaderUrl = "./ServiceLoader.js";
     const rand = mulberry32(cyrb128(String(paramsMap.get("seed")))[0]);
     paramsMap.set("rand", rand);
-    import(new URL(moduleUrl, paramsMap.get("baseURL"))).then(function (
-        module
-    ) {
-        const container = document.getElementById("virginia-content");
-        const listenersMap = new Map();
-        function update(message) {
-            if (message.action === "addEventListener") {
-                if (!listenersMap.has(message.eventName)) {
-                    listenersMap.set(message.eventName, []);
-                }
-                listenersMap.get(message.eventName).push(message.listener);
-            }
-            return updateParent(message);
-        }
-        module.init(paramsMap, update).then(function ({ model, view, update }) {
-            updateParent({ action: "init", paramsMap });
-            //view.render(model, update, {}).then(function () {
-            container.appendChild(view.rootElement);
-            view.render().then(function () {
-                (listenersMap.get("mounted") ?? []).forEach(function (
-                    listener
-                ) {
-                    listener();
-                });
+    import(serviceLoaderUrl).then(function (serviceLoaderModule) {
+        serviceLoaderModule
+            .init(paramsMap, updateParentServices)
+            .then(function (updateNewServices) {
+                return new Map([...updateParentServices, ...updateNewServices]);
+            })
+            .then(function (updateServices) {
+                import(new URL(moduleUrl, paramsMap.get("baseURL"))).then(
+                    function (module) {
+                        const container = document.getElementById(
+                            "virginia-content"
+                        );
+                        const listenersMap = new Map();
+                        function update(message) {
+                            if (message.action === "addEventListener") {
+                                if (!listenersMap.has(message.eventName)) {
+                                    listenersMap.set(message.eventName, []);
+                                }
+                                listenersMap
+                                    .get(message.eventName)
+                                    .push(message.listener);
+                            }
+                            return updateServices.get(message.to ?? "parent")(
+                                message
+                            );
+                        }
+                        module
+                            .init(
+                                paramsMap,
+                                new Map([...updateServices, ["parent", update]])
+                            )
+                            .then(function ({ model, view, update }) {
+                                updateServices.get("parent")({
+                                    action: "init",
+                                    paramsMap,
+                                });
+                                container.appendChild(view.rootElement);
+                                view.render().then(function () {
+                                    (listenersMap.get("mounted") ?? []).forEach(
+                                        function (listener) {
+                                            listener();
+                                        }
+                                    );
+                                });
+                            });
+                    }
+                );
             });
-            /*
-            const exportModelLink = document.createElement("a");
-            exportModelLink.textContent = "Export";
-            exportModelLink.addEventListener("click", model.exportModel);
-            container.appendChild(exportModelLink);
-            */
-        });
     });
 }

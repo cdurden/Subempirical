@@ -17,9 +17,9 @@ function prompt(model, { abbreviate }) {
         recipe,
         fractionof,
     } = model.params;
-    const shortPrompt = `Write an equation to describe the proportional relationship between the ${xlab}, $${
+    const shortPrompt = `Write an equation to describe the proportional relationship between the ${xlab} $${
         xvar ?? xlab?.[0] ?? "x"
-    }$, and the ${ylab}, $${yvar ?? ylab?.[0] ?? "y"}$.`;
+    }$ and the ${ylab} $${yvar ?? ylab?.[0] ?? "y"}$.`;
     if (abbreviate) {
         return shortPrompt;
     }

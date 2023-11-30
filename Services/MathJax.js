@@ -1,12 +1,4 @@
-import {
-    any,
-    all,
-    getFile,
-    mapReplacer,
-    callWhenReady,
-    loadResource,
-    loadResourcesInParallel,
-} from "../lib/common.js";
+import { callWhenReady, loadResource } from "../lib/common.js";
 
 var typesetPromise = Promise.resolve(); // Used to hold chain of typesetting calls
 
@@ -43,9 +35,7 @@ function init(paramsMap, updateParent) {
             }
             return true;
         }
-        return {
-            update,
-        };
+        return update;
     });
 }
 
