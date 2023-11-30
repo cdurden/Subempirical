@@ -225,7 +225,7 @@ function init(paramsMap, updateParentServices) {
                         update: updateParent,
                     },
                 });
-                updateParent(message);
+                //updateParent(message);
             } else if (message.action === "setInput") {
                 updateScatterCharts.forEach(function (updateScatterChart) {
                     updateScatterChart({

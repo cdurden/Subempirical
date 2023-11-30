@@ -21,6 +21,10 @@ function init(paramsMap, updateParentServices) {
                 model: message.model,
                 feedbackModel: model,
             });
+            message.update({
+                ...message.submitMessage,
+                correct: model.correct,
+            });
         }
     }
     return Promise.resolve({ model, view, update });
