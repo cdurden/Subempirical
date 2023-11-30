@@ -42,9 +42,9 @@ function View(model, update) {
     const rootElement = document.createElement("div");
     function render() {
         //preact.render(myDom(preact), rootElement);
-        update({ action: "typeset", element: rootElement });
         rootElement.replaceChildren();
         rootElement.appendChild(self.dom());
+        update({ action: "typeset", element: rootElement });
     }
     function addChild(childId, child) {
         children.set(childId, child);
