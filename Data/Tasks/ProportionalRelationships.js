@@ -1194,7 +1194,7 @@ const taskParamsMap = new Map([
                         {
                             taskPath: "ProportionalRelationshipCompositeBasicB",
                             label: "Basic",
-                            reps: 2,
+                            reps: 5,
                         },
                     ],
                     [
@@ -1203,7 +1203,16 @@ const taskParamsMap = new Map([
                             taskPath:
                                 "ProportionalRelationshipCompositeIntermediateB",
                             label: "Intermediate",
-                            reps: 2,
+                            reps: 4,
+                        },
+                    ],
+                    [
+                        "Advanced",
+                        {
+                            taskPath:
+                                "ProportionalRelationshipCompositeAdvanced",
+                            label: "Advanced",
+                            reps: 3,
                         },
                     ],
                     //"ProportionalRelationshipCompositeIntermediateA",

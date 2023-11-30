@@ -207,14 +207,16 @@ function View(model, update) {
                 1,
                 `${model.data.w}`
             );
-            const upControl = drawText(draw, 0.5, 1 + model.data.h / 2, "^");
+            const upControl = drawText(draw, 0.5, 1 + model.data.h / 2, "⌃");
+            upControl.node.style.cursor = "pointer";
             upControl.node.addEventListener("click", function (event) {
                 update({ action: "increaseHeight" });
             });
-            const downControl = drawText(draw, 0.5, 2 + model.data.h / 2, "v");
+            const downControl = drawText(draw, 0.5, 2 + model.data.h / 2, "⌄");
             downControl.node.addEventListener("click", function (event) {
                 update({ action: "decreaseHeight" });
             });
+            downControl.node.style.cursor = "pointer";
             resolve(self);
         });
     }
