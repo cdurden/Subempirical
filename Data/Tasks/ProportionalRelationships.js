@@ -554,6 +554,121 @@ const taskParamsMap = new Map([
         ]),
     ],
     [
+        "ProportionalRelationshipInverseCompositeBasicB",
+        new Map([
+            [
+                "moduleUrl",
+                "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
+            ],
+            [
+                "promptParamsSpec",
+                new Map([
+                    [
+                        "person",
+                        {
+                            generator: "raw",
+                            options: { value: "Sean" },
+                        },
+                    ],
+                    [
+                        "recipe",
+                        {
+                            generator: "raw",
+                            options: { value: "bread" },
+                        },
+                    ],
+                    [
+                        "xlab",
+                        {
+                            generator: "raw",
+                            options: { value: "flour" },
+                        },
+                    ],
+                    [
+                        "ylab",
+                        {
+                            generator: "raw",
+                            options: { value: "water" },
+                        },
+                    ],
+                    [
+                        "b",
+                        {
+                            generator: "raw",
+                            options: { value: 1 },
+                        },
+                    ],
+                    [
+                        "a",
+                        {
+                            generator: "dynamicRandInt",
+                            options: { min: 5, max: 10 },
+                        },
+                    ],
+                    [
+                        "range",
+                        {
+                            generator: "dynamicRange",
+                            options: {
+                                min: 3,
+                                max: 10,
+                                step: 1,
+                            },
+                        },
+                    ],
+                    [
+                        "z",
+                        {
+                            generator: "dynamicSample",
+                            options: {
+                                from: "range",
+                                n: 5,
+                            },
+                        },
+                    ],
+                    [
+                        "w",
+                        {
+                            generator: "map",
+                            options: {
+                                vector: "z",
+                                expr: "a/b*x_i",
+                            },
+                        },
+                    ],
+                    [
+                        "y",
+                        {
+                            generator: "replace",
+                            options: {
+                                vector: "w",
+                                indices: [1, 2],
+                                generator: "raw",
+                                options: {
+                                    value: undefined,
+                                },
+                            },
+                        },
+                    ],
+                    [
+                        "x",
+                        {
+                            generator: "truncate",
+                            options: {
+                                n: 3,
+                                generator: "map",
+                                options: {
+                                    vector: "z",
+                                    expr: "x_i",
+                                },
+                            },
+                        },
+                    ],
+                ]),
+            ],
+        ]),
+    ],
+    [
         "ProportionalRelationshipCompositeBasicB",
         new Map([
             [
@@ -727,6 +842,128 @@ const taskParamsMap = new Map([
                                 options: {
                                     vector: "x",
                                     expr: "a/b*x_i",
+                                },
+                            },
+                        },
+                    ],
+                ]),
+            ],
+        ]),
+    ],
+    [
+        "ProportionalRelationshipInverseCompositeIntermediateB",
+        new Map([
+            [
+                "moduleUrl",
+                "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
+            ],
+            [
+                "promptParamsSpec",
+                new Map([
+                    [
+                        "person",
+                        {
+                            generator: "raw",
+                            options: { value: "Michael" },
+                        },
+                    ],
+                    [
+                        "fractionof",
+                        {
+                            generator: "raw",
+                            options: { value: true },
+                        },
+                    ],
+                    [
+                        "showHint",
+                        {
+                            generator: "raw",
+                            options: { value: true },
+                        },
+                    ],
+                    [
+                        "xlab",
+                        {
+                            generator: "raw",
+                            options: { value: "flour" },
+                        },
+                    ],
+                    [
+                        "ylab",
+                        {
+                            generator: "raw",
+                            options: { value: "water" },
+                        },
+                    ],
+                    [
+                        "b",
+                        {
+                            generator: "randPrime",
+                            options: { min: 3, max: 7 },
+                        },
+                    ],
+                    [
+                        "a",
+                        {
+                            generator: "dynamicRandInt",
+                            options: { min: 2, max: "b-1" },
+                        },
+                    ],
+                    [
+                        "range",
+                        {
+                            generator: "dynamicRange",
+                            options: {
+                                min: "b",
+                                max: 20,
+                                step: "b",
+                            },
+                        },
+                    ],
+                    [
+                        "z",
+                        {
+                            generator: "dynamicSample",
+                            options: {
+                                from: "range",
+                                n: 5,
+                            },
+                        },
+                    ],
+                    [
+                        "w",
+                        {
+                            generator: "map",
+                            options: {
+                                vector: "z",
+                                expr: "a/b*x_i",
+                            },
+                        },
+                    ],
+                    [
+                        "y",
+                        {
+                            generator: "replace",
+                            options: {
+                                vector: "w",
+                                indices: [1, 2],
+                                generator: "raw",
+                                options: {
+                                    value: undefined,
+                                },
+                            },
+                        },
+                    ],
+                    [
+                        "x",
+                        {
+                            generator: "truncate",
+                            options: {
+                                n: 3,
+                                generator: "map",
+                                options: {
+                                    vector: "z",
+                                    expr: "x_i",
                                 },
                             },
                         },
@@ -940,6 +1177,135 @@ const taskParamsMap = new Map([
                                 options: {
                                     vector: "x",
                                     expr: "a/b*x_i",
+                                },
+                            },
+                        },
+                    ],
+                ]),
+            ],
+        ]),
+    ],
+    [
+        "ProportionalRelationshipInverseCompositeAdvanced",
+        new Map([
+            [
+                "moduleUrl",
+                "./Models/lib/MathModels/ProportionalRelationshipComposite.js",
+            ],
+            [
+                "promptParamsSpec",
+                new Map([
+                    [
+                        "person",
+                        {
+                            generator: "raw",
+                            options: { value: "Kobe" },
+                        },
+                    ],
+                    [
+                        "recipe",
+                        {
+                            generator: "raw",
+                            options: { value: "hot cocoa" },
+                        },
+                    ],
+                    [
+                        "fractionof",
+                        {
+                            generator: "raw",
+                            options: { value: true },
+                        },
+                    ],
+                    [
+                        "xlab",
+                        {
+                            generator: "raw",
+                            options: { value: "cocoa" },
+                        },
+                    ],
+                    [
+                        "ylab",
+                        {
+                            generator: "raw",
+                            options: { value: "milk" },
+                        },
+                    ],
+                    [
+                        "b",
+                        {
+                            generator: "randPrime",
+                            options: { min: 3, max: 7 },
+                        },
+                    ],
+                    [
+                        "a",
+                        {
+                            generator: "dynamicRandInt",
+                            options: { min: 2, max: "b-1" },
+                        },
+                    ],
+                    [
+                        "d",
+                        {
+                            generator: "dynamicRandInt",
+                            options: { min: 2, max: "b-1" },
+                        },
+                    ],
+                    [
+                        "range",
+                        {
+                            generator: "dynamicRange",
+                            options: {
+                                min: "b+1",
+                                max: 20,
+                                step: "1",
+                            },
+                        },
+                    ],
+                    [
+                        "z",
+                        {
+                            generator: "dynamicSample",
+                            options: {
+                                from: "range",
+                                n: 5,
+                            },
+                        },
+                    ],
+                    [
+                        "w",
+                        {
+                            generator: "map",
+                            options: {
+                                vector: "z",
+                                expr: "a/b*x_i",
+                            },
+                        },
+                    ],
+                    [
+                        "y",
+                        {
+                            generator: "replace",
+                            options: {
+                                vector: "w",
+                                indices: [1, 2],
+                                generator: "raw",
+                                options: {
+                                    value: undefined,
+                                },
+                            },
+                        },
+                    ],
+                    [
+                        "x",
+                        {
+                            generator: "truncate",
+                            options: {
+                                n: 3,
+                                generator: "map",
+                                options: {
+                                    vector: "z",
+                                    expr: "x_i",
                                 },
                             },
                         },
@@ -1286,6 +1652,65 @@ const taskParamsMap = new Map([
             ],
             ["directions", ""],
             ["title", "Proportional relationships practice"],
+        ]),
+    ],
+    [
+        "ProportionalRelationshipInverse",
+        new Map([
+            ["moduleUrl", "./Models/SerialComposite.js"],
+            ["services", ["Mathlive", "MathJax", "ParamGenerator"]],
+            [
+                "tasks",
+                new Map([
+                    [
+                        "Compare",
+                        {
+                            taskPath: "ExpressQuantityAsFractionOfAnother",
+                            label: "Comparing Quantities",
+                            reps: 3,
+                        },
+                    ],
+                    [
+                        "Basic",
+                        {
+                            taskPath:
+                                "ProportionalRelationshipInverseCompositeBasicB",
+                            label: "Basic",
+                            reps: 5,
+                        },
+                    ],
+                    [
+                        "Intermediate",
+                        {
+                            taskPath:
+                                "ProportionalRelationshipInverseCompositeIntermediateB",
+                            label: "Intermediate",
+                            reps: 4,
+                        },
+                    ],
+                    [
+                        "Advanced",
+                        {
+                            taskPath:
+                                "ProportionalRelationshipInverseCompositeAdvanced",
+                            label: "Advanced",
+                            reps: 3,
+                        },
+                    ],
+                    //"ProportionalRelationshipCompositeIntermediateA",
+                    //"ProportionalRelationshipCompositeIntermediateB",
+                    //"ProportionalRelationshipCompositeAdvanced",
+                    /*
+                    "DescribeProportionalRelationshipBasic",
+                    "DoubleNumberLineBasic",
+                    "ProportionalRelationshipTableBasic",
+                    "ProportionalRelationshipTableIntermediate",
+                    "ProportionalRelationshipTableAdvanced",
+                    */
+                ]),
+            ],
+            ["directions", ""],
+            ["title", "Proportional relationship with inverse operations"],
         ]),
     ],
 ]);

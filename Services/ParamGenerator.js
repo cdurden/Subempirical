@@ -6,6 +6,9 @@ function evaluate(rand, { expr }, params) {
             accumulatorExpr,
             [fieldName, value]
         ) {
+            if (value === undefined) {
+                return accumulatorExpr;
+            }
             return Algebrite_subst(
                 accumulatorExpr,
                 Algebrite.parse(fieldName),
@@ -33,6 +36,19 @@ function truncate(rand, options, params) {
     return paramGenerators
         .get(options.generator)(rand, options.options, params)
         .slice(0, options.n);
+}
+function replace(rand, options, params) {
+    return params[options.vector].map(function (element, index) {
+        if (options.indices.includes(index)) {
+            return paramGenerators.get(options.generator)(
+                rand,
+                options.options,
+                params
+            );
+        } else {
+            return element;
+        }
+    });
 }
 function map(rand, options, params) {
     const y = [];
@@ -153,6 +169,7 @@ const paramGenerators = new Map([
     ["dynamicRange", dynamicRange],
     ["map", map],
     ["truncate", truncate],
+    ["replace", replace],
     ["sample", sample],
     ["dynamicSample", dynamicSample],
     ["dynamicRandPrime", dynamicRandPrime],
