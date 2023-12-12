@@ -155,7 +155,9 @@ function init(paramsMap, updateParentServices) {
                 paramsSpec: paramsMap.get("promptParamsSpec"),
             })
             .then(function (params) {
-                params.x = [0, ...params.x];
+                params.x = [0, ...params.x].sort(function (x, y) {
+                    return x - y;
+                });
                 model.setParams({
                     ...params,
                     ...ProportionalOrNonproportionalRelationshipPrompt.randPrompt(

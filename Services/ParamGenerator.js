@@ -92,7 +92,7 @@ function dynamicSample(rand, { from, n }, params) {
 function sample(rand, { from, n }, params) {
     return [
         ...from.splice(randInt(rand, { min: 0, max: from.length - 1 }), 1),
-        ...(n > 0 ? sample(rand, { n: n - 1, from }) : []),
+        ...(n > 1 ? sample(rand, { n: n - 1, from }) : []),
     ];
 }
 function dynamicRandInt(...args) {
