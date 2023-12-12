@@ -75,8 +75,11 @@ function View(model, update) {
                                 value: "A",
                                 label: [
                                     dom("img", {
-                                        src:
+                                        src: new URL(
                                             "./Models/lib/MathModels/images/ProportionalOrNonproportionalGraphA.png",
+                                            model.paramsMap.get("baseURL") ??
+                                                window.location.href
+                                        ).href,
                                     }),
                                 ],
                             },
@@ -84,8 +87,11 @@ function View(model, update) {
                                 value: "B",
                                 label: [
                                     dom("img", {
-                                        src:
+                                        src: new URL(
                                             "./Models/lib/MathModels/images/ProportionalOrNonproportionalGraphB.png",
+                                            model.paramsMap.get("baseURL") ??
+                                                window.location.href
+                                        ).href,
                                     }),
                                 ],
                             },
@@ -93,8 +99,11 @@ function View(model, update) {
                                 value: "C",
                                 label: [
                                     dom("img", {
-                                        src:
+                                        src: new URL(
                                             "./Models/lib/MathModels/images/ProportionalOrNonproportionalGraphC.png",
+                                            model.paramsMap.get("baseURL") ??
+                                                window.location.href
+                                        ).href,
                                     }),
                                 ],
                             },
