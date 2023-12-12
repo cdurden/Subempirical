@@ -6,7 +6,7 @@ function evaluate(rand, { expr }, params) {
             accumulatorExpr,
             [fieldName, value]
         ) {
-            if (value === undefined) {
+            if (value === undefined || value instanceof Array) {
                 return accumulatorExpr;
             }
             return Algebrite_subst(

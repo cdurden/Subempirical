@@ -23,7 +23,9 @@ function randPrompt(rand, params) {
             "A",
             [
                 {
-                    situation: `A taxi charges \\$${yint} per ride plus \\$${a} for every ${b} miles.`,
+                    situation: `A taxi charges \\$${yint} per ride plus \\$${a} for every ${
+                        b > 1 ? b : ""
+                    } mile${b > 1 ? "s" : ""}.`,
                     yunit: "dollars",
                     xunit: "miles",
                     xlab: "distance",
@@ -31,7 +33,9 @@ function randPrompt(rand, params) {
                     yint,
                 },
                 {
-                    situation: `An online order costs \\$${a} per ${b} item plus \\$${yint} for shipping`,
+                    situation: `An online order costs \\$${a} per ${
+                        b > 1 ? b : ""
+                    } item${b > 1 ? "s" : ""} plus \\$${yint} for shipping.`,
                     xunit: "",
                     xlab: "items",
                     ylab: "cost",
@@ -39,7 +43,9 @@ function randPrompt(rand, params) {
                     yint,
                 },
                 {
-                    situation: `To join a dance club, there is a \\$${yint} membership fee plus a \\$${a} fee every ${b} months`,
+                    situation: `To join a dance club, there is a \\$${yint} membership fee plus a \\$${a} fee every ${
+                        b > 1 ? b : ""
+                    } month${b > 1 ? "s" : ""}.`,
                     xlab: "membership time",
                     xunit: "months",
                     ylab: "cost",

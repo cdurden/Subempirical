@@ -1714,7 +1714,7 @@ const taskParamsMap = new Map([
         ]),
     ],
     [
-        "ProportionalOrNonproportionalRelationshipComposite",
+        "ProportionalOrNonproportionalRelationshipCompositeBasic",
         new Map([
             [
                 "moduleUrl",
@@ -1806,6 +1806,112 @@ const taskParamsMap = new Map([
         ]),
     ],
     [
+        "ProportionalOrNonproportionalRelationshipCompositeIntermediate",
+        new Map([
+            [
+                "moduleUrl",
+                "./Models/lib/MathModels/ProportionalOrNonproportionalRelationshipComposite.js",
+            ],
+            ["services", ["Mathlive", "MathJax", "ParamGenerator"]],
+            [
+                "promptParamsSpec",
+                new Map([
+                    [
+                        "person",
+                        {
+                            generator: "raw",
+                            options: { value: "Sean" },
+                        },
+                    ],
+                    [
+                        "recipe",
+                        {
+                            generator: "raw",
+                            options: { value: "bread" },
+                        },
+                    ],
+                    [
+                        "fractionof",
+                        {
+                            generator: "raw",
+                            options: { value: true },
+                        },
+                    ],
+                    [
+                        "showHint",
+                        {
+                            generator: "raw",
+                            options: { value: true },
+                        },
+                    ],
+                    [
+                        "xlab",
+                        {
+                            generator: "raw",
+                            options: { value: "flour" },
+                        },
+                    ],
+                    [
+                        "ylab",
+                        {
+                            generator: "raw",
+                            options: { value: "water" },
+                        },
+                    ],
+                    [
+                        "b",
+                        {
+                            generator: "randPrime",
+                            options: { min: 3, max: 7 },
+                        },
+                    ],
+                    [
+                        "a",
+                        {
+                            generator: "dynamicRandInt",
+                            options: { min: 2, max: "b-1" },
+                        },
+                    ],
+                    [
+                        "range",
+                        {
+                            generator: "dynamicRange",
+                            options: {
+                                min: "b",
+                                max: 20,
+                                step: "b",
+                            },
+                        },
+                    ],
+                    [
+                        "x",
+                        {
+                            generator: "dynamicSample",
+                            options: {
+                                from: "range",
+                                n: 3,
+                            },
+                        },
+                    ],
+                    [
+                        "y",
+                        {
+                            generator: "truncate",
+                            options: {
+                                n: 0,
+                                generator: "map",
+                                options: {
+                                    vector: "x",
+                                    expr: "a/b*x_i",
+                                },
+                            },
+                        },
+                    ],
+                ]),
+            ],
+        ]),
+    ],
+    [
         "ProportionalOrNonproportional",
         new Map([
             ["moduleUrl", "./Models/SerialComposite.js"],
@@ -1817,9 +1923,18 @@ const taskParamsMap = new Map([
                         "Basic",
                         {
                             taskPath:
-                                "ProportionalOrNonproportionalRelationshipComposite",
+                                "ProportionalOrNonproportionalRelationshipCompositeBasic",
                             label: "Basic",
                             reps: 8,
+                        },
+                    ],
+                    [
+                        "Intermediate",
+                        {
+                            taskPath:
+                                "ProportionalOrNonproportionalRelationshipCompositeIntermediate",
+                            label: "Intermediate",
+                            reps: 3,
                         },
                     ],
                     //"ProportionalRelationshipCompositeIntermediateA",

@@ -76,14 +76,21 @@ function View(model, update) {
         );
         return view.wrap([
             dom("div", { class: "container" }, [
-                dom("div", { class: "container" }, [
-                    "a. ",
-                    view.children.get("propOrNonprop").dom(),
-                ]),
-                dom("div", { style: "display: flex;", class: "container" }, [
-                    "b. ",
-                    view.children.get("propOrNonpropGraph").dom(),
-                ]),
+                dom("div", { class: "container" }, [model.prompt()]),
+                showHint
+                    ? dom(
+                          "div",
+                          {
+                              class: "hint-container",
+                          },
+                          [
+                              dom("b", {}, "Hint: "),
+                              dom("div", { class: "area-model-container" }, [
+                                  view.children.get("areaModel").rootElement,
+                              ]),
+                          ]
+                      )
+                    : [],
                 dom("div", { style: "display: flex;" }, [
                     dom("div", { class: "container" }, [
                         "c. ",
@@ -99,6 +106,14 @@ function View(model, update) {
                             ["d. ", scatterChartView?.dom()]
                         ),
                     ]),
+                ]),
+                dom("div", { class: "container" }, [
+                    "a. ",
+                    view.children.get("propOrNonprop").dom(),
+                ]),
+                dom("div", { style: "display: flex;", class: "container" }, [
+                    "b. ",
+                    view.children.get("propOrNonpropGraph").dom(),
                 ]),
                 proportionalInputs,
                 //tapeDiagramContainer,

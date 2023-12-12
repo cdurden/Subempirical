@@ -18,7 +18,19 @@ function prompt(model, { abbreviate }) {
 }
 
 function inputDom(model, updateParent) {
-    const { a, b, x, y, xlab, ylab, xvar, yvar, showTape } = model.params;
+    const {
+        a,
+        b,
+        x,
+        y,
+        xlab,
+        ylab,
+        xunit,
+        yunit,
+        xvar,
+        yvar,
+        showTape,
+    } = model.params;
     const tapeDiagramContainer = dom("div", { style: "float: left;" }, []);
     /*
     HtmlTapeDiagram.init(
@@ -36,13 +48,21 @@ function inputDom(model, updateParent) {
         dom("div", { style: "float: left;" }, [
             dom("table", { class: "table-of-values" }, [
                 dom("tr", {}, [
-                    dom("th", {}, [xlab, dom("br", {}, []), `$${xvar}$`]),
-                    dom("th", {}, [ylab, dom("br", {}, []), `$${yvar}$`]),
+                    dom("th", {}, [
+                        `${xlab} (${xunit})`,
+                        dom("br", {}, []),
+                        `$${xvar}$`,
+                    ]),
+                    dom("th", {}, [
+                        `${ylab} (${yunit})`,
+                        dom("br", {}, []),
+                        `$${yvar}$`,
+                    ]),
                 ]),
                 ...zip(x ?? [], y ?? []).map(function ([xi, yi], i) {
                     return dom("tr", {}, [
                         dom("td", {}, [
-                            xi
+                            xi !== undefined
                                 ? xi
                                 : new MathField.View(
                                       {
@@ -59,7 +79,7 @@ function inputDom(model, updateParent) {
                                   ).dom(),
                         ]),
                         dom("td", {}, [
-                            yi
+                            yi !== undefined
                                 ? `$${model.ce.parse(yi).latex}$`
                                 : new MathField.View(
                                       {
@@ -96,7 +116,7 @@ function check(model) {
     for (let i = 0; i < n; i++) {
         correct =
             correct &&
-            model.checkerModule["evalsToZero"]("a/b-(y_i-c)/(x_i-d)", {
+            model.checkerModule["evalsToZero"]("a/b*(x_i-d)-(y_i-c)", {
                 x_i: x[i] ?? model.input.get(`x_${i}`),
                 y_i: y[i] ?? model.input.get(`y_${i}`),
                 c: yint,

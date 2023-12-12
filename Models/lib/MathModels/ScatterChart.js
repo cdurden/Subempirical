@@ -57,6 +57,7 @@ function View(model, update) {
         return canvas;
     }
     function updateChart() {
+        chart.canvas.parentNode.style.width = "100vh";
         chart.update();
     }
     return Object.assign(view, { dom: myDom, updateChart });
