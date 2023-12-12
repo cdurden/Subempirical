@@ -44,17 +44,19 @@ function inputDom(model, updateParent) {
         tapeDiagramContainer.append(tapeDiagramMVU.view.dom());
     });
     */
+    const xunitheading = xunit ? `(${xunit})` : "";
+    const yunitheading = yunit ? `(${yunit})` : "";
     return dom("div", { style: "display: flex;" }, [
         dom("div", { style: "float: left;" }, [
             dom("table", { class: "table-of-values" }, [
                 dom("tr", {}, [
                     dom("th", {}, [
-                        `${xlab} (${xunit})`,
+                        `${xlab} ${xunitheading}`,
                         dom("br", {}, []),
                         `$${xvar}$`,
                     ]),
                     dom("th", {}, [
-                        `${ylab} (${yunit})`,
+                        `${ylab} ${yunitheading}`,
                         dom("br", {}, []),
                         `$${yvar}$`,
                     ]),

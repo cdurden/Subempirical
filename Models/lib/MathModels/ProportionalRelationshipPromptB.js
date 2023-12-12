@@ -18,28 +18,36 @@ function randPrompt(rand, params) {
     } = params;
     const paramSets = [
         {
-            situation: `A student can read ${a} pages in ${b} minutes.`,
+            situation: `A student can read ${a} pages in ${
+                b > 1 ? b : "a"
+            } minute${b > 1 ? "s" : ""}.`,
             ylab: "pages read",
             yunit: "",
             xlab: "time",
             xunit: "minutes",
         },
         {
-            situation: `A runner can run ${a} miles in ${b} minutes.`,
+            situation: `A runner can run ${a} miles in ${
+                b > 1 ? b : "a"
+            } minute${b > 1 ? "s" : ""}.`,
             ylab: "distance",
             yunit: "miles",
             xlab: "time",
             xunit: "minutes",
         },
         {
-            situation: `A bicyclist burns ${a} calories every ${b} minutes, while cycling`,
+            situation: `A bicyclist burns ${a} calories every ${
+                b > 1 ? b : ""
+            } minute${b > 1 ? "s" : ""}, while cycling`,
             xlab: "time",
             xunit: "minutes",
             ylab: "energy burned",
             yunit: "calories",
         },
         {
-            situation: `A car can travel ${a} miles on ${b} gallons of gasoline`,
+            situation: `A car can travel ${a} miles on ${
+                b > 1 ? b : "a"
+            } gallon${b > 1 ? "s" : ""} of gasoline`,
             xlab: "gas",
             xunit: "gallons",
             ylab: "distance",

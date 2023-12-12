@@ -122,3 +122,7 @@ div.serial-composite-nav select {
 button.selected {
     box-shadow: 2px 2px 5px #fc894d;
 }
+
+button.multiple-choice-button {
+    margin: 5px;
+}

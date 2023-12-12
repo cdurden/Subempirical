@@ -35,7 +35,11 @@ function View(model, update) {
         );
         const choiceButtonMap = new Map(
             model.choices.map(function (choice) {
-                const buttonElmt = dom("button", {}, choice.label);
+                const buttonElmt = dom(
+                    "button",
+                    { class: "multiple-choice-button" },
+                    choice.label
+                );
                 buttonElmt.addEventListener("click", function (e) {
                     model.value = choice.value;
                     update({
