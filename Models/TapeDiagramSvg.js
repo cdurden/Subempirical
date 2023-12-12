@@ -26,12 +26,10 @@ function Model(paramsMap) {
 
     Object.setPrototypeOf(self, Model.prototype);
     const data = {
-        a: 14,
-        b: 20,
-        h: 1,
-        w: "",
-        nSectors: 8,
-        sectorLabel: "",
+        tapes: new Map([
+            ["a", [{ label: "x", size: 4 }]],
+            ["b", [{ label: "10", size: 10 }]],
+        ]),
     };
     function setSectorLabel(label) {
         data.sectorLabel = label;
@@ -99,15 +97,6 @@ function View(model, update) {
             "text-anchor": "middle",
         });
         return drawing;
-    }
-    function drawGrid(group, x, y, n, l, h, fill = "none") {
-        var drawing;
-        for (let i = 0; i < l; i++) {
-            for (let j = 0; j < Math.min(h, n - i * h); j++) {
-                drawing = drawBox(group, x + i, y + j, 1, 1, fill);
-            }
-        }
-        return group;
     }
     function render() {
         return new Promise(function (resolve) {

@@ -89,14 +89,18 @@ function inputDom(model, updateParent) {
 
 function check(model) {
     const { a, b, x, y } = model.params;
+    const yint = model.params.yint ?? 0;
+    const xint = model.params.xint ?? 0;
     const n = Math.max(x.length, y.length);
     var correct = true;
     for (let i = 0; i < n; i++) {
         correct =
             correct &&
-            model.checkerModule["evalsToZero"]("a/b-y_i/x_i", {
+            model.checkerModule["evalsToZero"]("a/b-(y_i-c)/(x_i-d)", {
                 x_i: x[i] ?? model.input.get(`x_${i}`),
                 y_i: y[i] ?? model.input.get(`y_${i}`),
+                c: yint,
+                d: xint,
                 a,
                 b,
             });

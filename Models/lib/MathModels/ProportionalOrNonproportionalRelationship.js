@@ -1,30 +1,28 @@
-import * as MathField from "../MathField.js";
+import * as MultipleChoiceSelector from "../MultipleChoiceSelector.js";
 import * as SubmitButton from "../SubmitButton.js";
 import * as FeedbackMessage from "../FeedbackMessage.js";
 import { init as initFeedback } from "../../AutoCheckerFeedback.js";
 import * as HtmlTapeDiagram from "../../HtmlTapeDiagramEquation.js";
 import { init as initAreaModel } from "../../AreaModelSvg.js";
 import { dom, zip, loadStylesheet } from "../../../lib/common.js";
-import * as ProportionalRelationshipTable from "./ProportionalRelationshipTable.js";
-import * as WriteEquationOfProportionalRelationship from "./WriteEquationOfProportionalRelationship.js";
 import * as DoubleNumberLine from "./DoubleNumberLine.js";
 import * as Prompt from "./Prompt.js";
-import * as ProportionalRelationshipPrompt from "./ProportionalRelationshipPrompt.js";
+import * as ProportionalOrNonproportionalRelationshipPrompt from "./ProportionalOrNonproportionalRelationshipPrompt.js";
 import * as ScatterChart from "./ScatterChart.js";
 
 function Model(paramsMap) {
     const rand = paramsMap.get("rand");
     return new Prompt.Model(paramsMap).then(function (model) {
         function prompt() {
-            const { situation, detail } = {
+            const { situation, detail, xlab, ylab } = {
                 ...model.params,
             };
-            return `${situation} ${detail ?? ""}`;
+            return `${situation} ${detail ?? ""} Is the relationship between ${ylab} and ${xlab} proportional or non-proportional?`;
         }
-        function check(model) {
+        function check() {
             return (
-                WriteEquationOfProportionalRelationship.check(model) &&
-                ProportionalRelationshipTable.check(model)
+                model.input.get("isProportional") ===
+                model.params.isProportional
             );
         }
         return Object.assign(model, { check, prompt });
@@ -66,63 +64,36 @@ function View(model, update) {
         return view.wrap([
             dom("div", { class: "container" }, [
                 model.prompt(),
-                showHint
-                    ? dom(
-                          "div",
-                          {
-                              class: "hint-container",
-                          },
-                          [
-                              dom("b", {}, "Hint: "),
-                              `What is the GCF of ${x[0]} and ${y[0]}? Set the height of the area model to the GCF and use it express one number as a fraction of the other.`,
-                              dom("div", { class: "area-model-container" }, [
-                                  view.children.get("areaModel").rootElement,
-                              ]),
-                          ]
-                      )
-                    : [],
-                dom("div", { style: "display: flex;" }, [
-                    dom("div", { class: "container" }, [
-                        "a. ",
-                        ProportionalRelationshipTable.prompt(model, {
-                            abbreviate: true,
-                        }),
-                        ProportionalRelationshipTable.inputDom(model, update),
-                    ]),
-                    dom("div", {}, [
-                        dom("div", { class: "container" }, [
-                            "b. ",
-                            WriteEquationOfProportionalRelationship.prompt(
-                                model,
-                                {
-                                    abbreviate: true,
-                                }
-                            ),
-                            WriteEquationOfProportionalRelationship.inputDom(
-                                model,
-                                update
-                            ),
-                        ]),
-                        dom("div", { class: "container" }, [
-                            "c. ",
-                            scatterChartView?.dom(),
-                        ]),
-                        /*
-                dom("div", {}, [
-                    "b. ",
-                    DoubleNumberLine.prompt(model, { abbreviate: true }),
-                ]),
-                */
-                    ]),
-                ]),
-                //tapeDiagramContainer,
-                //feedbackDom,
+                new MultipleChoiceSelector.View(
+                    {
+                        choices: [
+                            {
+                                name: "isProportional",
+                                value: "true",
+                                label: "Proportional",
+                            },
+                            {
+                                name: "isProportional",
+                                value: "false",
+                                label: "Non-proportional",
+                            },
+                        ],
+                        name: "isProportional",
+                        value: model.input.get("isProportional"),
+                    },
+                    function (message) {
+                        model.input.set("isProportional", message.value);
+                        update(message);
+                    }
+                ).dom(),
+                /*
                 dom("div", { class: "feedback-container" }, [
                     view.children.get("feedback").rootElement,
                 ]),
                 ...(model.paramsMap.get("printMode")
                     ? []
                     : [new SubmitButton.View(model, update).dom()]),
+                    */
             ]),
         ]);
     }
@@ -186,7 +157,10 @@ function init(paramsMap, updateParentServices) {
             .then(function (params) {
                 model.setParams({
                     ...params,
-                    ...ProportionalRelationshipPrompt.randPrompt(rand, params),
+                    ...ProportionalOrNonproportionalRelationshipPrompt.randPrompt(
+                        rand,
+                        params
+                    ),
                 });
             });
 
@@ -245,6 +219,7 @@ function init(paramsMap, updateParentServices) {
                 updatePrompt(message);
                 */
             }
+            updateParent(message);
         }
         return updatePrompt({
             action: "initChildren",
@@ -255,7 +230,7 @@ function init(paramsMap, updateParentServices) {
         }).then(function ([feedbackMVU, areaModelMVU]) {
             areaModelMVU.update({
                 action: "setData",
-                data: { a: model.params.x[0], b: model.params.y[0] },
+                data: { a: model.params.a, b: model.params.b },
             });
             areaModelMVU.view.render();
             ScatterChart.init(paramsMap, update).then(function (
@@ -270,4 +245,4 @@ function init(paramsMap, updateParentServices) {
     });
 }
 
-export { init };
+export { init, View };

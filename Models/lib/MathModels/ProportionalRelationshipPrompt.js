@@ -91,6 +91,7 @@ function randPrompt(rand, params) {
     return {
         xvar,
         yvar,
+        graphType: "B",
         ...paramSet,
     };
 }

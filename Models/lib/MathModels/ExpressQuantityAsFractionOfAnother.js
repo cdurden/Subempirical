@@ -135,7 +135,7 @@ function init(paramsMap, updateParentServices) {
             }
         }
         return updatePrompt({
-            action: "addChildren",
+            action: "initChildren",
             children: new Map([
                 ["feedback", initFeedback],
                 ["areaModel", initAreaModel],

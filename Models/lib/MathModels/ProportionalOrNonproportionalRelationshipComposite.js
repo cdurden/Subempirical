@@ -6,11 +6,13 @@ import * as HtmlTapeDiagram from "../../HtmlTapeDiagramEquation.js";
 import { init as initAreaModel } from "../../AreaModelSvg.js";
 import { dom, zip, loadStylesheet } from "../../../lib/common.js";
 import * as ProportionalRelationshipTable from "./ProportionalRelationshipTable.js";
+import * as ProportionalOrNonproportionalRelationship from "./ProportionalOrNonproportionalRelationship.js";
+import * as ProportionalOrNonproportionalRelationshipPrompt from "./ProportionalOrNonproportionalRelationshipPrompt.js";
+import * as ProportionalOrNonproportionalGraph from "./ProportionalOrNonproportionalGraph.js";
+import { init as initPropOrNonpropGraph } from "./ProportionalOrNonproportionalGraph.js";
 import * as WriteEquationOfProportionalRelationship from "./WriteEquationOfProportionalRelationship.js";
-import * as DoubleNumberLine from "./DoubleNumberLine.js";
-import * as Prompt from "./Prompt.js";
-import * as ProportionalRelationshipPrompt from "./ProportionalRelationshipPrompt.js";
 import * as ScatterChart from "./ScatterChart.js";
+import * as Prompt from "./Prompt.js";
 
 function Model(paramsMap) {
     const rand = paramsMap.get("rand");
@@ -21,10 +23,22 @@ function Model(paramsMap) {
             };
             return `${situation} ${detail ?? ""}`;
         }
-        function check(model) {
+        function check() {
+            var eqnCheck;
+            if (
+                model.children
+                    .get("propOrNonprop")
+                    .input.get("isProportional") === "true"
+            ) {
+                eqnCheck = WriteEquationOfProportionalRelationship.check(model);
+            } else {
+                eqnCheck = true;
+            }
             return (
-                WriteEquationOfProportionalRelationship.check(model) &&
-                ProportionalRelationshipTable.check(model)
+                model.children.get("propOrNonprop").check() &&
+                model.children.get("propOrNonpropGraph").check() &&
+                ProportionalRelationshipTable.check(model) &&
+                eqnCheck
             );
         }
         return Object.assign(model, { check, prompt });
@@ -35,86 +49,58 @@ function View(model, update) {
     const view = new Prompt.View(model, update);
     const feedbackView = new FeedbackMessage.View(model, update);
     var scatterChartView;
-    /*
-    const feedbackDom = dom("div", { class: "feedback-container" }, [
-        feedbackView.dom(),
-    ]);
-    */
     const tapeDiagramContainer = dom("div", { style: "float: left;" }, []);
-    /*
-    HtmlTapeDiagram.init(
-        new Map([
-            ...Array.from(model.paramsMap.entries()),
-            ["xlab", model.params.xlab],
-            ["ylab", model.params.ylab],
-        ]),
-        update
-    ).then(function (tapeDiagramMVU) {
-        tapeDiagramContainer.append(tapeDiagramMVU.view.dom());
-    });
-    */
     const areaModelContainer = dom("div", { style: "float: left;" }, []);
-    /*
-    function renderFeedback(correct) {
-        model.correct = correct;
-        feedbackView.setVisible(true);
-        feedbackDom.replaceChildren(feedbackView.dom());
-    }
-    */
+    view.showProportionalInputs = function () {};
     function myDom() {
         const { a, b, x, y, xlab, ylab, showHint } = model.params;
+        const proportionalInputs = dom("div", { style: "display: flex;" }, [
+            dom("div", { class: "container" }, [
+                "e. ",
+                WriteEquationOfProportionalRelationship.prompt(model, {
+                    abbreviate: true,
+                }),
+                WriteEquationOfProportionalRelationship.inputDom(model, update),
+            ]),
+        ]);
+        view.showProportionalInputs = function (show) {
+            if (show) {
+                proportionalInputs.style.display = "block";
+            } else {
+                proportionalInputs.style.display = "none";
+            }
+        };
+        view.showProportionalInputs(
+            model.children.get("propOrNonprop").input.get("isProportional") ===
+                "true"
+        );
         return view.wrap([
             dom("div", { class: "container" }, [
-                model.prompt(),
-                showHint
-                    ? dom(
-                          "div",
-                          {
-                              class: "hint-container",
-                          },
-                          [
-                              dom("b", {}, "Hint: "),
-                              `What is the GCF of ${x[0]} and ${y[0]}? Set the height of the area model to the GCF and use it express one number as a fraction of the other.`,
-                              dom("div", { class: "area-model-container" }, [
-                                  view.children.get("areaModel").rootElement,
-                              ]),
-                          ]
-                      )
-                    : [],
+                dom("div", { class: "container" }, [
+                    "a. ",
+                    view.children.get("propOrNonprop").dom(),
+                ]),
+                dom("div", { style: "display: flex;", class: "container" }, [
+                    "b. ",
+                    view.children.get("propOrNonpropGraph").dom(),
+                ]),
                 dom("div", { style: "display: flex;" }, [
                     dom("div", { class: "container" }, [
-                        "a. ",
+                        "c. ",
                         ProportionalRelationshipTable.prompt(model, {
                             abbreviate: true,
                         }),
                         ProportionalRelationshipTable.inputDom(model, update),
                     ]),
                     dom("div", {}, [
-                        dom("div", { class: "container" }, [
-                            "b. ",
-                            WriteEquationOfProportionalRelationship.prompt(
-                                model,
-                                {
-                                    abbreviate: true,
-                                }
-                            ),
-                            WriteEquationOfProportionalRelationship.inputDom(
-                                model,
-                                update
-                            ),
-                        ]),
-                        dom("div", { class: "container" }, [
-                            "c. ",
-                            scatterChartView?.dom(),
-                        ]),
-                        /*
-                dom("div", {}, [
-                    "b. ",
-                    DoubleNumberLine.prompt(model, { abbreviate: true }),
-                ]),
-                */
+                        dom(
+                            "div",
+                            { class: "container", style: "width: 500px;" },
+                            ["d. ", scatterChartView?.dom()]
+                        ),
                     ]),
                 ]),
+                proportionalInputs,
                 //tapeDiagramContainer,
                 //feedbackDom,
                 dom("div", { class: "feedback-container" }, [
@@ -178,40 +164,6 @@ function init(paramsMap, updateParentServices) {
             view,
             updateParentServices
         );
-        updateParentServices
-            .get("ParamGenerator")({
-                action: "generateParams",
-                paramsSpec: paramsMap.get("promptParamsSpec"),
-            })
-            .then(function (params) {
-                model.setParams({
-                    ...params,
-                    ...ProportionalRelationshipPrompt.randPrompt(rand, params),
-                });
-            });
-
-        /*
-            init(
-                paramsMap,
-                new Map([...updateParentServices, ["parent", function () {}]])
-            ).then(function (feedbackMVU) {
-                updatePrompt({
-                    action: "addChild",
-                    childId: "feedback",
-                    child: feedbackMVU,
-                });
-            });
-        AreaModel.init(
-            paramsMap,
-            new Map([...updateParentServices, ["parent", function () {}]])
-        ).then(function (areaModelMVU) {
-            updatePrompt({
-                action: "addChild",
-                childId: "areaModel",
-                child: areaModelMVU,
-            });
-        });
-        */
         const updateScatterCharts = [];
         function update(message) {
             if (message.action === "submit") {
@@ -227,6 +179,9 @@ function init(paramsMap, updateParentServices) {
                 });
                 //updateParent(message);
             } else if (message.action === "setInput") {
+                if (message.name === "isProportional") {
+                    view.showProportionalInputs(message.value === "true");
+                }
                 updateScatterCharts.forEach(function (updateScatterChart) {
                     updateScatterChart({
                         action: "setData",
@@ -246,26 +201,55 @@ function init(paramsMap, updateParentServices) {
                 */
             }
         }
-        return updatePrompt({
-            action: "initChildren",
-            children: new Map([
-                ["feedback", initFeedback],
-                ["areaModel", initAreaModel],
-            ]),
-        }).then(function ([feedbackMVU, areaModelMVU]) {
-            areaModelMVU.update({
-                action: "setData",
-                data: { a: model.params.x[0], b: model.params.y[0] },
+        return ProportionalOrNonproportionalRelationship.init(
+            paramsMap,
+            new Map([...updateParentServices, ["parent", update]])
+        ).then(function (propOrNonpropMVU) {
+            model.setParams(propOrNonpropMVU.model.params);
+            updatePrompt({
+                action: "addChildren",
+                children: new Map([["propOrNonprop", propOrNonpropMVU]]),
             });
-            areaModelMVU.view.render();
-            ScatterChart.init(paramsMap, update).then(function (
-                scatterChartMVU
-            ) {
-                view.addScatterChartView(scatterChartMVU.view);
-                updateScatterCharts.push(scatterChartMVU.update);
-                view.render();
+
+            /*
+        updateParentServices
+            .get("ParamGenerator")({
+                action: "generateParams",
+                paramsSpec: paramsMap.get("promptParamsSpec"),
+            })
+            .then(function (params) {
+                model.setParams({
+                    ...params,
+                    ...ProportionalOrNonproportionalRelationshipPrompt.randPrompt(
+                        rand,
+                        params
+                    ),
+                });
             });
-            return { model, view, update };
+            */
+            return updatePrompt({
+                action: "initChildren",
+                children: new Map([
+                    ["feedback", initFeedback],
+                    ["areaModel", initAreaModel],
+                    ["propOrNonpropGraph", initPropOrNonpropGraph],
+                ]),
+            }).then(function ([feedbackMVU, areaModelMVU, propOrNonPropMVU]) {
+                areaModelMVU.update({
+                    action: "setData",
+                    data: { a: model.params.a, b: model.params.b },
+                });
+                propOrNonPropMVU.model.setParams(model.params);
+                areaModelMVU.view.render();
+                ScatterChart.init(paramsMap, update).then(function (
+                    scatterChartMVU
+                ) {
+                    view.addScatterChartView(scatterChartMVU.view);
+                    updateScatterCharts.push(scatterChartMVU.update);
+                    view.render();
+                });
+                return { model, view, update };
+            });
         });
     });
 }

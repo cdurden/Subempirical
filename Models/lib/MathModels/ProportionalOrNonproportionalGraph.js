@@ -1,31 +1,32 @@
-import * as MathField from "../MathField.js";
+import * as MultipleChoiceSelector from "../MultipleChoiceSelector.js";
 import * as SubmitButton from "../SubmitButton.js";
 import * as FeedbackMessage from "../FeedbackMessage.js";
 import { init as initFeedback } from "../../AutoCheckerFeedback.js";
 import * as HtmlTapeDiagram from "../../HtmlTapeDiagramEquation.js";
 import { init as initAreaModel } from "../../AreaModelSvg.js";
 import { dom, zip, loadStylesheet } from "../../../lib/common.js";
-import * as ProportionalRelationshipTable from "./ProportionalRelationshipTable.js";
-import * as WriteEquationOfProportionalRelationship from "./WriteEquationOfProportionalRelationship.js";
 import * as DoubleNumberLine from "./DoubleNumberLine.js";
 import * as Prompt from "./Prompt.js";
-import * as ProportionalRelationshipPrompt from "./ProportionalRelationshipPrompt.js";
+import * as ProportionalOrNonproportionalRelationshipPrompt from "./ProportionalOrNonproportionalRelationshipPrompt.js";
 import * as ScatterChart from "./ScatterChart.js";
 
 function Model(paramsMap) {
     const rand = paramsMap.get("rand");
     return new Prompt.Model(paramsMap).then(function (model) {
-        function prompt() {
+        function prompt({ abbreviate }) {
+            const shortPrompt =
+                "What would the graph of this relationship look like?";
             const { situation, detail } = {
                 ...model.params,
             };
-            return `${situation} ${detail ?? ""}`;
+            if (abbreviate) {
+                return shortPrompt;
+            } else {
+                return `${situation} ${detail ?? ""} ${shortPrompt}`;
+            }
         }
-        function check(model) {
-            return (
-                WriteEquationOfProportionalRelationship.check(model) &&
-                ProportionalRelationshipTable.check(model)
-            );
+        function check() {
+            return model.input.get("graphType") === model.params.graphType;
         }
         return Object.assign(model, { check, prompt });
     });
@@ -61,68 +62,58 @@ function View(model, update) {
         feedbackDom.replaceChildren(feedbackView.dom());
     }
     */
-    function myDom() {
+    function myDom(options) {
         const { a, b, x, y, xlab, ylab, showHint } = model.params;
         return view.wrap([
             dom("div", { class: "container" }, [
-                model.prompt(),
-                showHint
-                    ? dom(
-                          "div",
-                          {
-                              class: "hint-container",
-                          },
-                          [
-                              dom("b", {}, "Hint: "),
-                              `What is the GCF of ${x[0]} and ${y[0]}? Set the height of the area model to the GCF and use it express one number as a fraction of the other.`,
-                              dom("div", { class: "area-model-container" }, [
-                                  view.children.get("areaModel").rootElement,
-                              ]),
-                          ]
-                      )
-                    : [],
-                dom("div", { style: "display: flex;" }, [
-                    dom("div", { class: "container" }, [
-                        "a. ",
-                        ProportionalRelationshipTable.prompt(model, {
-                            abbreviate: true,
-                        }),
-                        ProportionalRelationshipTable.inputDom(model, update),
-                    ]),
-                    dom("div", {}, [
-                        dom("div", { class: "container" }, [
-                            "b. ",
-                            WriteEquationOfProportionalRelationship.prompt(
-                                model,
-                                {
-                                    abbreviate: true,
-                                }
-                            ),
-                            WriteEquationOfProportionalRelationship.inputDom(
-                                model,
-                                update
-                            ),
-                        ]),
-                        dom("div", { class: "container" }, [
-                            "c. ",
-                            scatterChartView?.dom(),
-                        ]),
-                        /*
-                dom("div", {}, [
-                    "b. ",
-                    DoubleNumberLine.prompt(model, { abbreviate: true }),
-                ]),
-                */
-                    ]),
-                ]),
-                //tapeDiagramContainer,
-                //feedbackDom,
+                model.prompt({ abbreviate: true, ...options }),
+                new MultipleChoiceSelector.View(
+                    {
+                        name: "graphType",
+                        choices: [
+                            {
+                                value: "A",
+                                label: [
+                                    dom("img", {
+                                        src:
+                                            "./Models/lib/MathModels/images/ProportionalOrNonproportionalGraphA.png",
+                                    }),
+                                ],
+                            },
+                            {
+                                value: "B",
+                                label: [
+                                    dom("img", {
+                                        src:
+                                            "./Models/lib/MathModels/images/ProportionalOrNonproportionalGraphB.png",
+                                    }),
+                                ],
+                            },
+                            {
+                                value: "C",
+                                label: [
+                                    dom("img", {
+                                        src:
+                                            "./Models/lib/MathModels/images/ProportionalOrNonproportionalGraphC.png",
+                                    }),
+                                ],
+                            },
+                        ],
+                        value: model.input.get("graphType"),
+                    },
+                    function (message) {
+                        model.input.set(message.name, message.value);
+                        //updateParent(message);
+                    }
+                ).dom(),
+                /*
                 dom("div", { class: "feedback-container" }, [
                     view.children.get("feedback").rootElement,
                 ]),
                 ...(model.paramsMap.get("printMode")
                     ? []
                     : [new SubmitButton.View(model, update).dom()]),
+                */
             ]),
         ]);
     }
@@ -186,7 +177,10 @@ function init(paramsMap, updateParentServices) {
             .then(function (params) {
                 model.setParams({
                     ...params,
-                    ...ProportionalRelationshipPrompt.randPrompt(rand, params),
+                    ...ProportionalOrNonproportionalRelationshipPrompt.randPrompt(
+                        rand,
+                        params
+                    ),
                 });
             });
 
@@ -270,4 +264,4 @@ function init(paramsMap, updateParentServices) {
     });
 }
 
-export { init };
+export { init, View };

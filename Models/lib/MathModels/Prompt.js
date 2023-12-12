@@ -6,6 +6,7 @@ import * as Base from "./Base.js";
 function Model(paramsMap) {
     return new Base.Model(paramsMap).then(function (model) {
         model.history = [];
+        model.children = new Map();
         function setPrompt(prompt) {
             model.prompt = prompt;
         }
@@ -15,7 +16,15 @@ function Model(paramsMap) {
         function setLabel(label) {
             model.label = label;
         }
-        return Object.assign(model, { setPrompt, setChecker, setLabel });
+        function addChild(childId, childModel) {
+            model.children.set(childId, childModel);
+        }
+        return Object.assign(model, {
+            addChild,
+            setPrompt,
+            setChecker,
+            setLabel,
+        });
     });
 }
 
@@ -63,6 +72,18 @@ function updateFactory(model, view, updateParentServices) {
             return Promise.all(
                 Array.from(message.children.entries()).map(function ([
                     childId,
+                    childMVU,
+                ]) {
+                    view.addChild(childId, childMVU.view);
+                    model.addChild(childId, childMVU.model);
+                    updateChildren.set(childId, childMVU.update);
+                    return Promise.resolve(childMVU);
+                })
+            );
+        } else if (message.action === "initChildren") {
+            return Promise.all(
+                Array.from(message.children.entries()).map(function ([
+                    childId,
                     init,
                 ]) {
                     return init(
@@ -73,6 +94,7 @@ function updateFactory(model, view, updateParentServices) {
                         ])
                     ).then(function (childMVU) {
                         view.addChild(childId, childMVU.view);
+                        model.addChild(childId, childMVU.model);
                         updateChildren.set(childId, childMVU.update);
                         return childMVU;
                     });

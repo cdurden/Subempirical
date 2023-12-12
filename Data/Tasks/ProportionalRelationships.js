@@ -1713,5 +1713,130 @@ const taskParamsMap = new Map([
             ["title", "Proportional relationship with inverse operations"],
         ]),
     ],
+    [
+        "ProportionalOrNonproportionalRelationshipComposite",
+        new Map([
+            [
+                "moduleUrl",
+                "./Models/lib/MathModels/ProportionalOrNonproportionalRelationshipComposite.js",
+            ],
+            ["services", ["Mathlive", "MathJax", "ParamGenerator"]],
+            [
+                "promptParamsSpec",
+                new Map([
+                    [
+                        "person",
+                        {
+                            generator: "raw",
+                            options: { value: "Sean" },
+                        },
+                    ],
+                    [
+                        "recipe",
+                        {
+                            generator: "raw",
+                            options: { value: "bread" },
+                        },
+                    ],
+                    [
+                        "xlab",
+                        {
+                            generator: "raw",
+                            options: { value: "flour" },
+                        },
+                    ],
+                    [
+                        "ylab",
+                        {
+                            generator: "raw",
+                            options: { value: "water" },
+                        },
+                    ],
+                    [
+                        "b",
+                        {
+                            generator: "raw",
+                            options: { value: 1 },
+                        },
+                    ],
+                    [
+                        "a",
+                        {
+                            generator: "dynamicRandInt",
+                            options: { min: 5, max: 10 },
+                        },
+                    ],
+                    [
+                        "range",
+                        {
+                            generator: "dynamicRange",
+                            options: {
+                                min: 3,
+                                max: 10,
+                                step: 1,
+                            },
+                        },
+                    ],
+                    [
+                        "x",
+                        {
+                            generator: "dynamicSample",
+                            options: {
+                                from: "range",
+                                n: 3,
+                            },
+                        },
+                    ],
+                    [
+                        "y",
+                        {
+                            generator: "truncate",
+                            options: {
+                                n: 0,
+                                generator: "map",
+                                options: {
+                                    vector: "x",
+                                    expr: "a/b*x_i",
+                                },
+                            },
+                        },
+                    ],
+                ]),
+            ],
+        ]),
+    ],
+    [
+        "ProportionalOrNonproportional",
+        new Map([
+            ["moduleUrl", "./Models/SerialComposite.js"],
+            ["services", ["Mathlive", "MathJax", "ParamGenerator"]],
+            [
+                "tasks",
+                new Map([
+                    [
+                        "Basic",
+                        {
+                            taskPath:
+                                "ProportionalOrNonproportionalRelationshipComposite",
+                            label: "Basic",
+                            reps: 5,
+                        },
+                    ],
+                    //"ProportionalRelationshipCompositeIntermediateA",
+                    //"ProportionalRelationshipCompositeIntermediateB",
+                    //"ProportionalRelationshipCompositeAdvanced",
+                    /*
+                    "DescribeProportionalRelationshipBasic",
+                    "DoubleNumberLineBasic",
+                    "ProportionalRelationshipTableBasic",
+                    "ProportionalRelationshipTableIntermediate",
+                    "ProportionalRelationshipTableAdvanced",
+                    */
+                ]),
+            ],
+            ["directions", ""],
+            ["title", "Is it proportional?"],
+        ]),
+    ],
 ]);
 console.log(JSON.stringify(taskParamsMap, mapReplacer));
