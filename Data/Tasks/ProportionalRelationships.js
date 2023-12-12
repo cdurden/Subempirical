@@ -1819,7 +1819,7 @@ const taskParamsMap = new Map([
                             taskPath:
                                 "ProportionalOrNonproportionalRelationshipComposite",
                             label: "Basic",
-                            reps: 5,
+                            reps: 8,
                         },
                     ],
                     //"ProportionalRelationshipCompositeIntermediateA",
