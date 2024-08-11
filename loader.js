@@ -66,7 +66,7 @@ function init(paramsMap, updateParent) {
                         module
                             .init(
                                 paramsMap,
-                                new Map([...updateServices, ["parent", update]])
+                                new Map([...updateServices, ["loader", update]])
                             )
                             .then(function ({ model, view, update }) {
                                 updateServices.get("parent")({

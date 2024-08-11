@@ -12,30 +12,34 @@ function typeset(code) {
 }
 
 function init(paramsMap, updateParent) {
-    return Promise.all([
-        loadResource("MathJax", { baseURL: paramsMap.get("baseURL") }, false),
-        loadResource(
-            "MathJax-config",
+    return loadResource(
+        "MathJax-OpenMiddle-config",
+        { baseURL: paramsMap.get("baseURL") },
+        false
+    ).then(function (mathJaxConfigModule) {
+        console.log(MathJax);
+        return loadResource(
+            "MathJax",
             { baseURL: paramsMap.get("baseURL") },
             false
-        ),
-    ]).then(function ([mathJaxModule, mathJaxConfig]) {
-        function update(message) {
-            if (message.action === "typeset") {
-                function typesetElement() {
-                    typeset(function () {
-                        return [message.element];
-                    });
+        ).then(function (mathJaxModule) {
+            function update(message) {
+                if (message.action === "typeset") {
+                    function typesetElement() {
+                        return typeset(function () {
+                            return [message.element];
+                        });
+                    }
+                    return callWhenReady(
+                        "DOMContentLoadedAndMathJaxReady",
+                        window.mathJaxReady,
+                        typesetElement
+                    );
                 }
-                callWhenReady(
-                    "DOMContentLoadedAndMathJaxReady",
-                    window.mathJaxReady,
-                    typesetElement
-                );
+                return true;
             }
-            return true;
-        }
-        return update;
+            return update;
+        });
     });
 }
 

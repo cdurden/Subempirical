@@ -29,7 +29,7 @@ function Model(paramsMap) {
 }
 
 function View(model, update) {
-    const self = new Base.View(model, update);
+    const view = new Base.View(model, update);
     var inputDom;
     function myDom(children) {
         //const { a, b, m, n } = model.params;
@@ -38,7 +38,17 @@ function View(model, update) {
         });
         return dom("div", { class: "math-prompt" }, children);
     }
-    return Object.assign(self, { wrap: myDom });
+    function render() {
+                view.rootElement.appendChild(myDom([view.dom()]));
+        return update({
+            action: "typeset",
+            element: view.rootElement,
+        }).then(function () {
+            return view.rootElement;
+        });
+        return Promise.resolve(view);
+    }
+    return Object.assign(view, { wrap: myDom, render });
 }
 
 function init(paramsMap, updateParent) {

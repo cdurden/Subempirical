@@ -1,4 +1,6 @@
-import { any, all, getFile, mapReplacer, loadResource } from "../lib/common.js";
+import { any, all, mapReplacer, loadResource } from "../lib/common.js";
+
+import { init as initAlgebraTile } from "./AlgebraTileSvg.js";
 const doClone = false;
 const displace = true;
 const minStack = 0;
@@ -23,20 +25,6 @@ function insertMath(tex, container) {
     mathJaxElement.innerHTML = `\\(${tex}\\)`;
     container.appendChild(mathJaxElement);
     return mathJaxElement;
-}
-
-// MathJax typesetting needs to be done after the elements
-// containing math have been inserted into the DOM.
-// See also https://www.peterkrautzberger.org/0165/
-function typeset(code) {
-    const mathJaxElements = code();
-    return MathJax.typesetPromise(mathJaxElements)
-        .then(function () {
-            return mathJaxElements;
-        })
-        .catch(function (err) {
-            console.log("Typeset failed: " + err.message);
-        });
 }
 
 function SpaceView(svgElmt) {
@@ -133,13 +121,6 @@ function makeTileViewDraggable(view, tileView, update) {
             const interaction = event.interaction;
             tileViewClone = tileView.clone();
             makeTileViewDraggable(view, tileViewClone, update);
-            /*
-                    interaction.start(
-                        { name: "drag" },
-                        event.interactable,
-                        clone.svgElmt
-                    );
-                    */
         });
     }
 }
@@ -224,6 +205,19 @@ function View(model, update) {
     const rootElement = document.createElement("div");
     const tileViewMap = new Map();
     const spaceViewMap = new Map();
+    const scale = 50;
+    const width = 10;
+    const height = 5;
+    const boundingRect = {
+        x: 0,
+        y: 0,
+        height: height * scale,
+        width: width * scale,
+    };
+    const draw = SVG()
+        .addTo(rootElement)
+        .size(width * scale, height * scale)
+        .viewbox(boundingRect);
     function addSpaceView(spaceView) {
         if (spaceViewMap.has(spaceView.spaceId)) {
             spaceViewMap.get(spaceView.spaceId).push(spaceView);
@@ -233,6 +227,9 @@ function View(model, update) {
     }
     function addTileView(tileView) {
         tileViewMap.set(tileView.tileId, tileView);
+        tileView.render().then(function () {
+            makeTileViewDraggable(self, tileView, update);
+        });
     }
     function getSpaceViews(spaceId) {
         return spaceViewMap.get(spaceId) || [];
@@ -240,32 +237,27 @@ function View(model, update) {
     const feedback = document.createElement("div");
     function render() {
         return new Promise(function (resolve) {
-            update({
-                action: "typeset",
-                element: insertMath(model.data.omtex, rootElement),
-            }).then(function () {
-                rootElement.appendChild(feedback);
-                Array.from(rootElement.querySelectorAll("svg .openMiddleSpace"))
-                    .sort(function (a, b) {
-                        return (
-                            Number(a.getAttribute("data-space-id")) -
-                            Number(b.getAttribute("data-space-id"))
-                        );
-                    })
-                    .map(function (spaceViewSvgElmt) {
-                        const spaceView = new SpaceView(spaceViewSvgElmt);
-                        addSpaceView(spaceView);
-                        update(
-                            {
-                                action: "createSpace",
-                                spaceId: spaceView.spaceId,
-                            },
-                            self
-                        );
-                    });
-                Array.from(
-                    rootElement.querySelectorAll("svg .openMiddleTile")
-                ).map(function (tileViewSvgElmt, index) {
+            rootElement.appendChild(feedback);
+            Array.from(rootElement.querySelectorAll("svg .dropzone"))
+                .sort(function (a, b) {
+                    return (
+                        Number(a.getAttribute("data-space-id")) -
+                        Number(b.getAttribute("data-space-id"))
+                    );
+                })
+                .map(function (spaceViewSvgElmt) {
+                    const spaceView = new SpaceView(spaceViewSvgElmt);
+                    addSpaceView(spaceView);
+                    update(
+                        {
+                            action: "createSpace",
+                            spaceId: spaceView.spaceId,
+                        },
+                        self
+                    );
+                });
+            Array.from(rootElement.querySelectorAll("svg .draggable")).map(
+                function (tileViewSvgElmt, index) {
                     const tileValue = tileViewSvgElmt.getAttribute(
                         "data-value"
                     );
@@ -281,21 +273,20 @@ function View(model, update) {
                         self
                     );
                     makeTileViewDraggable(self, tileView, update);
+                }
+            );
+            Array.from(spaceViewMap.values()).map(function (spaceViews) {
+                spaceViews.map(function (spaceView) {
+                    interact(spaceView.svgElmt)
+                        .dropzone({
+                            overlap: 0.01,
+                        })
+                        .on("dropactivate", function (event) {
+                            event.target.classList.add("drop-activated");
+                        });
                 });
-                Array.from(spaceViewMap.values()).map(function (spaceViews) {
-                    spaceViews.map(function (spaceView) {
-                        interact(spaceView.svgElmt)
-                            .dropzone({
-                                overlap: 0.01,
-                            })
-                            .on("dropactivate", function (event) {
-                                event.target.classList.add("drop-activated");
-                            });
-                    });
-                });
-                //model.finalize(self);
-                resolve(self);
             });
+            resolve(self);
         });
     }
     const placedTileViewsMap = new Map();
@@ -335,10 +326,12 @@ function View(model, update) {
         placedTileViewsMap.clear();
     }
     return Object.assign(self, {
+        draw,
         rootElement,
         render,
         placeTiles,
         getSpaceViews,
+        addTileView,
     });
 }
 
@@ -452,33 +445,45 @@ function Model(paramsMap) {
         updateHandlers.push(updateHandler);
     }
     return new Promise(function (resolve) {
-        getFile(paramsMap.get("file")).then(function (response) {
-            data.omtex = response.data;
-            resolve(
-                Object.assign(self, {
-                    data,
-                    exportModel,
-                    areSpacesFull,
-                    //addUpdateHandler,
-                    createSpace,
-                    createTile,
-                    getSpace,
-                    getTile,
-                    findSpaceContaining,
-                })
-            );
-        });
+        resolve(
+            Object.assign(self, {
+                data,
+                exportModel,
+                areSpacesFull,
+                //addUpdateHandler,
+                createSpace,
+                createTile,
+                getSpace,
+                getTile,
+                findSpaceContaining,
+            })
+        );
     });
 }
 
 function init(paramsMap, updateParentServices) {
     const rand = paramsMap.get("rand");
     const updateParent = updateParentServices.get("parent");
-    return Promise.all([loadResource("InteractJS")]).then(function () {
+    return Promise.all([
+        loadResource("SVGdotJS", {}, false),
+        loadResource("InteractJS"),
+    ]).then(function ([svgDotJsModule, interactJsModule]) {
         return Promise.resolve(new Model(paramsMap)).then(function (model) {
             const view = new View(model, update);
+            initAlgebraTile(
+                new Map([
+                    ["svgRoot", view.draw.node],
+                    ["drawContext", view.draw],
+                ]),
+                new Map([["parent", update]])
+            ).then(function (algebraTileMVU) {
+                update({ action: "addTile", algebraTileMVU });
+                //algebraTileMVU.view.render();
+            });
             function update(message) {
-                if (message.action === "add") {
+                if (message.action === "addTile") {
+                    view.addTileView(message.algebraTileMVU.view);
+                } else if (message.action === "add") {
                     model
                         .getSpace(message.spaceId)
                         .addTile(model.getTile(message.tileId));
@@ -490,8 +495,6 @@ function init(paramsMap, updateParentServices) {
                     model.createTile(message.tileId, message.tileValue);
                 } else if (message.action === "createSpace") {
                     model.createSpace(message.spaceId);
-                } else if (message.action === "typeset") {
-                    return updateParentServices.get("MathJax")(message);
                 }
                 view.placeTiles(model);
                 return true;

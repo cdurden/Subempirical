@@ -48,10 +48,47 @@ function View(model, update) {
                 x: {
                     type: "linear",
                     position: "bottom",
+                    min: 0,
+                    max: model.maxX,
+                },
+                y: {
+                    type: "linear",
+                    position: "bottom",
+                    min: 0,
+                    max: model.maxY,
                 },
             },
         },
     });
+    function clickHandler(event) {
+        let scaleRef, valueX, valueY;
+
+        for (var scaleKey in chart.scales) {
+            scaleRef = chart.scales[scaleKey];
+            if (scaleRef.isHorizontal() && scaleKey == "x") {
+                valueX = scaleRef.getValueForPixel(event.offsetX);
+            } else if (scaleKey == "y") {
+                valueY = scaleRef.getValueForPixel(event.offsetY);
+            }
+        }
+
+        if (
+            valueX > chart.scales["x"].min &&
+            valueX < chart.scales["x"].max &&
+            valueY > chart.scales["y"].min &&
+            valueY < chart.scales["y"].max
+        ) {
+            chart.data.datasets.forEach((dataset) => {
+                dataset.data.push({
+                    x: valueX,
+                    y: valueY,
+                    extraInfo: "info",
+                });
+            });
+            chart.update();
+        }
+    }
+    canvas.addEventListener("click", clickHandler);
     function myDom() {
         chart.update();
         return canvas;
