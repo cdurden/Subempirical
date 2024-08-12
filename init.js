@@ -12,8 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
         query,
         joinPath,
     }) {
-        const searchParams = new URLSearchParams(window.location.search);
-        getFile(searchParams.get("tasksFile") ?? "./Data/Tasks/Chapter9.json", {
+        getFile(tasksFile, {
             transformResponse: (response) => response,
             baseURL,
         })
@@ -21,7 +20,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 return JSON.parse(response.data, mapReviver);
             })
             .then(function (taskParamsMap) {
-                const taskPath = searchParams.get("taskPath");
                 //const paramsMap = query(taskParamsMap, taskPath);
                 const paramsMap = new Map([
                     ...Array.from(searchParams.entries()),

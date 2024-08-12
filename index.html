@@ -31,11 +31,15 @@
         <script type="text/javascript" src="loader.js"></script>
         <script type="text/javascript">
             const appUrl = "http://localhost:4096";
+            const searchParams = new URLSearchParams(window.location.search);
+            const taskPath = searchParams.get("taskPath");
+            const seed = getRandomInt(10000);
+            const baseURL = window.location.origin;
+            const tasksFile =
+                searchParams.get("tasksFile") ?? "./Data/Tasks/Chapter9.json";
             function getRandomInt(max) {
                 return Math.floor(Math.random() * max);
             }
-            const seed = getRandomInt(10000);
-            const baseURL = window.location.origin;
             document.addEventListener("DOMContentLoaded", function () {
                 import("./lib/common.js").then(function ({
                     getFile,
@@ -44,38 +48,19 @@
                     query,
                     joinPath,
                 }) {
-                    const searchParams = new URLSearchParams(
-                        window.location.search
-                    );
-                    getFile(
-                        searchParams.get("tasksFile") ??
-                            "./Data/Tasks/Chapter9.json",
-                        {
-                            transformResponse: (response) => response,
-                            baseURL,
-                        }
-                    )
+                    getFile(tasksFile, {
+                        transformResponse: (response) => response,
+                        baseURL,
+                    })
                         .then(function (response) {
                             return JSON.parse(response.data, mapReviver);
                         })
                         .then(function (taskParamsMap) {
-                            const taskPath = searchParams.get("taskPath");
-                            //const paramsMap = query(taskParamsMap, taskPath);
                             const paramsMap = new Map([
                                 ...Array.from(searchParams.entries()),
                                 ...query(taskParamsMap, taskPath),
                             ]);
-                            /*
-                             const paramsMap = new Map([
-                                 ...Array.from(searchParams.entries()),
-                                 ...Array.from(
-                                     taskParamsMap.get(taskId).entries()
-                                 ),
-                             ]);
-            */
-                            //paramsMap.set("taskId", taskId);
                             paramsMap.set("baseURL", baseURL);
-                            //paramsMap.set("taskParamsMap", taskParamsMap);
                             paramsMap.set("seed", seed);
                             init(paramsMap, function (message) {
                                 if (message.action === "submit") {
