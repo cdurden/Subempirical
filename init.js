@@ -69,8 +69,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             `${appUrl}?action=getSubmissions&taskPath=${fullTaskPath}`,
                             {
                                 credentials: "include",
-                                //redirect: "follow",
-                                //mode: "no-cors",
+                                redirect: "follow",
+                                mode: "no-cors",
                             }
                         ).then(function (response) {
                             message.update({
