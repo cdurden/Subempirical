@@ -17,14 +17,16 @@ function init(paramsMap, updateParentServices) {
             view.setVisible(true);
             view.render();
             message.update({
-                action: "sendFeedback",
+                action: "postFeedback",
                 model: message.model,
                 feedbackModel: model,
             });
+            /*
             message.update({
                 ...message.submitMessage,
                 correct: model.correct,
             });
+            */
         }
     }
     return Promise.resolve({ model, view, update });

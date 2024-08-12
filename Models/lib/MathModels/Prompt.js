@@ -39,7 +39,7 @@ function View(model, update) {
         return dom("div", { class: "math-prompt" }, children);
     }
     function render() {
-                view.rootElement.appendChild(myDom([view.dom()]));
+        view.rootElement.appendChild(myDom([view.dom()]));
         return update({
             action: "typeset",
             element: view.rootElement,
@@ -110,6 +110,8 @@ function updateFactory(model, view, updateParentServices) {
                     });
                 })
             );
+        } else if (message.action === "updateChild") {
+            return updateChildren.get(message.childId)(message.message);
         } else if (message.action === "updateChildren") {
             Array.from(updateChildren.entries()).forEach(function ([
                 childName,

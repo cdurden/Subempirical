@@ -12,7 +12,7 @@ function Model(paramsMap) {
             const { a, b } = {
                 ...model.params,
             };
-            return `Use the area model to determine the GCF of ${a} and ${b}.`;
+            return `${b} out of ${a} square units are shaded.`;
         }
         function expressFractionPrompt() {
             const { a, b } = {
@@ -20,25 +20,31 @@ function Model(paramsMap) {
             };
             return `Express ${b} as a fraction of ${a}.`;
         }
-        function check(model) {
-            const { p, q } = model.params;
-            const numerator = Number(
+        function numerator() {
+            return Number(
                 model.ce.parse(model.input.get("fraction").tex, {
                     canonical: false,
                 })._ops[0]._value
-                /*model.ce
+            );
+        }
+
+        function denominator() {
+            return Number(
+                model.ce.parse(model.input.get("fraction").tex, {
+                    canonical: false,
+                })._ops[1]._value
+            );
+        }
+        function check() {
+            const { p, q } = model.params;
+            /*model.ce
                     .box([
                         "Numerator",
                         JSON.parse(model.input.get("fraction").json),
                     ])
                     .toString()
                     */
-            );
-            const denominator = Number(
-                model.ce.parse(model.input.get("fraction").tex, {
-                    canonical: false,
-                })._ops[1]._value
-                /*
+            /*
                 model.ce
                     .box([
                         "Denominator",
@@ -46,13 +52,18 @@ function Model(paramsMap) {
                     ])
                     .toString()
                     */
-            );
 
-            return numerator === q && denominator === p;
+            return model.numerator() === q && model.denominator() === p;
             //WriteEquationOfProportionalRelationship.check(model) &&
             //ProportionalRelationshipTable.check(model)
         }
+        function fraction() {
+            return `${model.numerator()}/${model.denominator()}`;
+        }
         return Object.assign(model, {
+            numerator,
+            denominator,
+            fraction,
             check,
             expressFractionPrompt,
             findGcfPrompt,
@@ -67,31 +78,36 @@ function View(model, update) {
         const { a, b, x, y, xlab, ylab, showHint } = model.params;
         return view.wrap([
             dom("div", { class: "container" }, [
-                model.findGcfPrompt(),
-                dom("div", { class: "area-model-container" }, [
-                    view.children.get("areaModel").rootElement,
-                ]),
                 model.expressFractionPrompt(),
                 dom("div", {}, [
                     `$${b}$ is `,
-                    new MathField.View(
-                        {
-                            ...model,
-                            input: model.input.get(`fraction`),
-                        },
-                        function (message) {
-                            model.input.set(`fraction`, message.value);
-                            update(message);
-                        }
-                    ).dom(),
+                    dom("div", { class: "inline-container" }, [
+                        new MathField.View(
+                            {
+                                ...model,
+                                input: model.input.get(`fraction`),
+                            },
+                            function (message) {
+                                model.input.set(`fraction`, message.value);
+                                update(message);
+                            }
+                        ).dom(),
+                        dom("div", { class: "feedback-container" }, [
+                            view.children.get("feedback").rootElement,
+                        ]),
+                    ]),
                     ` of $${a}$.`,
-                ]),
-                dom("div", { class: "feedback-container" }, [
-                    view.children.get("feedback").rootElement,
                 ]),
                 ...(model.paramsMap.get("printMode")
                     ? []
                     : [new SubmitButton.View(model, update).dom()]),
+                dom("div", { class: "container" }, [
+                    dom("h2", {}, ["Visualization"]),
+                    model.findGcfPrompt(),
+                    dom("div", { class: "area-model-container" }, [
+                        view.children.get("areaModel").rootElement,
+                    ]),
+                ]),
             ]),
         ]);
     }
@@ -105,11 +121,7 @@ function init(paramsMap, services) {
     const updateParent = services.get("parent");
     return Promise.resolve(new Model(paramsMap)).then(function (model) {
         const view = new View(model, update);
-        const updatePrompt = Prompt.updateFactory(
-            model,
-            view,
-            services
-        );
+        const updatePrompt = Prompt.updateFactory(model, view, services);
         services
             .get("ParamGenerator")({
                 action: "generateParams",
@@ -121,19 +133,47 @@ function init(paramsMap, services) {
         function update(message) {
             if (message.action === "submit") {
                 updatePrompt({
-                    action: "updateChildren",
+                    action: "updateChild",
+                    childId: "feedback",
                     message: {
                         action: "getFeedback",
                         submitMessage: message,
                         data: message.data,
                         model: message.model,
-                        update: updateParent,
+                        update: function () {
+                            services.get("parent")({
+                                ...message,
+                                data: model.fraction(),
+                            });
+                        },
                     },
                 });
+            } else if (message.action === "setInput") {
+                if (
+                    model.numerator() * Number(model.params.a) ===
+                    model.denominator() * Number(model.params.b)
+                ) {
+                    updatePrompt({
+                        action: "updateChild",
+                        childId: "areaModel",
+                        message: {
+                            action: "setData",
+                            data: { h: model.params.a / model.denominator() },
+                        },
+                    }).then(function () {
+                        updatePrompt({
+                            action: "updateChild",
+                            childId: "areaModel",
+                            message: {
+                                action: "render",
+                            },
+                        });
+                    });
+                }
             } else if (message.action === "typeset") {
                 return services.get("MathJax")(message);
-            } else {
-                return services.get("parent")(message);
+                //} else {
+                //    return services.get("parent")(message);
             }
             return Promise.resolve();
         }

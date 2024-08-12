@@ -11,6 +11,11 @@ div.math-prompt div.container {
     padding: 10px;
 }
 
+div.math-prompt div.inline-container {
+    padding: 10px;
+    display: inline-block;
+}
+
 div.math-prompt button {
     font-size: 18pt;
 }
@@ -57,7 +62,7 @@ td {
     width: 120px;
     top: 100%;
     left: 10%;
-    margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
+    /* margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
 }
 
 .tooltip div::before {
@@ -117,6 +122,10 @@ div.serial-composite-nav select {
 
 .invisible {
     display: none;
+}
+
+button {
+    display: block;
 }
 
 button.selected {

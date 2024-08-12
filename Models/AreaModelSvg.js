@@ -247,6 +247,8 @@ function init(paramsMap, updateParentServices) {
                 } else if (message.action === "loadSubmissions") {
                     model.data = JSON.parse(message.submissions.pop()[4]);
                     view.render();
+                } else if (message.action === "render") {
+                    view.render();
                 }
                 updateParent(message);
                 return Promise.resolve(message);
