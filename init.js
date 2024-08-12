@@ -40,6 +40,10 @@ document.addEventListener("DOMContentLoaded", function () {
                             `${appUrl}?action=submit&json=${encodeURIComponent(
                                 JSON.stringify({
                                     modelDataJson: JSON.stringify(message.data),
+                                    correct:
+                                        message?.model?.children?.get(
+                                            "feedback"
+                                        )?.correct ?? "",
                                     paramsMapJson: JSON.stringify(
                                         paramsMap,
                                         mapReplacer
