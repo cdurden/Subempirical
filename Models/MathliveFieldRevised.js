@@ -8,8 +8,8 @@ import {
 } from "../lib/common.js";
 
 function View(model, update, paramsMap) {
-    const self = Object.create(null);
-    Object.setPrototypeOf(self, View.prototype);
+    const view = Object.create(null);
+    Object.setPrototypeOf(view, View.prototype);
     const rootElement = document.createElement("div");
     const renderPrompt = function () {
         return Promise.reject();
@@ -94,8 +94,8 @@ function View(model, update, paramsMap) {
             rootElement.replaceChildren();
             const viewContainerElmt = document.createElement("div");
             rootElement.appendChild(viewContainerElmt);
-            viewContainerElmt.appendChild(self.promptView.rootElement);
-            self.promptView.render().then(function () {
+            viewContainerElmt.appendChild(view.promptView.rootElement);
+            view.promptView.render().then(function () {
                 //responseInputElmt.setAttribute("script-depth", "[0, 1]");
                 if (model.paramsMap.get("fill-in-the-blank") === true) {
                     responseInputElmt.setAttribute("readonly", true);
@@ -104,7 +104,7 @@ function View(model, update, paramsMap) {
                     responseInputElmt.textContent = model.data.response;
                 }
                 viewContainerElmt.appendChild(responseContainerElmt);
-                self.renderFeedback()
+                view.renderFeedback()
                     .then(function (feedbackView) {
                         //rootElement.appendChild(feedbackView.rootElement);
                         responseContainerElmt.appendChild(
@@ -112,11 +112,11 @@ function View(model, update, paramsMap) {
                         );
                     })
                     .catch(function () {});
-                resolve(self);
+                resolve(view);
             });
         });
     }
-    return Object.assign(self, {
+    return Object.assign(view, {
         rootElement,
         renderFeedback,
         render,
@@ -124,10 +124,10 @@ function View(model, update, paramsMap) {
     });
 }
 function Model(paramsMap) {
-    const self = Object.create(null);
-    Object.setPrototypeOf(self, Model.prototype);
+    const model = Object.create(null);
+    Object.setPrototypeOf(model, Model.prototype);
     const data = {
-        prompt: self.promptModel?.data?.prompt,
+        prompt: model.promptModel?.data?.prompt,
         value: paramsMap.get("value"),
     };
     function setCompleted(value) {
@@ -152,7 +152,7 @@ function Model(paramsMap) {
     }
     return new Promise(function (resolve) {
         resolve(
-            Object.assign(self, {
+            Object.assign(model, {
                 data,
                 promptModel: undefined,
                 exportModel,
@@ -162,8 +162,8 @@ function Model(paramsMap) {
         );
     });
 }
-function init(paramsMap, updateServices) {
-    const updateParent = updateServices.get("parent");
+function init(paramsMap, services) {
+    const updateParent = services.get("parent");
     const scriptSourceMap = new Map([
         [
             "localhost",

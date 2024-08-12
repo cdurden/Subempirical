@@ -100,17 +100,17 @@ function View(model, update) {
     });
 }
 
-function init(paramsMap, updateParentServices) {
+function init(paramsMap, services) {
     const rand = paramsMap.get("rand");
-    const updateParent = updateParentServices.get("parent");
+    const updateParent = services.get("parent");
     return Promise.resolve(new Model(paramsMap)).then(function (model) {
         const view = new View(model, update);
         const updatePrompt = Prompt.updateFactory(
             model,
             view,
-            updateParentServices
+            services
         );
-        updateParentServices
+        services
             .get("ParamGenerator")({
                 action: "generateParams",
                 paramsSpec: paramsMap.get("promptParamsSpec"),
@@ -131,9 +131,9 @@ function init(paramsMap, updateParentServices) {
                     },
                 });
             } else if (message.action === "typeset") {
-                return updateParentServices.get("MathJax")(message);
+                return services.get("MathJax")(message);
             } else {
-                return updateParentServices.get("parent")(message);
+                return services.get("parent")(message);
             }
             return Promise.resolve();
         }

@@ -40,9 +40,6 @@ function init(paramsMap, updateParent) {
     ) {
         serviceLoaderModule
             .init(paramsMap, updateParentServices)
-            .then(function (updateNewServices) {
-                return new Map([...updateParentServices, ...updateNewServices]);
-            })
             .then(function (updateServices) {
                 import(new URL(moduleUrl, paramsMap.get("baseURL"))).then(
                     function (module) {

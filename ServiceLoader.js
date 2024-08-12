@@ -1,6 +1,6 @@
 import { loadService } from "./lib/common.js";
 
-function init(paramsMap, parentServices) {
+function init(paramsMap, baseServices) {
     return Promise.all(
         (paramsMap.get("services") ?? []).map(function (serviceName) {
             return loadService(serviceName, {
@@ -8,7 +8,7 @@ function init(paramsMap, parentServices) {
             })
                 .then(function (serviceModule) {
                     return serviceModule
-                        .init(paramsMap, parentServices)
+                        .init(paramsMap, baseServices)
                         .then(function (updateService) {
                             return [serviceName, updateService];
                         });
@@ -17,6 +17,8 @@ function init(paramsMap, parentServices) {
                     console.error(error.message);
                 });
         })
-    );
+    ).then(function (newServices) {
+        return new Map([...baseServices, ...newServices]);
+    });
 }
 export { init };
