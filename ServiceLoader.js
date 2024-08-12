@@ -10,11 +10,12 @@ function init(paramsMap, parentServices) {
                     .init(paramsMap, parentServices)
                     .then(function (updateService) {
                         return [serviceName, updateService];
+                    })
+                    .catch((error) => {
+                        console.error(error.message);
                     });
             });
         })
-    ).catch((error) => {
-        console.error(error.message);
-    });
+    );
 }
 export { init };
