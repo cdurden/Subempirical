@@ -81,7 +81,7 @@ function View(model, update) {
                         },
                         function (message) {
                             model.input.set(`fraction`, message.value);
-                            updateParent(message);
+                            update(message);
                         }
                     ).dom(),
                     ` of $${a}$.`,
@@ -132,6 +132,8 @@ function init(paramsMap, updateParentServices) {
                 });
             } else if (message.action === "typeset") {
                 return updateParentServices.get("MathJax")(message);
+            } else {
+                return updateParentServices.get("parent")(message);
             }
             return Promise.resolve();
         }
