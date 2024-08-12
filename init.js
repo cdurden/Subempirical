@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
         query,
         joinPath,
     }) {
-        getFile(tasksFile, {
+        getFile(searchParams.get("tasksFile"), {
             transformResponse: (response) => response,
             baseURL,
         })
@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(function (taskParamsMap) {
                 //const paramsMap = query(taskParamsMap, taskPath);
+                const taskPath = searchParams.get("taskPath");
                 const paramsMap = new Map([
                     ...Array.from(searchParams.entries()),
                     ...query(taskParamsMap, taskPath),
