@@ -131,8 +131,9 @@ function init(paramsMap, updateParentServices) {
                     },
                 });
             } else if (message.action === "typeset") {
-                updateParentServices.get("MathJax")(message);
+                return updateParentServices.get("MathJax")(message);
             }
+            return Promise.resolve();
         }
         return updatePrompt({
             action: "initChildren",
