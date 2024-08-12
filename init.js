@@ -1,9 +1,9 @@
 //const appUrl = "http://localhost:4096";
+//const baseURL = window.location.origin;
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
 const seed = getRandomInt(10000);
-const baseURL = window.location.origin;
 document.addEventListener("DOMContentLoaded", function () {
     import("./lib/common.js").then(function ({
         getFile,
