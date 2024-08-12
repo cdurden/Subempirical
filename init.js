@@ -1,9 +1,5 @@
 //const appUrl = "http://localhost:4096";
 //const baseURL = window.location.origin;
-function getRandomInt(max) {
-    return Math.floor(Math.random() * max);
-}
-const seed = getRandomInt(10000);
 document.addEventListener("DOMContentLoaded", function () {
     import(new URL("./lib/common.js", baseURL)).then(function ({
         getFile,
@@ -43,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         fetch(
                             `${appUrl}?action=submit&json=${encodeURIComponent(
                                 JSON.stringify({
-                                    data: JSON.stringify(message.data),
+                                    modelDataJson: JSON.stringify(message.data),
                                     paramsMapJson: JSON.stringify(
                                         paramsMap,
                                         mapReplacer
