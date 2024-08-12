@@ -5,7 +5,7 @@ function getRandomInt(max) {
 }
 const seed = getRandomInt(10000);
 document.addEventListener("DOMContentLoaded", function () {
-    import("./lib/common.js").then(function ({
+    import(new URL("./lib/common.js", baseURL)).then(function ({
         getFile,
         mapReviver,
         mapReplacer,
