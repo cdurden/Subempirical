@@ -60,7 +60,7 @@ function Model(paramsMap) {
         );
     });
 }
-function init(paramsMap, updateParent) {
+function init(paramsMap, services) {
     const feedbackModuleUrl = new URL(
         paramsMap.get("feedbackModuleUrl") ?? "./Models/AutoCheckerFeedback.js",
         paramsMap.get("baseURL") ?? window.location.href

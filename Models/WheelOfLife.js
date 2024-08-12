@@ -183,7 +183,7 @@ function View(model, update) {
             settingsMenuElmt.appendChild(maxRatingMenuItemElmt);
             settingsMenuElmt.appendChild(nSectorsMenuItemElmt);
             viewContainerElmt.appendChild(menuElmt);
-            const submitButtonElmt = dom("button", "Submit");
+            const submitButtonElmt = dom("button", {}, ["Submit"]);
             submitButtonElmt.addEventListener("click", function (e) {
                 update({ action: "submit", model });
             });
@@ -239,7 +239,7 @@ function Model(paramsMap) {
         }).then(function (response) {
             resolve(
                 Object.assign(self, {
-                    data: JSON.parse(response.data),
+                    data: response.data,
                     exportModel,
                 })
             );
@@ -247,7 +247,7 @@ function Model(paramsMap) {
     });
 }
 
-function init(paramsMap, updateParent) {
+function init(paramsMap, services) {
     const scriptSourceMap = new Map([
         ["localhost", ["/node_modules/@svgdotjs/svg.js/dist/svg.js"]],
         ["other", ["https://unpkg.com/@svgdotjs/svg.js@3.2.0/dist/svg.js"]],
@@ -376,10 +376,10 @@ function init(paramsMap, updateParent) {
                     model.data = JSON.parse(message.submissions.pop()[4]);
                     view.render();
                 }
-                updateParent(message);
+                services.get("parent")(message);
                 return Promise.resolve(message);
             }
-            updateParent({ action: "getSubmissions", update });
+            services.get("parent")({ action: "getSubmissions", update });
             return initModal(new Map(), update).then(function (modalMVU) {
                 update({
                     action: "setModal",

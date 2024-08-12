@@ -1,4 +1,4 @@
-import { callWhenReady, loadResource } from "../lib/common.js";
+import { loadResource } from "../lib/common.js";
 
 var typesetPromise = Promise.resolve(); // Used to hold chain of typesetting calls
 
@@ -12,11 +12,19 @@ function typeset(code) {
 }
 
 function init(paramsMap, updateParent) {
-    return loadResource(
-        "MathJax-OpenMiddle-config",
-        { baseURL: paramsMap.get("baseURL") },
-        false
-    ).then(function (mathJaxConfigModule) {
+    const mathJaxQueue = [];
+    var state = { ready: false };
+    function callWhenReady(code) {
+        if (state.ready) {
+            code();
+        } else {
+            mathJaxQueue.push(code);
+        }
+    }
+    return loadResource("MathJax-OpenMiddle-config", {
+        baseURL: paramsMap.get("baseURL"),
+    }).then(function (mathJaxConfigModule) {
+        mathJaxConfigModule.setup(mathJaxQueue, state);
         console.log(MathJax);
         return loadResource(
             "MathJax",
@@ -30,11 +38,7 @@ function init(paramsMap, updateParent) {
                             return [message.element];
                         });
                     }
-                    return callWhenReady(
-                        "DOMContentLoadedAndMathJaxReady",
-                        window.mathJaxReady,
-                        typesetElement
-                    );
+                    return callWhenReady(typesetElement);
                 }
                 return true;
             }
