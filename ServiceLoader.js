@@ -13,6 +13,8 @@ function init(paramsMap, parentServices) {
                     });
             });
         })
-    );
+    ).catch((error) => {
+        console.error(error.message);
+    });
 }
 export { init };
